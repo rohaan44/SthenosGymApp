@@ -1,7 +1,7 @@
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/auth/auth_screens/firestore_test_screen.dart';
-import 'package:app/auth/auth_screens/sign_up/sign_up_screen.dart';
+// import 'package:app/auth/auth_screens/sign_up/sign_up_screen.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/screens/attendance_screen.dart';
