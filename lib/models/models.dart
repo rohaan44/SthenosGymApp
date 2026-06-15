@@ -7,6 +7,18 @@ class Member {
   String status;
   final String joinDate;
   final String expiryDate;
+  
+  // New fields from comprehensive form
+  final String? profileImageUrl;
+  final String? dateOfBirth;
+  final String? address;
+  final List<String>? fitnessGoals;
+  final List<String>? addOnServices;
+  final String? paymentMethod;
+  final String? billingFrequency;
+  final String? preferredStartDate;
+  final String? signature;
+  final String? dateSigned;
 
   Member({
     required this.id,
@@ -17,6 +29,16 @@ class Member {
     required this.status,
     required this.joinDate,
     required this.expiryDate,
+    this.profileImageUrl,
+    this.dateOfBirth,
+    this.address,
+    this.fitnessGoals,
+    this.addOnServices,
+    this.paymentMethod,
+    this.billingFrequency,
+    this.preferredStartDate,
+    this.signature,
+    this.dateSigned,
   });
 }
 
