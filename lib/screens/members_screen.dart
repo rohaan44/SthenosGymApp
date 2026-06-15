@@ -5,7 +5,7 @@ import '../providers/gym_provider.dart';
 import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
-
+import 'add_member_modal.dart';
 
 class MembersState extends ChangeNotifier {
   String _search = '';
@@ -37,57 +37,10 @@ class MembersScreen extends StatelessWidget {
   const MembersScreen({super.key});
 
   void _showAddDialog(BuildContext context) {
-    final provider = context.read<GymProvider>();
-    final nameCtrl = TextEditingController();
-    final emailCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    String membership = 'Basic';
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: const Text('Add New Member'),
-          content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              customTf('Full Name', nameCtrl),
-              const SizedBox(height: 12),
-              customTf('Email', emailCtrl),
-              const SizedBox(height: 12),
-              customTf('Phone', phoneCtrl),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: membership,
-                decoration: customInputDecoration('Membership Type'),
-                items: ['Basic', 'Standard', 'Premium']
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setS(() => membership = v!),
-              ),
-            ]),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            FilledButton(
-              onPressed: () {
-                if (nameCtrl.text.isEmpty) return;
-                provider.addMember(Member(
-                  id: provider.members.length + 1,
-                  name: nameCtrl.text,
-                  email: emailCtrl.text,
-                  phone: phoneCtrl.text,
-                  membership: membership,
-                  status: 'Active',
-                  joinDate: 'Jun 10, 2026',
-                  expiryDate: 'Jun 10, 2027',
-                ));
-                Navigator.pop(ctx);
-              },
-              child: const Text('Add Member'),
-            ),
-          ],
-        ),
-      ),
+      barrierDismissible: false,
+      builder: (ctx) => const AddMemberModal(),
     );
   }
 
