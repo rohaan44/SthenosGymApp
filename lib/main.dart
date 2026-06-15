@@ -1,3 +1,5 @@
+import 'package:app/auth/auth_providers/auth_provider.dart';
+import 'package:app/auth/auth_screens/sign_up/sign_up_screen.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/screens/attendance_screen.dart';
@@ -7,14 +9,33 @@ import 'package:app/screens/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
 import 'package:app/screens/trainers_screen.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyCUN89uPzff9NcJ6q1ypIVyPNWYpwycfL4",
+      authDomain: "sthenos-gym-8de40.firebaseapp.com",
+      projectId: "sthenos-gym-8de40",
+      storageBucket: "sthenos-gym-8de40.firebasestorage.app",
+      messagingSenderId: "589496774641",
+      appId: "1:589496774641:web:5710ba9722081f6368de50",
+    ),
+  );
+  // print("🔥 Firebase Initialized Successfully");
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => GymProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<GymProvider>(create: (_) => GymProvider()),
+
+        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -50,7 +71,8 @@ class MyApp extends StatelessWidget {
             surfaceTintColor: Colors.transparent,
           ),
         ),
-        home: const MainScaffold(),
+        // home: const MainScaffold(),
+        home: SignUpScreen(),
       ),
     );
   }
@@ -74,12 +96,36 @@ class MainScaffold extends StatelessWidget {
   const MainScaffold({super.key});
 
   static const List<_NavItem> _navItems = [
-    _NavItem(label: 'Dashboard',  icon: Icons.dashboard_outlined,     activeIcon: Icons.dashboard),
-    _NavItem(label: 'Members',    icon: Icons.people_outlined,         activeIcon: Icons.people),
-    _NavItem(label: 'Classes',    icon: Icons.calendar_today_outlined, activeIcon: Icons.calendar_today),
-    _NavItem(label: 'Trainers',   icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center),
-    _NavItem(label: 'Attendance', icon: Icons.fact_check_outlined,     activeIcon: Icons.fact_check),
-    _NavItem(label: 'Payments',   icon: Icons.credit_card_outlined,    activeIcon: Icons.credit_card),
+    _NavItem(
+      label: 'Dashboard',
+      icon: Icons.dashboard_outlined,
+      activeIcon: Icons.dashboard,
+    ),
+    _NavItem(
+      label: 'Members',
+      icon: Icons.people_outlined,
+      activeIcon: Icons.people,
+    ),
+    _NavItem(
+      label: 'Classes',
+      icon: Icons.calendar_today_outlined,
+      activeIcon: Icons.calendar_today,
+    ),
+    _NavItem(
+      label: 'Trainers',
+      icon: Icons.fitness_center_outlined,
+      activeIcon: Icons.fitness_center,
+    ),
+    _NavItem(
+      label: 'Attendance',
+      icon: Icons.fact_check_outlined,
+      activeIcon: Icons.fact_check,
+    ),
+    _NavItem(
+      label: 'Payments',
+      icon: Icons.credit_card_outlined,
+      activeIcon: Icons.credit_card,
+    ),
   ];
 
   static const List<Widget> _screens = [
@@ -140,7 +186,8 @@ class MainScaffold extends StatelessWidget {
             bottomNavigationBar: NavigationBar(
               backgroundColor: Colors.white,
               selectedIndex: navProvider.selectedIndex,
-              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+              labelBehavior:
+                  NavigationDestinationLabelBehavior.onlyShowSelected,
               onDestinationSelected: navProvider.setSelectedIndex,
               destinations: _navItems
                   .map(
@@ -193,7 +240,11 @@ class _SidebarNav extends StatelessWidget {
                     color: const Color(0xFF2563EB),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.fitness_center, color: Colors.white, size: cw(8.2).clamp(16.0, 22.0)),
+                  child: Icon(
+                    Icons.fitness_center,
+                    color: Colors.white,
+                    size: cw(8.2).clamp(16.0, 22.0),
+                  ),
                 ),
                 SizedBox(width: cw(3.8)),
                 Expanded(
@@ -218,14 +269,22 @@ class _SidebarNav extends StatelessWidget {
             final item = entry.value;
             final isActive = i == selectedIndex;
             return Padding(
-              padding: EdgeInsets.symmetric(horizontal: cw(4.5), vertical: ch(2.0)),
+              padding: EdgeInsets.symmetric(
+                horizontal: cw(4.5),
+                vertical: ch(2.0),
+              ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => onTap(i),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: cw(3.8), vertical: ch(8.9)),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: cw(3.8),
+                    vertical: ch(8.9),
+                  ),
                   decoration: BoxDecoration(
-                    color: isActive ? const Color(0xFFEFF6FF) : Colors.transparent,
+                    color: isActive
+                        ? const Color(0xFFEFF6FF)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -233,7 +292,9 @@ class _SidebarNav extends StatelessWidget {
                       Icon(
                         isActive ? item.activeIcon : item.icon,
                         size: cw(6.8).clamp(16.0, 20.0),
-                        color: isActive ? const Color(0xFF2563EB) : const Color(0xFF6B7280),
+                        color: isActive
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFF6B7280),
                       ),
                       SizedBox(width: cw(3.8)),
                       Text(
@@ -241,7 +302,9 @@ class _SidebarNav extends StatelessWidget {
                         style: TextStyle(
                           fontSize: AppFontSize.f12,
                           fontWeight: FontWeight.w500,
-                          color: isActive ? const Color(0xFF2563EB) : const Color(0xFF374151),
+                          color: isActive
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF374151),
                         ),
                       ),
                     ],
@@ -284,7 +347,11 @@ class _RailNav extends StatelessWidget {
               color: const Color(0xFF2563EB),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.fitness_center, color: Colors.white, size: 22),
+            child: const Icon(
+              Icons.fitness_center,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
           SizedBox(height: ch(8.1)),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
@@ -295,8 +362,14 @@ class _RailNav extends StatelessWidget {
               selectedIndex: selectedIndex,
               onDestinationSelected: onTap,
               labelType: NavigationRailLabelType.selected,
-              selectedIconTheme: const IconThemeData(color: Color(0xFF2563EB), size: 22),
-              unselectedIconTheme: const IconThemeData(color: Color(0xFF6B7280), size: 22),
+              selectedIconTheme: const IconThemeData(
+                color: Color(0xFF2563EB),
+                size: 22,
+              ),
+              unselectedIconTheme: const IconThemeData(
+                color: Color(0xFF6B7280),
+                size: 22,
+              ),
               selectedLabelTextStyle: TextStyle(
                 color: const Color(0xFF2563EB),
                 fontSize: AppFontSize.f12,
@@ -330,5 +403,9 @@ class _NavItem {
   final String label;
   final IconData icon;
   final IconData activeIcon;
-  const _NavItem({required this.label, required this.icon, required this.activeIcon});
+  const _NavItem({
+    required this.label,
+    required this.icon,
+    required this.activeIcon,
+  });
 }
