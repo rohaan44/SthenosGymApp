@@ -1,3 +1,464 @@
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+// import '../providers/gym_provider.dart';
+// import '../shared_widgets.dart';
+// import '../ui/helpers/app_layout_helper.dart';
+// import 'package:app/ui/helpers/font_size_helper.dart';
+
+// class DashboardScreen extends StatelessWidget {
+//   const DashboardScreen({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final provider = context.watch<GymProvider>();
+//     final activeMembers = provider.members
+//         .where((m) => m.status == 'Active')
+//         .length;
+//     final totalRevenue = provider.payments
+//         .where((p) => p.status == 'Paid')
+//         .fold(0.0, (s, p) => s + p.amount);
+//     final todayPresent = provider.attendance
+//         .where((a) => a.status == 'Present')
+//         .length;
+
+//     return Scaffold(
+//       backgroundColor: const Color(0xFFF9FAFB),
+//       body: SingleChildScrollView(
+//         padding: pagePadding(context),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             SizedBox(height: ch(8.1)),
+//             Text(
+//               'Dashboard',
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f19,
+//                 fontWeight: FontWeight.w600,
+//                 color: const Color(0xFF111827),
+//               ),
+//             ),
+//             SizedBox(height: ch(4.1)),
+//             Text(
+//               "Welcome back! Here's what's happening today.",
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f12,
+//                 color: const Color(0xFF6B7280),
+//               ),
+//             ),
+//             SizedBox(height: ch(20.3)),
+
+//             // ── Stat cards ──────────────────────────────────────────────────
+//             LayoutBuilder(
+//               builder: (context, constraints) {
+//                 final crossAxis = constraints.maxWidth > 600 ? 4 : 2;
+//                 final aspectRatio = constraints.maxWidth > 600 ? 1.5 : 1.3;
+//                 return GridView.count(
+//                   crossAxisCount: crossAxis,
+//                   shrinkWrap: true,
+//                   physics: const NeverScrollableScrollPhysics(),
+//                   crossAxisSpacing: cw(7.5),
+//                   mainAxisSpacing: ch(12.2),
+//                   childAspectRatio: aspectRatio,
+//                   children: [
+//                     _StatCard(
+//                       title: 'Active Members',
+//                       value: '$activeMembers',
+//                       subtitle: 'of ${provider.members.length} total',
+//                       icon: Icons.people,
+//                       iconColor: const Color(0xFF2563EB),
+//                       iconBg: const Color(0xFFEFF6FF),
+//                     ),
+//                     _StatCard(
+//                       title: 'Classes Today',
+//                       value: '${provider.classes.length}',
+//                       subtitle:
+//                           '${provider.classes.where((c) => c.status == "Full").length} full',
+//                       icon: Icons.calendar_today,
+//                       iconColor: const Color(0xFF7C3AED),
+//                       iconBg: const Color(0xFFF5F3FF),
+//                     ),
+//                     _StatCard(
+//                       title: 'Attendance',
+//                       value: '$todayPresent',
+//                       subtitle: 'present today',
+//                       icon: Icons.fact_check,
+//                       iconColor: const Color(0xFF059669),
+//                       iconBg: const Color(0xFFECFDF5),
+//                     ),
+//                     _StatCard(
+//                       title: 'Revenue',
+//                       value: '\$${totalRevenue.toInt()}',
+//                       subtitle: 'this month',
+//                       icon: Icons.attach_money,
+//                       iconColor: const Color(0xFFD97706),
+//                       iconBg: const Color(0xFFFFFBEB),
+//                     ),
+//                   ],
+//                 );
+//               },
+//             ),
+
+//             SizedBox(height: ch(20.3)),
+
+//             // ── Recent members & class schedule ────────────────────────────
+//             LayoutBuilder(
+//               builder: (context, constraints) {
+//                 if (constraints.maxWidth > 700) {
+//                   return Row(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Expanded(child: _RecentMembersCard()),
+//                       SizedBox(width: cw(7.5)),
+//                       Expanded(child: _ClassScheduleCard()),
+//                     ],
+//                   );
+//                 }
+//                 return Column(
+//                   children: [
+//                     _RecentMembersCard(),
+//                     SizedBox(height: ch(12.2)),
+//                     _ClassScheduleCard(),
+//                   ],
+//                 );
+//               },
+//             ),
+
+//             SizedBox(height: ch(12.2)),
+//             _PaymentStatusCard(),
+//             SizedBox(height: ch(16.2)),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// class _StatCard extends StatelessWidget {
+//   const _StatCard({
+//     required this.title,
+//     required this.value,
+//     required this.subtitle,
+//     required this.icon,
+//     required this.iconColor,
+//     required this.iconBg,
+//   });
+//   final String title, value, subtitle;
+//   final IconData icon;
+//   final Color iconColor, iconBg;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Card(
+//       child: Padding(
+//         padding: EdgeInsets.all(cw(11.2)),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 Expanded(
+//                   child: Text(
+//                     title,
+//                     style: TextStyle(
+//                       fontSize: AppFontSize.f11,
+//                       color: const Color(0xFF6B7280),
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   padding: EdgeInsets.all(cw(5.6)),
+//                   decoration: BoxDecoration(
+//                     color: iconBg,
+//                     borderRadius: BorderRadius.circular(8),
+//                   ),
+//                   child: Icon(
+//                     icon,
+//                     size: cw(9.4).clamp(14.0, 20.0),
+//                     color: iconColor,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             SizedBox(height: ch(8.1)),
+//             Text(
+//               value,
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f16,
+//                 fontWeight: FontWeight.w600,
+//                 color: const Color(0xFF111827),
+//               ),
+//             ),
+//             SizedBox(height: ch(2.4)),
+//             Text(
+//               subtitle,
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f9,
+//                 color: const Color(0xFF9CA3AF),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// class _RecentMembersCard extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Card(
+//       child: Padding(
+//         padding: EdgeInsets.all(cw(11.2)),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               'Recent Members',
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f13,
+//                 fontWeight: FontWeight.w600,
+//                 color: const Color(0xFF111827),
+//               ),
+//             ),
+//             SizedBox(height: ch(12.2)),
+//             ...context
+//                 .watch<GymProvider>()
+//                 .members
+//                 .take(4)
+//                 .map(
+//                   (m) => Padding(
+//                     padding: EdgeInsets.only(bottom: ch(9.7)),
+//                     child: Row(
+//                       children: [
+//                         CircleAvatar(
+//                           radius: cw(15.0).clamp(16.0, 22.0),
+//                           backgroundColor: const Color(0xFFEFF6FF),
+//                           child: Text(
+//                             m.name[0],
+//                             style: TextStyle(
+//                               color: const Color(0xFF2563EB),
+//                               fontWeight: FontWeight.w600,
+//                               fontSize: AppFontSize.f15,
+//                             ),
+//                           ),
+//                         ),
+//                         SizedBox(width: cw(7.5)),
+//                         Expanded(
+//                           child: Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               Text(
+//                                 m.name,
+//                                 style: TextStyle(
+//                                   fontSize: AppFontSize.f12,
+//                                   fontWeight: FontWeight.w500,
+//                                   color: const Color(0xFF111827),
+//                                 ),
+//                               ),
+//                               Text(
+//                                 m.membership,
+//                                 style: TextStyle(
+//                                   fontSize: AppFontSize.f10,
+//                                   color: const Color(0xFF6B7280),
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         StatusBadge(status: m.status),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// class _ClassScheduleCard extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Card(
+//       child: Padding(
+//         padding: EdgeInsets.all(cw(11.2)),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               "Today's Classes",
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f13,
+//                 fontWeight: FontWeight.w600,
+//                 color: const Color(0xFF111827),
+//               ),
+//             ),
+//             SizedBox(height: ch(12.2)),
+//             ...context
+//                 .watch<GymProvider>()
+//                 .classes
+//                 .take(4)
+//                 .map(
+//                   (c) => Padding(
+//                     padding: EdgeInsets.only(bottom: ch(9.7)),
+//                     child: Row(
+//                       children: [
+//                         Container(
+//                           width: cw(2.2).clamp(3.0, 5.0),
+//                           height: ch(36.5),
+//                           decoration: BoxDecoration(
+//                             color: const Color(0xFF2563EB),
+//                             borderRadius: BorderRadius.circular(2),
+//                           ),
+//                         ),
+//                         SizedBox(width: cw(7.5)),
+//                         Expanded(
+//                           child: Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               Text(
+//                                 c.name,
+//                                 style: TextStyle(
+//                                   fontSize: AppFontSize.f12,
+//                                   fontWeight: FontWeight.w500,
+//                                   color: const Color(0xFF111827),
+//                                 ),
+//                               ),
+//                               Text(
+//                                 '${c.time} · ${c.trainer}',
+//                                 style: TextStyle(
+//                                   fontSize: AppFontSize.f10,
+//                                   color: const Color(0xFF6B7280),
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         Text(
+//                           '${c.enrolled}/${c.capacity}',
+//                           style: TextStyle(
+//                             fontSize: AppFontSize.f11,
+//                             color: const Color(0xFF6B7280),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// class _PaymentStatusCard extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     final provider = context.watch<GymProvider>();
+//     final paid = provider.payments.where((p) => p.status == 'Paid').length;
+//     final pending = provider.payments
+//         .where((p) => p.status == 'Pending')
+//         .length;
+//     final overdue = provider.payments
+//         .where((p) => p.status == 'Overdue')
+//         .length;
+
+//     return Card(
+//       child: Padding(
+//         padding: EdgeInsets.all(cw(11.2)),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               'Payment Overview',
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f13,
+//                 fontWeight: FontWeight.w600,
+//                 color: const Color(0xFF111827),
+//               ),
+//             ),
+//             SizedBox(height: ch(12.2)),
+//             Row(
+//               children: [
+//                 _PaymentPill(
+//                   label: 'Paid',
+//                   count: paid,
+//                   color: const Color(0xFF059669),
+//                   bg: const Color(0xFFECFDF5),
+//                 ),
+//                 SizedBox(width: cw(7.5)),
+//                 _PaymentPill(
+//                   label: 'Pending',
+//                   count: pending,
+//                   color: const Color(0xFFD97706),
+//                   bg: const Color(0xFFFFFBEB),
+//                 ),
+//                 SizedBox(width: cw(7.5)),
+//                 _PaymentPill(
+//                   label: 'Overdue',
+//                   count: overdue,
+//                   color: const Color(0xFFDC2626),
+//                   bg: const Color(0xFFFEF2F2),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// class _PaymentPill extends StatelessWidget {
+//   const _PaymentPill({
+//     required this.label,
+//     required this.count,
+//     required this.color,
+//     required this.bg,
+//   });
+//   final String label;
+//   final int count;
+//   final Color color, bg;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Expanded(
+//       child: Container(
+//         padding: EdgeInsets.symmetric(vertical: ch(12.2)),
+//         decoration: BoxDecoration(
+//           color: bg,
+//           borderRadius: BorderRadius.circular(8),
+//         ),
+//         child: Column(
+//           children: [
+//             Text(
+//               '$count',
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f16,
+//                 fontWeight: FontWeight.w700,
+//                 color: color,
+//               ),
+//             ),
+//             SizedBox(height: ch(2.4)),
+//             Text(
+//               label,
+//               style: TextStyle(fontSize: AppFontSize.f11, color: color),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/gym_provider.dart';
@@ -5,16 +466,21 @@ import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 
-
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<GymProvider>();
-    final activeMembers = provider.members.where((m) => m.status == 'Active').length;
-    final totalRevenue = provider.payments.where((p) => p.status == 'Paid').fold(0.0, (s, p) => s + p.amount);
-    final todayPresent = provider.attendance.where((a) => a.status == 'Present').length;
+    final activeMembers = provider.members
+        .where((m) => m.status == 'Active')
+        .length;
+    final totalRevenue = provider.payments
+        .where((p) => p.status == 'Paid')
+        .fold(0.0, (s, p) => s + p.amount);
+    final todayPresent = provider.attendance
+        .where((a) => a.status == 'Present')
+        .length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -24,77 +490,120 @@ class DashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: ch(8.1)),
-            Text('Dashboard',
-                style: TextStyle(fontSize: AppFontSize.f19, fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
+            Text(
+              'Dashboard',
+              style: TextStyle(
+                fontSize: AppFontSize.f19,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111827),
+              ),
+            ),
             SizedBox(height: ch(4.1)),
-            Text("Welcome back! Here's what's happening today.",
-                style: TextStyle(fontSize: AppFontSize.f12, color: const Color(0xFF6B7280))),
+            Text(
+              "Welcome back! Here's what's happening today.",
+              style: TextStyle(
+                fontSize: AppFontSize.f12,
+                color: const Color(0xFF6B7280),
+              ),
+            ),
             SizedBox(height: ch(20.3)),
 
-            // ── Stat cards ──────────────────────────────────────────────────
-            LayoutBuilder(builder: (context, constraints) {
-              final crossAxis = constraints.maxWidth > 600 ? 4 : 2;
-              final aspectRatio = constraints.maxWidth > 600 ? 1.5 : 1.3;
-              return GridView.count(
-                crossAxisCount: crossAxis,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: cw(7.5),
-                mainAxisSpacing: ch(12.2),
-                childAspectRatio: aspectRatio,
-                children: [
-                  _StatCard(
-                      title: 'Active Members',
-                      value: '$activeMembers',
-                      subtitle: 'of ${provider.members.length} total',
-                      icon: Icons.people,
-                      iconColor: const Color(0xFF2563EB),
-                      iconBg: const Color(0xFFEFF6FF)),
-                  _StatCard(
-                      title: 'Classes Today',
-                      value: '${provider.classes.length}',
-                      subtitle: '${provider.classes.where((c) => c.status == "Full").length} full',
-                      icon: Icons.calendar_today,
-                      iconColor: const Color(0xFF7C3AED),
-                      iconBg: const Color(0xFFF5F3FF)),
-                  _StatCard(
-                      title: 'Attendance',
-                      value: '$todayPresent',
-                      subtitle: 'present today',
-                      icon: Icons.fact_check,
-                      iconColor: const Color(0xFF059669),
-                      iconBg: const Color(0xFFECFDF5)),
-                  _StatCard(
-                      title: 'Revenue',
-                      value: '\$${totalRevenue.toInt()}',
-                      subtitle: 'this month',
-                      icon: Icons.attach_money,
-                      iconColor: const Color(0xFFD97706),
-                      iconBg: const Color(0xFFFFFBEB)),
-                ],
-              );
-            }),
+            // ── Stat cards (1 Row mein 4 Containers fixed for Web/Desktop) ──
+            LayoutBuilder(
+              builder: (context, constraints) {
+                double cardWidth;
+
+                // Desktop / Web View (> 900px) -> 4 Cards in 1 Row
+                if (constraints.maxWidth > 900) {
+                  cardWidth = (constraints.maxWidth - 48) / 4;
+                }
+                // Tablet View (600px se 900px) -> 2 Cards in 1 Row
+                else if (constraints.maxWidth > 600) {
+                  cardWidth = (constraints.maxWidth - 16) / 2;
+                }
+                // Mobile View (< 600px) -> 1 Card in 1 Row (Stacked)
+                else {
+                  cardWidth = constraints.maxWidth;
+                }
+
+                return Wrap(
+                  spacing: 16.0, // Horizontal space
+                  runSpacing: 16.0, // Vertical space
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      child: _StatCard(
+                        title: 'Active Members',
+                        value: '$activeMembers',
+                        subtitle: 'of ${provider.members.length} total',
+                        icon: Icons.people,
+                        iconColor: const Color(0xFF2563EB),
+                        iconBg: const Color(0xFFEFF6FF),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _StatCard(
+                        title: 'Classes Today',
+                        value: '${provider.classes.length}',
+                        subtitle:
+                            '${provider.classes.where((c) => c.status == "Full").length} full',
+                        icon: Icons.calendar_today,
+                        iconColor: const Color(0xFF7C3AED),
+                        iconBg: const Color(0xFFF5F3FF),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _StatCard(
+                        title: 'Attendance',
+                        value: '$todayPresent',
+                        subtitle: 'present today',
+                        icon: Icons.fact_check,
+                        iconColor: const Color(0xFF059669),
+                        iconBg: const Color(0xFFECFDF5),
+                      ),
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _StatCard(
+                        title: 'Revenue',
+                        value: '\$${totalRevenue.toInt()}',
+                        subtitle: 'this month',
+                        icon: Icons.attach_money,
+                        iconColor: const Color(0xFFD97706),
+                        iconBg: const Color(0xFFFFFBEB),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
 
             SizedBox(height: ch(20.3)),
 
             // ── Recent members & class schedule ────────────────────────────
-            LayoutBuilder(builder: (context, constraints) {
-              if (constraints.maxWidth > 700) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > 700) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _RecentMembersCard()),
+                      SizedBox(width: cw(7.5)),
+                      Expanded(child: _ClassScheduleCard()),
+                    ],
+                  );
+                }
+                return Column(
                   children: [
-                    Expanded(child: _RecentMembersCard()),
-                    SizedBox(width: cw(7.5)),
-                    Expanded(child: _ClassScheduleCard()),
+                    _RecentMembersCard(),
+                    SizedBox(height: ch(12.2)),
+                    _ClassScheduleCard(),
                   ],
                 );
-              }
-              return Column(children: [
-                _RecentMembersCard(),
-                SizedBox(height: ch(12.2)),
-                _ClassScheduleCard(),
-              ]);
-            }),
+              },
+            ),
 
             SizedBox(height: ch(12.2)),
             _PaymentStatusCard(),
@@ -123,30 +632,61 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(cw(11.2)),
+        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize
+              .min, // Height automatically content k mutabik set hogi
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                    child: Text(title,
-                        style: TextStyle(fontSize: AppFontSize.f11, color: const Color(0xFF6B7280)))),
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: AppFontSize.f11,
+                      color: const Color(0xFF6B7280),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 Container(
-                  padding: EdgeInsets.all(cw(5.6)),
-                  decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
-                  child: Icon(icon, size: cw(9.4).clamp(14.0, 20.0), color: iconColor),
+                  padding: EdgeInsets.all(cw(5.6).clamp(6.0, 8.0)),
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: cw(9.4).clamp(16.0, 20.0),
+                    color: iconColor,
+                  ),
                 ),
               ],
             ),
             SizedBox(height: ch(8.1)),
-            Text(value,
-                style: TextStyle(
-                    fontSize: AppFontSize.f16, fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: AppFontSize.f16,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111827),
+              ),
+            ),
             SizedBox(height: ch(2.4)),
-            Text(subtitle, style: TextStyle(fontSize: AppFontSize.f9, color: const Color(0xFF9CA3AF))),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: AppFontSize.f9,
+                color: const Color(0xFF9CA3AF),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
@@ -159,47 +699,74 @@ class _RecentMembersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(cw(11.2)),
+        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Recent Members',
-                style: TextStyle(
-                    fontSize: AppFontSize.f13, fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
+            Text(
+              'Recent Members',
+              style: TextStyle(
+                fontSize: AppFontSize.f13,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111827),
+              ),
+            ),
             SizedBox(height: ch(12.2)),
-            ...context.watch<GymProvider>().members.take(4).map((m) => Padding(
-                  padding: EdgeInsets.only(bottom: ch(9.7)),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: cw(15.0).clamp(16.0, 22.0),
-                        backgroundColor: const Color(0xFFEFF6FF),
-                        child: Text(m.name[0],
+            ...context
+                .watch<GymProvider>()
+                .members
+                .take(4)
+                .map(
+                  (m) => Padding(
+                    padding: EdgeInsets.only(bottom: ch(9.7)),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: cw(15.0).clamp(16.0, 20.0),
+                          backgroundColor: const Color(0xFFEFF6FF),
+                          child: Text(
+                            m.name.isNotEmpty ? m.name[0] : 'M',
                             style: TextStyle(
-                                color: const Color(0xFF2563EB),
-                                fontWeight: FontWeight.w600,
-                                fontSize: AppFontSize.f15)),
-                      ),
-                      SizedBox(width: cw(7.5)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(m.name,
-                                style: TextStyle(
-                                    fontSize: AppFontSize.f12,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF111827))),
-                            Text(m.membership,
-                                style: TextStyle(fontSize: AppFontSize.f10, color: const Color(0xFF6B7280))),
-                          ],
+                              color: const Color(0xFF2563EB),
+                              fontWeight: FontWeight.w600,
+                              fontSize: AppFontSize.f12,
+                            ),
+                          ),
                         ),
-                      ),
-                      StatusBadge(status: m.status),
-                    ],
+                        SizedBox(width: cw(7.5)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                m.name,
+                                style: TextStyle(
+                                  fontSize: AppFontSize.f12,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF111827),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                m.membership,
+                                style: TextStyle(
+                                  fontSize: AppFontSize.f10,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        StatusBadge(status: m.status),
+                      ],
+                    ),
                   ),
-                )),
+                ),
           ],
         ),
       ),
@@ -212,47 +779,76 @@ class _ClassScheduleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(cw(11.2)),
+        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Today's Classes",
-                style: TextStyle(
-                    fontSize: AppFontSize.f13, fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
+            Text(
+              "Today's Classes",
+              style: TextStyle(
+                fontSize: AppFontSize.f13,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111827),
+              ),
+            ),
             SizedBox(height: ch(12.2)),
-            ...context.watch<GymProvider>().classes.take(4).map((c) => Padding(
-                  padding: EdgeInsets.only(bottom: ch(9.7)),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: cw(2.2).clamp(3.0, 5.0),
-                        height: ch(36.5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB),
-                          borderRadius: BorderRadius.circular(2),
+            ...context
+                .watch<GymProvider>()
+                .classes
+                .take(4)
+                .map(
+                  (c) => Padding(
+                    padding: EdgeInsets.only(bottom: ch(9.7)),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: cw(2.2).clamp(3.0, 4.0),
+                          height: ch(32.0).clamp(28.0, 36.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                      ),
-                      SizedBox(width: cw(7.5)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(c.name,
+                        SizedBox(width: cw(7.5)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                c.name,
                                 style: TextStyle(
-                                    fontSize: AppFontSize.f12,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF111827))),
-                            Text('${c.time} · ${c.trainer}',
-                                style: TextStyle(fontSize: AppFontSize.f10, color: const Color(0xFF6B7280))),
-                          ],
+                                  fontSize: AppFontSize.f12,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF111827),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '${c.time} · ${c.trainer}',
+                                style: TextStyle(
+                                  fontSize: AppFontSize.f10,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text('${c.enrolled}/${c.capacity}',
-                          style: TextStyle(fontSize: AppFontSize.f11, color: const Color(0xFF6B7280))),
-                    ],
+                        Text(
+                          '${c.enrolled}/${c.capacity}',
+                          style: TextStyle(
+                            fontSize: AppFontSize.f11,
+                            color: const Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                )),
+                ),
           ],
         ),
       ),
@@ -266,27 +862,82 @@ class _PaymentStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<GymProvider>();
     final paid = provider.payments.where((p) => p.status == 'Paid').length;
-    final pending = provider.payments.where((p) => p.status == 'Pending').length;
-    final overdue = provider.payments.where((p) => p.status == 'Overdue').length;
+    final pending = provider.payments
+        .where((p) => p.status == 'Pending')
+        .length;
+    final overdue = provider.payments
+        .where((p) => p.status == 'Overdue')
+        .length;
 
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(cw(11.2)),
+        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Payment Overview',
-                style: TextStyle(
-                    fontSize: AppFontSize.f13, fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
+            Text(
+              'Payment Overview',
+              style: TextStyle(
+                fontSize: AppFontSize.f13,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF111827),
+              ),
+            ),
             SizedBox(height: ch(12.2)),
-            Row(
-              children: [
-                _PaymentPill(label: 'Paid', count: paid, color: const Color(0xFF059669), bg: const Color(0xFFECFDF5)),
-                SizedBox(width: cw(7.5)),
-                _PaymentPill(label: 'Pending', count: pending, color: const Color(0xFFD97706), bg: const Color(0xFFFFFBEB)),
-                SizedBox(width: cw(7.5)),
-                _PaymentPill(label: 'Overdue', count: overdue, color: const Color(0xFFDC2626), bg: const Color(0xFFFEF2F2)),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 450) {
+                  return Column(
+                    children: [
+                      _PaymentPillHorizontal(
+                        label: 'Paid',
+                        count: paid,
+                        color: const Color(0xFF059669),
+                        bg: const Color(0xFFECFDF5),
+                      ),
+                      const SizedBox(height: 8.0),
+                      _PaymentPillHorizontal(
+                        label: 'Pending',
+                        count: pending,
+                        color: const Color(0xFFD97706),
+                        bg: const Color(0xFFFFFBEB),
+                      ),
+                      const SizedBox(height: 8.0),
+                      _PaymentPillHorizontal(
+                        label: 'Overdue',
+                        count: overdue,
+                        color: const Color(0xFFDC2626),
+                        bg: const Color(0xFFFEF2F2),
+                      ),
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    _PaymentPill(
+                      label: 'Paid',
+                      count: paid,
+                      color: const Color(0xFF059669),
+                      bg: const Color(0xFFECFDF5),
+                    ),
+                    SizedBox(width: cw(7.5)),
+                    _PaymentPill(
+                      label: 'Pending',
+                      count: pending,
+                      color: const Color(0xFFD97706),
+                      bg: const Color(0xFFFFFBEB),
+                    ),
+                    SizedBox(width: cw(7.5)),
+                    _PaymentPill(
+                      label: 'Overdue',
+                      count: overdue,
+                      color: const Color(0xFFDC2626),
+                      bg: const Color(0xFFFEF2F2),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -297,7 +948,12 @@ class _PaymentStatusCard extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 class _PaymentPill extends StatelessWidget {
-  const _PaymentPill({required this.label, required this.count, required this.color, required this.bg});
+  const _PaymentPill({
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.bg,
+  });
   final String label;
   final int count;
   final Color color, bg;
@@ -306,15 +962,72 @@ class _PaymentPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: ch(12.2)),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+        padding: EdgeInsets.symmetric(vertical: ch(12.2).clamp(12.0, 16.0)),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Column(
           children: [
-            Text('$count', style: TextStyle(fontSize: AppFontSize.f16, fontWeight: FontWeight.w700, color: color)),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: AppFontSize.f16,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
             SizedBox(height: ch(2.4)),
-            Text(label, style: TextStyle(fontSize: AppFontSize.f11, color: color)),
+            Text(
+              label,
+              style: TextStyle(fontSize: AppFontSize.f11, color: color),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PaymentPillHorizontal extends StatelessWidget {
+  const _PaymentPillHorizontal({
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.bg,
+  });
+  final String label;
+  final int count;
+  final Color color, bg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: AppFontSize.f11,
+              fontWeight: FontWeight.w500,
+              color: color,
+            ),
+          ),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: AppFontSize.f16,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
