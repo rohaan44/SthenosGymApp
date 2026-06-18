@@ -8,6 +8,7 @@ class AppColor {
   static const blue = Color(0xff4D9BDA);
   static const brown = Color(0xff8B6E4A);
   static const darkblue = Color(0xff346094);
+  static const blue2 = Color(0xff2563EB);
   static const beige = Color(0xffB8A999);
   static const white = Color(0xffffffff);
   static const whiteShadow = Color(0xff9facb9);

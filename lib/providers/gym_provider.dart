@@ -30,6 +30,14 @@ class GymProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateMember(Member updated) {
+    final index = _members.indexWhere((m) => m.id == updated.id);
+    if (index != -1) {
+      _members[index] = updated;
+      notifyListeners();
+    }
+  }
+
   void addClass(GymClass gymClass) {
     _classes.add(gymClass);
     notifyListeners();

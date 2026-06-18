@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:image_picker/image_picker.dart';
 // import 'dart:io';
@@ -13,20 +12,22 @@ class CloudinaryService {
 
   Future<String?> uploadImage(XFile imageFile) async {
     try {
-      CloudinaryFile cloudinaryFile;
-      if (kIsWeb) {
-        final bytes = await imageFile.readAsBytes();
-        cloudinaryFile = CloudinaryFile.fromBytesData(
-          bytes,
-          identifier: imageFile.name,
-          resourceType: CloudinaryResourceType.Image,
-        );
-      } else {
-        cloudinaryFile = CloudinaryFile.fromFile(
-          imageFile.path,
-          resourceType: CloudinaryResourceType.Image,
-        );
+      final bytes = await imageFile.readAsBytes();
+      
+      // Ensure the identifier has an extension, otherwise Dio might send it as application/octet-stream
+      // which Cloudinary rejects with 'Missing required parameter - file'.
+      String fileName = imageFile.name;
+      if (fileName.isEmpty) {
+        fileName = 'upload.jpg';
+      } else if (!fileName.contains('.')) {
+        fileName = '$fileName.jpg';
       }
+
+      final cloudinaryFile = CloudinaryFile.fromBytesData(
+        bytes,
+        identifier: fileName,
+        resourceType: CloudinaryResourceType.Image,
+      );
 
       final response = await cloudinary.uploadFile(cloudinaryFile);
       log("Response: *********** ${response.secureUrl}");

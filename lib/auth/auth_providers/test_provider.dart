@@ -13,7 +13,7 @@ class FirestoreTestProvider extends ChangeNotifier {
       message = '';
       notifyListeners();
 
-      await _firestore.collection('test_collection').add({
+      await _firestore.collection('members').add({
         'name': 'Huzaifa',
         'gym': 'Sthenos Gym',
         'createdAt': Timestamp.now(),

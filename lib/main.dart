@@ -1,5 +1,6 @@
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
+import 'package:app/providers/members_provider.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/screens/attendance_screen.dart';
@@ -9,6 +10,7 @@ import 'package:app/screens/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
 import 'package:app/screens/trainers_screen.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
+import 'package:app/ui/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,8 +35,10 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<GymProvider>(create: (_) => GymProvider()),
-
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+        ChangeNotifierProvider<MembersProvider>(
+          create: (_) => MembersProvider(),
+        ),
         ChangeNotifierProvider<FirestoreTestProvider>(
           create: (_) => FirestoreTestProvider(),
         ),
@@ -75,6 +79,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         home: const MainScaffold(),
+        onGenerateRoute: AppRouter.generateRoute,
         // home: SignUpScreen(),
         // home: FirestoreTestScreen(),
       ),
