@@ -10,6 +10,12 @@ import 'gym_provider.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddMemberProvider extends ChangeNotifier {
+  final formKey = GlobalKey<FormState>();
+
+  final emergencyCtrl = TextEditingController();
+  final cnicCtrl = TextEditingController();
+  final injuryCtrl = TextEditingController();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
@@ -20,12 +26,12 @@ class AddMemberProvider extends ChangeNotifier {
   final dateSignedCtrl = TextEditingController();
   final startDateCtrl = TextEditingController();
   final otherGoalCtrl = TextEditingController();
-  
+
   static const membershipPlans = [
-    'Monthly - \$40 / month',
-    '3-Month Plan - \$110',
-    '6-Month Plan - \$210',
-    'Annual Plan - \$390',
+    'Monthly - Rs. 4000 / month',
+    '3-Month Plan - Rs. 10000',
+    '6-Month Plan - Rs. 24000',
+    'Annual Plan - Rs. 40000',
   ];
 
   static const fitnessGoalOptions = [
@@ -43,8 +49,15 @@ class AddMemberProvider extends ChangeNotifier {
     'Towel Service - \$5 / month',
   ];
 
-  static const paymentMethods = ['Credit Card', 'Bank Transfer', 'Cash'];
-  static const billingFrequencies = ['Monthly', 'Quarterly', 'One-time Full Payment'];
+  static const paymentMethods = [
+    // 'Credit Card',
+    'Bank Transfer', 'Cash',
+  ];
+  static const billingFrequencies = [
+    'Monthly',
+    'Quarterly',
+    'One-time Full Payment',
+  ];
 
   String membership = membershipPlans.first;
   final List<String> fitnessGoals = [];
@@ -55,7 +68,7 @@ class AddMemberProvider extends ChangeNotifier {
   String billingFrequency = billingFrequencies.first;
 
   XFile? imageFile;
-  String? imageUrl;          // class-level so saveData() can access it
+  String? imageUrl; // class-level so saveData() can access it
   bool isLoading = false;
 
   CameraController? cameraController;
@@ -291,6 +304,63 @@ class AddMemberProvider extends ChangeNotifier {
   // bool isLoading = false;
   String message = '';
 
+  List gymTermsAndConditions = [
+    {
+      'id': 1,
+      'title': 'Membership & Fees',
+      'points': [
+        'Admission and monthly fees are non-refundable.',
+        'Members are required to pay their monthly fees within the first week of every month.',
+        'Failure to pay fees on time may result in suspension of membership.',
+        'No refunds will be given for unused membership periods.',
+      ],
+    },
+    {
+      'id': 2,
+      'title': 'Workout Policy',
+      'points': [
+        'Members are allotted a total workout duration of 45 minutes per session.',
+        'Keep noise levels reasonable and avoid disrupting others’ workouts.',
+        'Wipe down equipment after use and return weights to their designated racks.',
+      ],
+    },
+    {
+      'id': 3,
+      'title': 'Personal Belongings',
+      'points': [
+        'STHENOS BODY FITNESS AND GYM is not responsible for lost, stolen, or damaged personal items.',
+        'The gym is not responsible for vehicles parked on the premises.',
+        'Members park their vehicles at their own risk.',
+      ],
+    },
+    {
+      'id': 4,
+      'title': 'Equipment & Property',
+      'points': [
+        'Members are liable for any damage caused to gym equipment or property.',
+        'Any repair costs or applicable fines resulting from damage must be paid by the member.',
+        'Report any damaged or malfunctioning equipment to staff immediately.',
+      ],
+    },
+    {
+      'id': 5,
+      'title': 'Health & Safety',
+      'points': [
+        'Members must disclose any health conditions that may affect their ability to exercise safely.',
+        'The gym is not responsible for injuries, accidents, or health issues arising from the use of equipment or facilities.',
+        'Smoking, spitting, and littering within the gym premises are strictly prohibited.',
+      ],
+    },
+    {
+      'id': 6,
+      'title': 'Membership Termination & Updates',
+      'points': [
+        'The gym reserves the right to terminate a membership for violation of these terms.',
+        'STHENOS BODY FITNESS AND GYM reserves the right to modify these terms and conditions at any time.',
+      ],
+    },
+  ];
+
   /// Saves member data to Firestore.
   /// Call after [imageUrl] has been set (done automatically by [submit]).
   Future<void> saveData() async {
@@ -301,7 +371,9 @@ class AddMemberProvider extends ChangeNotifier {
         'phone': phoneCtrl.text.trim(),
         'membership': membership,
         'status': 'Active',
-        'joinDate': startDateCtrl.text.isNotEmpty ? startDateCtrl.text : 'Today',
+        'joinDate': startDateCtrl.text.isNotEmpty
+            ? startDateCtrl.text
+            : 'Today',
         'expiryDate': '1 Year from today',
         'image': imageUrl,
         'dateOfBirth': dobCtrl.text,
@@ -309,10 +381,10 @@ class AddMemberProvider extends ChangeNotifier {
         'fitnessGoals': fitnessGoals,
         'addOnServices': addOns,
         'paymentMethod': paymentMethod,
-        'billingFrequency': billingFrequency,
+        // 'billingFrequency': billingFrequency,
         'preferredStartDate': startDateCtrl.text,
-        'signature': signatureCtrl.text,
-        'dateSigned': dateSignedCtrl.text,
+        // 'signature': signatureCtrl.text,
+        // 'dateSigned': dateSignedCtrl.text,
       });
 
       message = '✅ Data Saved Successfully';
