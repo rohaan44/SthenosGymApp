@@ -613,8 +613,8 @@ Widget _dateField({
           final picked = await showDatePicker(
             context: context,
             initialDate: DateTime.now(),
-            firstDate: DateTime(1900),
-            lastDate: DateTime(2100),
+            firstDate: DateTime(1960),
+            lastDate: DateTime(2050),
           );
           if (picked != null) {
             controller.text =

@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import '../models/models.dart';
+import '../service/firestore_service.dart';
 
+/// Holds only UI state for the Members screen (search text + filter).
+/// All Firestore data arrives via [FirestoreService.membersStream] —
+/// no local cache, no .get() calls.
 class MembersProvider extends ChangeNotifier {
-  final List<Member> _members = List.from(seedMembers);
-
   String _search = '';
   String _filterStatus = 'all';
 
-  List<Member> get members => _members;
   String get search => _search;
   String get filterStatus => _filterStatus;
+
+  /// Live stream of members from Firestore, ordered by joinDate descending.
+  /// Bind a StreamBuilder directly to this in the Members screen.
+  Stream<dynamic> get membersStream => FirestoreService.instance.membersStream();
 
   void setSearch(String value) {
     _search = value;
@@ -18,24 +22,6 @@ class MembersProvider extends ChangeNotifier {
 
   void setFilterStatus(String value) {
     _filterStatus = value;
-    notifyListeners();
-  }
-
-  List<Member> get filtered => _members.where((m) {
-        final matchSearch = m.name.toLowerCase().contains(_search.toLowerCase()) ||
-            m.email.toLowerCase().contains(_search.toLowerCase());
-        final matchStatus =
-            _filterStatus == 'all' || m.status.toLowerCase() == _filterStatus.toLowerCase();
-        return matchSearch && matchStatus;
-      }).toList();
-
-  void addMember(Member member) {
-    _members.add(member);
-    notifyListeners();
-  }
-
-  void deleteMember(int id) {
-    _members.removeWhere((m) => m.id == id);
     notifyListeners();
   }
 }

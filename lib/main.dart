@@ -1,6 +1,7 @@
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/members_provider.dart';
+import 'package:app/providers/payment_provider.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/screens/attendance_screen.dart';
@@ -42,6 +43,7 @@ Future<void> main() async {
         ChangeNotifierProvider<FirestoreTestProvider>(
           create: (_) => FirestoreTestProvider(),
         ),
+        ChangeNotifierProvider<PaymentsProvider>(create: (_) => PaymentsProvider()),
       ],
       child: const MyApp(),
     ),

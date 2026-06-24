@@ -1,26 +1,37 @@
 class Member {
+  /// Firestore document ID — used to scope payment queries and write updates.
+  final String docId;
+
   final int id;
   final String name;
   final String email;
   final String phone;
   final String membership;
   String status;
+
+  /// ISO-8601 date string "YYYY-MM-DD" (or legacy human-readable).
   final String joinDate;
+
+  /// ISO-8601 date string "YYYY-MM-DD" — the end of the current billing cycle.
   final String expiryDate;
-  
-  // New fields from comprehensive form
+
+  // Extended fields from the comprehensive Add Member form
   final String? profileImageUrl;
   final String? dateOfBirth;
   final String? address;
   final List<String>? fitnessGoals;
   final List<String>? addOnServices;
   final String? paymentMethod;
+
+  /// "Monthly" | "Quarterly" | "Yearly" | "One-time Full Payment"
   final String? billingFrequency;
   final String? preferredStartDate;
   final String? signature;
   final String? dateSigned;
+  final String? lastPaymentDate;
 
   Member({
+    this.docId = '',
     required this.id,
     required this.name,
     required this.email,
@@ -39,7 +50,41 @@ class Member {
     this.preferredStartDate,
     this.signature,
     this.dateSigned,
+    this.lastPaymentDate,
   });
+
+  /// Maps a Firestore [QueryDocumentSnapshot] to a [Member].
+  /// All date fields are stored as "YYYY-MM-DD" strings in Firestore.
+  factory Member.fromFirestore(Map<String, dynamic> data, String docId) {
+    return Member(
+      docId: docId,
+      id: (data['gymId'] != null)
+          ? int.tryParse(data['gymId'].toString()) ?? 0
+          : 0,
+      name: data['name'] ?? '',
+      email: data['email'] ?? '',
+      phone: data['phone'] ?? '',
+      membership: data['membership'] ?? '',
+      status: data['status'] ?? 'Active',
+      joinDate: data['joinDate'] ?? '',
+      expiryDate: data['expiryDate'] ?? '',
+      profileImageUrl: data['image'],
+      dateOfBirth: data['dateOfBirth'],
+      address: data['address'],
+      fitnessGoals: (data['fitnessGoals'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      addOnServices: (data['addOnServices'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      paymentMethod: data['paymentMethod'],
+      billingFrequency: data['billingFrequency'],
+      preferredStartDate: data['preferredStartDate'],
+      signature: data['signature'],
+      dateSigned: data['dateSigned'],
+      lastPaymentDate: data['lastPaymentDate'],
+    );
+  }
 }
 
 class GymClass {
@@ -115,17 +160,27 @@ class AttendanceRecord {
 }
 
 class Payment {
+  /// Firestore document ID — required to call `.update()` on this specific doc.
+  final String docId;
+
   final int id;
   final String member;
   final double amount;
   final String plan;
   final String method;
   String status;
+
+  /// ISO-8601 date string "YYYY-MM-DD".
   final String date;
   final String dueDate;
   final String invoiceId;
+  final String gymId;
+
+  /// Firestore document ID of the member who made this payment.
+  final String memberId;
 
   Payment({
+    this.docId = '',
     required this.id,
     required this.member,
     required this.amount,
@@ -135,7 +190,30 @@ class Payment {
     required this.date,
     required this.dueDate,
     required this.invoiceId,
+    this.gymId = '',
+    this.memberId = '',
   });
+
+  factory Payment.fromFirestore(Map<String, dynamic> data, String docId) {
+    final rawGymId = data['gymId']?.toString() ?? '';
+    final rawMemberId = data['memberId']?.toString() ?? '';
+    final gymIdVal = rawGymId.isNotEmpty ? rawGymId : rawMemberId;
+
+    return Payment(
+      docId: docId,
+      id: 0,
+      member: data['member'] ?? '',
+      amount: (data['amount'] ?? 0).toDouble(),
+      plan: data['plan'] ?? '',
+      method: data['method'] ?? '',
+      status: data['status'] ?? 'Pending',
+      date: data['date'] ?? '',
+      dueDate: data['date'] ?? '',
+      invoiceId: data['invoiceId'] ?? docId,
+      gymId: gymIdVal,
+      memberId: rawMemberId,
+    );
+  }
 }
 
 // ── Seed data ──────────────────────────────────────────────────────────────────

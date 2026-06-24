@@ -20,7 +20,7 @@ class AddMemberProvider extends ChangeNotifier {
   final dateSignedCtrl = TextEditingController();
   final startDateCtrl = TextEditingController();
   final otherGoalCtrl = TextEditingController();
-  
+
   static const membershipPlans = [
     'Monthly - \$40 / month',
     '3-Month Plan - \$110',
@@ -44,7 +44,11 @@ class AddMemberProvider extends ChangeNotifier {
   ];
 
   static const paymentMethods = ['Credit Card', 'Bank Transfer', 'Cash'];
-  static const billingFrequencies = ['Monthly', 'Quarterly', 'One-time Full Payment'];
+  static const billingFrequencies = [
+    'Monthly',
+    'Quarterly',
+    'One-time Full Payment',
+  ];
 
   String membership = membershipPlans.first;
   final List<String> fitnessGoals = [];
@@ -55,7 +59,7 @@ class AddMemberProvider extends ChangeNotifier {
   String billingFrequency = billingFrequencies.first;
 
   XFile? imageFile;
-  String? imageUrl;          // class-level so saveData() can access it
+  String? imageUrl; // class-level so saveData() can access it
   bool isLoading = false;
 
   CameraController? cameraController;
@@ -242,6 +246,40 @@ class AddMemberProvider extends ChangeNotifier {
       fitnessGoals.add(otherGoal!);
     }
 
+    DateTime parsedJoinDate;
+    try {
+      parsedJoinDate = DateTime.parse(startDateCtrl.text);
+    } catch (_) {
+      parsedJoinDate = DateTime.now();
+    }
+
+    DateTime expiryDateCalc;
+    if (membership.contains('3-Month')) {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year,
+        parsedJoinDate.month + 3,
+        parsedJoinDate.day,
+      );
+    } else if (membership.contains('6-Month')) {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year,
+        parsedJoinDate.month + 6,
+        parsedJoinDate.day,
+      );
+    } else if (membership.contains('Annual')) {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year + 1,
+        parsedJoinDate.month,
+        parsedJoinDate.day,
+      );
+    } else {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year,
+        parsedJoinDate.month + 1,
+        parsedJoinDate.day,
+      );
+    }
+
     final newMember = Member(
       id: newId,
       name: nameCtrl.text,
@@ -249,8 +287,8 @@ class AddMemberProvider extends ChangeNotifier {
       phone: phoneCtrl.text,
       membership: membership,
       status: 'Active',
-      joinDate: startDateCtrl.text.isNotEmpty ? startDateCtrl.text : 'Today',
-      expiryDate: '1 Year from today',
+      joinDate: parsedJoinDate.toIso8601String().split('T')[0],
+      expiryDate: expiryDateCalc.toIso8601String().split('T')[0],
       profileImageUrl: imageUrl,
       dateOfBirth: dobCtrl.text,
       address: addressCtrl.text,
@@ -288,21 +326,77 @@ class AddMemberProvider extends ChangeNotifier {
     }
   }
 
+  Future<int> _getNextMemberId() async {
+    final counterRef = _firestore.collection('counters').doc('members');
+
+    return _firestore.runTransaction<int>((transaction) async {
+      final snapshot = await transaction.get(counterRef);
+
+      int nextId;
+      if (!snapshot.exists) {
+        nextId = 1;
+        transaction.set(counterRef, {'count': nextId});
+      } else {
+        final currentCount = (snapshot.data()?['count'] ?? 0) as int;
+        nextId = currentCount + 1;
+        transaction.update(counterRef, {'count': nextId});
+      }
+      return nextId;
+    });
+  }
+
   // bool isLoading = false;
   String message = '';
 
   /// Saves member data to Firestore.
   /// Call after [imageUrl] has been set (done automatically by [submit]).
   Future<void> saveData() async {
+    DateTime parsedJoinDate;
     try {
+      parsedJoinDate = DateTime.parse(startDateCtrl.text);
+    } catch (_) {
+      parsedJoinDate = DateTime.now();
+    }
+
+    DateTime expiryDateCalc;
+    if (membership.contains('3-Month')) {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year,
+        parsedJoinDate.month + 3,
+        parsedJoinDate.day,
+      );
+    } else if (membership.contains('6-Month')) {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year,
+        parsedJoinDate.month + 6,
+        parsedJoinDate.day,
+      );
+    } else if (membership.contains('Annual')) {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year + 1,
+        parsedJoinDate.month,
+        parsedJoinDate.day,
+      );
+    } else {
+      expiryDateCalc = DateTime(
+        parsedJoinDate.year,
+        parsedJoinDate.month + 1,
+        parsedJoinDate.day,
+      );
+    }
+
+    try {
+      final newId = await _getNextMemberId();
       await _firestore.collection('members').add({
+        'gymId': newId.toString(),
         'name': nameCtrl.text,
         'email': emailCtrl.text,
         'phone': phoneCtrl.text.trim(),
         'membership': membership,
         'status': 'Active',
-        'joinDate': startDateCtrl.text.isNotEmpty ? startDateCtrl.text : 'Today',
-        'expiryDate': '1 Year from today',
+        'joinDate': parsedJoinDate.toIso8601String().split('T')[0],
+        'expiryDate': expiryDateCalc.toIso8601String().split('T')[0],
+        'lastPaymentDate': DateTime.now().toIso8601String(),
         'image': imageUrl,
         'dateOfBirth': dobCtrl.text,
         'address': addressCtrl.text,
