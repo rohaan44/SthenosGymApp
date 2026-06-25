@@ -13,7 +13,15 @@ class MembersProvider extends ChangeNotifier {
 
   /// Live stream of members from Firestore, ordered by joinDate descending.
   /// Bind a StreamBuilder directly to this in the Members screen.
-  Stream<dynamic> get membersStream => FirestoreService.instance.membersStream();
+  Stream<dynamic> get membersStream =>
+      FirestoreService.instance.membersStream();
+
+  Map<String, dynamic> memberData = {};
+
+  void setMemberData(Map<String, dynamic> data) {
+    memberData = data;
+    notifyListeners();
+  }
 
   void setSearch(String value) {
     _search = value;

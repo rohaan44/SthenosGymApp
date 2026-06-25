@@ -2,7 +2,9 @@
 
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:app/providers/members/edit_member_provider.dart';
+import 'package:app/providers/members/members_provider.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,8 +22,27 @@ import '../../ui/helpers/app_layout_helper.dart';
 /// This widget contains zero setState / StatefulWidget usage.
 /// It is split into targeted Consumer sections so only the widgets
 /// that actually depend on changing state are rebuilt.
-class EditMemberScreen extends StatelessWidget {
+class EditMemberScreen extends StatefulWidget {
   const EditMemberScreen({super.key});
+
+  @override
+  State<EditMemberScreen> createState() => _EditMemberScreenState();
+}
+
+class _EditMemberScreenState extends State<EditMemberScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final p = context.read<EditMemberProvider>();
+
+      final member =
+          context.read<MembersProvider>().memberData["members"] as Member;
+
+      p.loadMemberData(member);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +68,12 @@ class EditMemberScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                // InkWell(
+                                //   onTap: () {
+                                //     print("memberData ${member.name}");
+                                //   },
+                                //   child: Icon(Icons.abc),
+                                // ),
                                 // Image.network(
                                 //   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF2UfXfypDgiIIEszOsrOtTTYJjHFuVVpjOw&s",
                                 // ),
@@ -100,7 +127,7 @@ class EditMemberScreen extends StatelessWidget {
                             // Text fields are pure input widgets; their internal
                             // state is managed by TextEditingController (no
                             // setState, no rebuilds needed for typing).
-                            _sectionTitle('Personal Details'),
+                            _sectionTitle('Edit Personal Details'),
                             Container(
                               padding: EdgeInsets.all(cw(16)),
                               decoration: BoxDecoration(

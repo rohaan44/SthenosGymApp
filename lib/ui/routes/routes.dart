@@ -1,5 +1,7 @@
 import 'package:app/providers/members/add_member_provider.dart';
+import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/screens/member/add_member_screen.dart';
+import 'package:app/screens/member/edit_member_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
 
 import 'package:flutter/material.dart';
@@ -15,17 +17,19 @@ class AppRouter {
       //     builder: (_) => const LoginView(),
       //   );
       case AppRoutes.membersScreen:
-        return MaterialPageRoute(
-          builder: (_) => const MembersScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const MembersScreen());
       case AppRoutes.addMemberScreen:
-        // ChangeNotifierProvider is scoped to this route:
-        // AddMemberProvider (and all its TextEditingControllers) is created
-        // fresh when the screen opens and disposed when the user pops back.
         return MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider(
             create: (_) => AddMemberProvider(),
             child: const AddMemberScreen(),
+          ),
+        );
+      case AppRoutes.editMemberScreen:
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => EditMemberProvider(),
+            child: const EditMemberScreen(),
           ),
         );
       // case AppRoutes.splashScreen:
@@ -34,9 +38,8 @@ class AppRouter {
       //   );
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Error: Unknown route')),
-          ),
+          builder: (_) =>
+              const Scaffold(body: Center(child: Text('Error: Unknown route'))),
         );
     }
   }

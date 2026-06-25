@@ -1,3 +1,4 @@
+import 'package:app/models/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -103,7 +104,17 @@ class EditMemberProvider extends ChangeNotifier {
     }
   }
 
-  EditMemberProvider() {}
+  void loadMemberData(Member member) {
+    imageUrl = member.profileImageUrl!;
+    nameCtrl.text = member.name;
+    emailCtrl.text = member.email;
+    phoneCtrl.text = member.phone;
+    emergencyCtrl.text = member.emergencyContact;
+    dobCtrl.text = member.dateOfBirth!;
+    addressCtrl.text = member.address!;
+    cnicCtrl.text = member.cnic;
+    injuryCtrl.text = member.injury!;
+  }
 
   Future<void> disposeCamera() async {
     if (cameraController != null) {

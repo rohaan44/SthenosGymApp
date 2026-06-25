@@ -268,6 +268,90 @@ class AddMemberScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            // ── Membership Plan ──────────────────────────────
+                            // Rebuilds when membership selection changes
+                            _sectionTitle('Membership Plan'),
+                            Consumer<AddMemberProvider>(
+                              builder: (_, p, __) => Wrap(
+                                spacing: cw(24),
+                                runSpacing: ch(4),
+                                children: AddMemberProvider.membershipPlans
+                                    .map(
+                                      (plan) => _radioOption<String>(
+                                        title: plan,
+                                        value: plan,
+                                        groupValue: p.membership,
+                                        onChanged: (v) => p.setMembership(v!),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+
+                            // ── Payment Details ──────────────────────────────
+                            // Rebuilds when payment method / billing changes
+                            SizedBox(height: ch(16)),
+
+                            Consumer<AddMemberProvider>(
+                              builder: (_, p, __) => _ResponsiveRow(
+                                gap: cw(24),
+                                crossAxisAlignmentStart: true,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AppText(
+                                        txt: 'Payment Method',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: AppFontSize.f15,
+                                      ),
+                                      SizedBox(height: ch(8)),
+                                      ...AddMemberProvider.paymentMethods.map(
+                                        (m) => _radioOption<String>(
+                                          title: m,
+                                          value: m,
+                                          groupValue: p.paymentMethod,
+                                          onChanged: (v) =>
+                                              p.setPaymentMethod(v!),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  // Column(
+                                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                                  //   children: [
+                                  //     AppText(
+                                  //       txt: 'Billing Frequency',
+                                  //       fontWeight: FontWeight.bold,
+                                  //       fontSize: AppFontSize.f15,
+                                  //     ),
+                                  //     SizedBox(height: ch(8)),
+                                  //     ...AddMemberProvider.billingFrequencies.map(
+                                  //       (m) => _radioOption<String>(
+                                  //         title: m,
+                                  //         value: m,
+                                  //         groupValue: p.billingFrequency,
+                                  //         onChanged: (v) =>
+                                  //             p.setBillingFrequency(v!),
+                                  //       ),
+                                  //     ),
+                                  //   ],
+                                  // ),
+                                  // Column(
+                                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                                  //   children: [
+                                  //     _dateField(
+                                  //       context: context,
+                                  //       label: 'Preferred Start Date',
+                                  //       controller: p.startDateCtrl,
+                                  //     ),
+                                  //   ],
+                                  // ),
+                                ],
+                              ),
+                            ),
+
                             _sectionTitle('Terms & Conditions'),
 
                             Container(
@@ -356,26 +440,6 @@ class AddMemberScreen extends StatelessWidget {
                             //   child: TermsAndConditionsScreen(),
                             // ),
 
-                            // ── Membership Plan ──────────────────────────────
-                            // Rebuilds when membership selection changes
-                            _sectionTitle('Membership Plan'),
-                            Consumer<AddMemberProvider>(
-                              builder: (_, p, __) => Wrap(
-                                spacing: cw(24),
-                                runSpacing: ch(4),
-                                children: AddMemberProvider.membershipPlans
-                                    .map(
-                                      (plan) => _radioOption<String>(
-                                        title: plan,
-                                        value: plan,
-                                        groupValue: p.membership,
-                                        onChanged: (v) => p.setMembership(v!),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
-
                             // ── Fitness Goals & Add-Ons ──────────────────────
                             // Rebuilds when checkboxes change
                             // SizedBox(height: ch(8)),
@@ -447,69 +511,6 @@ class AddMemberScreen extends StatelessWidget {
                             //     ],
                             //   ),
                             // ),
-
-                            // ── Payment Details ──────────────────────────────
-                            // Rebuilds when payment method / billing changes
-                            SizedBox(height: ch(16)),
-                            Consumer<AddMemberProvider>(
-                              builder: (_, p, __) => _ResponsiveRow(
-                                gap: cw(24),
-                                crossAxisAlignmentStart: true,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      AppText(
-                                        txt: 'Payment Method',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: AppFontSize.f15,
-                                      ),
-                                      SizedBox(height: ch(8)),
-                                      ...AddMemberProvider.paymentMethods.map(
-                                        (m) => _radioOption<String>(
-                                          title: m,
-                                          value: m,
-                                          groupValue: p.paymentMethod,
-                                          onChanged: (v) =>
-                                              p.setPaymentMethod(v!),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  // Column(
-                                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                                  //   children: [
-                                  //     AppText(
-                                  //       txt: 'Billing Frequency',
-                                  //       fontWeight: FontWeight.bold,
-                                  //       fontSize: AppFontSize.f15,
-                                  //     ),
-                                  //     SizedBox(height: ch(8)),
-                                  //     ...AddMemberProvider.billingFrequencies.map(
-                                  //       (m) => _radioOption<String>(
-                                  //         title: m,
-                                  //         value: m,
-                                  //         groupValue: p.billingFrequency,
-                                  //         onChanged: (v) =>
-                                  //             p.setBillingFrequency(v!),
-                                  //       ),
-                                  //     ),
-                                  //   ],
-                                  // ),
-                                  // Column(
-                                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                                  //   children: [
-                                  //     _dateField(
-                                  //       context: context,
-                                  //       label: 'Preferred Start Date',
-                                  //       controller: p.startDateCtrl,
-                                  //     ),
-                                  //   ],
-                                  // ),
-                                ],
-                              ),
-                            ),
                             SizedBox(height: ch(100)),
                             // ── Terms & Signature ────────────────────────────
                             // Static text + static input fields — no Consumer needed

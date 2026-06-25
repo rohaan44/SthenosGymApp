@@ -3,6 +3,7 @@ import 'package:app/providers/members/members_provider.dart';
 import 'package:app/service/firestore_service.dart';
 import 'package:app/shared_widgets.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
+import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/ui/routes/app_routes.dart';
 import 'package:app/ui/utils/app_text.dart';
@@ -499,7 +500,22 @@ class MembersScreen extends StatelessWidget {
                                                                 ),
                                                               ),
                                                               onPressed: () {
+                                                                context
+                                                                    .read<
+                                                                      MembersProvider
+                                                                    >()
+                                                                    .setMemberData({
+                                                                      "members":
+                                                                          m,
+                                                                    });
+
+                                                                Navigator.pushNamed(
+                                                                  context,
+                                                                  AppRoutes
+                                                                      .editMemberScreen,
+                                                                );
                                                                 // Edit member — wire to edit screen
+
                                                                 debugPrint(
                                                                   'Edit ${m.docId}',
                                                                 );
@@ -657,6 +673,22 @@ class _MobileList extends StatelessWidget {
                   ),
                   StatusBadge(status: displayStatus),
                   const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.edit,
+                      size: 18,
+                      color: AppColor.primary,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      context.read<MembersProvider>().setMemberData({
+                        "members": m,
+                      });
+                      Navigator.pushNamed(context, AppRoutes.editMemberScreen);
+                    },
+                  ),
+                  SizedBox(width: cw(5)),
                   IconButton(
                     icon: const Icon(
                       Icons.delete_outline,
