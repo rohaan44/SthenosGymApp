@@ -2,29 +2,32 @@
 
 import 'dart:io';
 
+import 'package:app/providers/members/edit_member_provider.dart';
+import 'package:app/ui/helpers/color_helper.dart';
+import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
-import '../providers/add_member_provider.dart';
-import '../ui/utils/app_text.dart';
-import '../ui/helpers/font_size_helper.dart';
-import '../ui/helpers/app_layout_helper.dart';
+import '../../ui/utils/app_text.dart';
+import '../../ui/helpers/font_size_helper.dart';
+import '../../ui/helpers/app_layout_helper.dart';
 
-/// All mutable state lives exclusively in [AddMemberProvider].
+// / All mutable state lives exclusively in [EditMemberProvider].
 /// This widget contains zero setState / StatefulWidget usage.
 /// It is split into targeted Consumer sections so only the widgets
 /// that actually depend on changing state are rebuilt.
-class AddMemberScreen extends StatelessWidget {
-  const AddMemberScreen({super.key});
+class EditMemberScreen extends StatelessWidget {
+  const EditMemberScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     // context.read — just reads the provider once, no rebuild triggered here.
     // Individual Consumer widgets below subscribe to only what they need.
-    final p = context.read<AddMemberProvider>();
+    final p = context.read<EditMemberProvider>();
 
     return Scaffold(
       body: Form(
@@ -44,15 +47,21 @@ class AddMemberScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Image.network(
-                                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF2UfXfypDgiIIEszOsrOtTTYJjHFuVVpjOw&s",
+                                // Image.network(
+                                //   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF2UfXfypDgiIIEszOsrOtTTYJjHFuVVpjOw&s",
+                                // ),
+                                Image.asset(
+                                  AssetUtils.titleLogo1,
+                                  height: ch(200),
+                                  width: cw(200),
+                                  fit: BoxFit.contain,
                                 ),
                               ],
                             ),
-                            SizedBox(height: ch(40)),
+                            SizedBox(height: ch(20)),
                             // ── Profile picture ──────────────────────────────
                             // Only rebuilds when imageFile changes
-                            Consumer<AddMemberProvider>(
+                            Consumer<EditMemberProvider>(
                               builder: (ctx, p, __) => Center(
                                 child: GestureDetector(
                                   onTap: () => _showImageSourcePicker(ctx, p),
@@ -71,7 +80,7 @@ class AddMemberScreen extends StatelessWidget {
                                         ? Icon(
                                             Icons.camera_alt,
                                             size: cw(24),
-                                            color: Colors.grey,
+                                            color: AppColor.primary,
                                           )
                                         : null,
                                   ),
@@ -82,7 +91,7 @@ class AddMemberScreen extends StatelessWidget {
                             Center(
                               child: AppText(
                                 txt: 'Tap to upload profile picture',
-                                color: Colors.grey,
+                                color: AppColor.primary,
                                 fontSize: AppFontSize.f12,
                               ),
                             ),
@@ -120,7 +129,7 @@ class AddMemberScreen extends StatelessWidget {
                                       ),
                                       _labeledField(
                                         prefixIcon: Icon(Icons.mail_outline),
-                                        label: 'Email Address',
+                                        label: 'Email',
                                         controller: p.emailCtrl,
                                         type: TextInputType.emailAddress,
 
@@ -130,11 +139,11 @@ class AddMemberScreen extends StatelessWidget {
                                             return "Email is required";
                                           }
 
-                                          // if (!RegExp(
-                                          //   r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                          // ).hasMatch(value)) {
-                                          //   return "Enter valid email";
-                                          // }
+                                          if (!RegExp(
+                                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                          ).hasMatch(value)) {
+                                            return "Enter valid email";
+                                          }
 
                                           return null;
                                         },
@@ -143,9 +152,12 @@ class AddMemberScreen extends StatelessWidget {
                                         label: 'Phone Number',
                                         controller: p.phoneCtrl,
                                         prefixIcon: Icon(Icons.phone_outlined),
-
+                                        inputFormator: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
                                         type: TextInputType.phone,
-
+                                        maxLenth: 11,
                                         validator: (value) {
                                           if (value == null ||
                                               value.trim().isEmpty) {
@@ -170,14 +182,24 @@ class AddMemberScreen extends StatelessWidget {
                                         context: context,
                                         label: 'Date of Birth',
                                         controller: p.dobCtrl,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return "DOB is required";
+                                          }
+                                          return null;
+                                        },
                                       ),
                                       _labeledField(
                                         label: 'Emergency Contact Number',
-                                        controller: p.phoneCtrl,
+                                        controller: p.emergencyCtrl,
                                         prefixIcon: Icon(CupertinoIcons.phone),
-
+                                        maxLenth: 11,
                                         type: TextInputType.phone,
-
+                                        inputFormator: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
                                         validator: (value) {
                                           if (value == null ||
                                               value.trim().isEmpty) {
@@ -193,7 +215,8 @@ class AddMemberScreen extends StatelessWidget {
                                       ),
                                       _labeledField(
                                         label: 'Cnic Number',
-                                        controller: p.phoneCtrl,
+                                        maxLenth: 13,
+                                        controller: p.cnicCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
                                         type: TextInputType.phone,
                                         validator: (value) {
@@ -220,25 +243,25 @@ class AddMemberScreen extends StatelessWidget {
                                     flexes: const [1, 1],
                                     children: [
                                       _labeledField(
+                                        label: 'Address',
+                                        controller: p.addressCtrl,
+                                        prefixIcon: Icon(Icons.badge_outlined),
+
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return "Address is required";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      _labeledField(
                                         label: 'Muscle Injury (Optional)',
-                                        controller: p.phoneCtrl,
+                                        controller: p.injuryCtrl,
                                         prefixIcon: Icon(
                                           Icons.personal_injury_outlined,
                                         ),
                                         type: TextInputType.phone,
-                                      ),
-
-                                      _labeledField(
-                                        label: 'Address',
-                                        controller: p.addressCtrl,
-                                        prefixIcon: Icon(Icons.badge_outlined),
-                                        //  Image.asset(
-                                        //   AssetUtils.cnic,
-
-                                        //   height: ch(10),
-                                        //   width: cw(10),
-                                        //   fit: BoxFit.cover,
-                                        // ),
                                       ),
                                     ],
                                   ),
@@ -336,11 +359,11 @@ class AddMemberScreen extends StatelessWidget {
                             // ── Membership Plan ──────────────────────────────
                             // Rebuilds when membership selection changes
                             _sectionTitle('Membership Plan'),
-                            Consumer<AddMemberProvider>(
+                            Consumer<EditMemberProvider>(
                               builder: (_, p, __) => Wrap(
                                 spacing: cw(24),
                                 runSpacing: ch(4),
-                                children: AddMemberProvider.membershipPlans
+                                children: EditMemberProvider.membershipPlans
                                     .map(
                                       (plan) => _radioOption<String>(
                                         title: plan,
@@ -356,7 +379,7 @@ class AddMemberScreen extends StatelessWidget {
                             // ── Fitness Goals & Add-Ons ──────────────────────
                             // Rebuilds when checkboxes change
                             // SizedBox(height: ch(8)),
-                            // Consumer<AddMemberProvider>(
+                            // Consumer<EditMemberProvider>(
                             //   builder: (_, p, __) => _ResponsiveRow(
                             //     gap: cw(32),
                             //     crossAxisAlignmentStart: true,
@@ -370,7 +393,7 @@ class AddMemberScreen extends StatelessWidget {
                             //             fontSize: AppFontSize.f15,
                             //           ),
                             //           SizedBox(height: ch(8)),
-                            //           ...AddMemberProvider.fitnessGoalOptions.map(
+                            //           ...EditMemberProvider.fitnessGoalOptions.map(
                             //             (goal) => _circleCheckOption(
                             //               title: goal,
                             //               value: p.fitnessGoals.contains(goal),
@@ -411,7 +434,7 @@ class AddMemberScreen extends StatelessWidget {
                             //             fontSize: AppFontSize.f15,
                             //           ),
                             //           SizedBox(height: ch(8)),
-                            //           ...AddMemberProvider.addOnOptions.map(
+                            //           ...EditMemberProvider.addOnOptions.map(
                             //             (service) => _circleCheckOption(
                             //               title: service,
                             //               value: p.addOns.contains(service),
@@ -428,7 +451,7 @@ class AddMemberScreen extends StatelessWidget {
                             // ── Payment Details ──────────────────────────────
                             // Rebuilds when payment method / billing changes
                             SizedBox(height: ch(16)),
-                            Consumer<AddMemberProvider>(
+                            Consumer<EditMemberProvider>(
                               builder: (_, p, __) => _ResponsiveRow(
                                 gap: cw(24),
                                 crossAxisAlignmentStart: true,
@@ -443,7 +466,7 @@ class AddMemberScreen extends StatelessWidget {
                                         fontSize: AppFontSize.f15,
                                       ),
                                       SizedBox(height: ch(8)),
-                                      ...AddMemberProvider.paymentMethods.map(
+                                      ...EditMemberProvider.paymentMethods.map(
                                         (m) => _radioOption<String>(
                                           title: m,
                                           value: m,
@@ -463,7 +486,7 @@ class AddMemberScreen extends StatelessWidget {
                                   //       fontSize: AppFontSize.f15,
                                   //     ),
                                   //     SizedBox(height: ch(8)),
-                                  //     ...AddMemberProvider.billingFrequencies.map(
+                                  //     ...EditMemberProvider.billingFrequencies.map(
                                   //       (m) => _radioOption<String>(
                                   //         title: m,
                                   //         value: m,
@@ -521,7 +544,7 @@ class AddMemberScreen extends StatelessWidget {
                     // // ── Submit button ────────────────────────────────────────
                     // // Only rebuilds when isLoading changes
                     // SizedBox(height: ch(16)),
-                    // Consumer<AddMemberProvider>(
+                    // Consumer<EditMemberProvider>(
                     //   builder: (ctx, p, __) => SizedBox(
                     //     width: double.infinity,
                     //     height: ch(45),
@@ -549,29 +572,42 @@ class AddMemberScreen extends StatelessWidget {
               left: 20,
               right: 20,
               bottom: 20,
-              child: Consumer<AddMemberProvider>(
-                builder: (ctx, p, __) => SizedBox(
-                  width: double.infinity,
-                  height: ch(45),
-                  child: FilledButton(
-                    onPressed: p.isLoading ? null : () => p.submit(ctx),
+              child: Consumer<EditMemberProvider>(
+                builder: (ctx, p, __) => InkWell(
+                  onTap: p.isLoading ? null : () => p.submit(ctx),
+
+                  child: Container(
+                    height: ch(45),
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2563EB),
+                      borderRadius: BorderRadius.circular(cw(16)),
+                    ),
                     child: p.isLoading
-                        ? SizedBox(
-                            width: cw(20),
-                            height: ch(20),
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                        ? Center(
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             ),
                           )
-                        : AppText(txt: 'Add Member', color: Colors.white),
+                        : Center(
+                            child: AppText(
+                              txt: 'Add Member',
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
               ),
             ),
             // ── Loading overlay ──────────────────────────────────────────────
             // Only rebuilds when isLoading changes
-            // Consumer<AddMemberProvider>(
+            // Consumer<EditMemberProvider>(
             //   builder: (_, p, __) => p.isLoading
             //       ? Positioned.fill(
             //           child: Container(
@@ -589,7 +625,7 @@ class AddMemberScreen extends StatelessWidget {
 
   void _showImageSourcePicker(
     BuildContext context,
-    AddMemberProvider provider,
+    EditMemberProvider provider,
   ) {
     if (kIsWeb) {
       showDialog(
@@ -707,7 +743,7 @@ class AddMemberScreen extends StatelessWidget {
     }
   }
 
-  void _showWebCameraDialog(BuildContext context, AddMemberProvider provider) {
+  void _showWebCameraDialog(BuildContext context, EditMemberProvider provider) {
     provider.initCamera();
 
     showDialog(
@@ -715,7 +751,7 @@ class AddMemberScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (ctx) => ChangeNotifierProvider.value(
         value: provider,
-        child: Consumer<AddMemberProvider>(
+        child: Consumer<EditMemberProvider>(
           builder: (dialogCtx, p, _) {
             return Dialog(
               shape: RoundedRectangleBorder(
@@ -806,14 +842,25 @@ Widget _labeledField({
   required TextEditingController controller,
   TextInputType type = TextInputType.text,
   String? Function(String?)? validator,
+  List<TextInputFormatter>? inputFormator,
+  int? maxLenth,
 }) {
   return TextFormField(
     controller: controller,
     keyboardType: type,
+    maxLength: maxLenth,
     validator: validator,
+    inputFormatters: inputFormator,
     decoration: InputDecoration(
       labelText: label,
+      counterText: "", // 👈 hide counter
       prefixIcon: prefixIcon,
+
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(6),
+
+        borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
+      ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
     ),
   );
@@ -865,6 +912,11 @@ Widget _dateField({
     decoration: InputDecoration(
       labelText: label,
       prefixIcon: const Icon(Icons.calendar_month_outlined),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(6),
+
+        borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
+      ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
     ),
     onTap: () async {
@@ -873,6 +925,18 @@ Widget _dateField({
         initialDate: DateTime.now(),
         firstDate: DateTime(1900),
         lastDate: DateTime(2100),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: AppColor.primary, // selected date color
+                onPrimary: Colors.white, // selected date text
+                onSurface: Colors.black, // normal dates
+              ),
+            ),
+            child: child!,
+          );
+        },
       );
 
       if (picked != null) {
@@ -946,6 +1010,7 @@ Widget _radioOption<T>({
         mainAxisSize: MainAxisSize.min,
         children: [
           Radio<T>(
+            activeColor: AppColor.primary,
             value: value,
             groupValue: groupValue,
             onChanged: onChanged,

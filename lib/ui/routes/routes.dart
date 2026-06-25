@@ -1,6 +1,6 @@
-import 'package:app/providers/add_member_provider.dart';
-import 'package:app/screens/add_member_screen.dart';
-import 'package:app/screens/members_screen.dart';
+import 'package:app/providers/members/add_member_provider.dart';
+import 'package:app/screens/member/add_member_screen.dart';
+import 'package:app/screens/member/members_screen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

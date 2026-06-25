@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../service/firestore_service.dart';
+import '../../service/firestore_service.dart';
 
 /// Holds only UI state for the Members screen (search text + filter).
 /// All Firestore data arrives via [FirestoreService.membersStream] —

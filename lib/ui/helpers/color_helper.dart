@@ -6,6 +6,7 @@ class AppColor {
   // Primary Palette
   static const red = Color(0xffFF0000); // Error
   static const blue = Color(0xff4D9BDA);
+  static const c282828 = Colors.black;
   static const brown = Color(0xff8B6E4A);
   static const darkblue = Color(0xff346094);
   static const blue2 = Color(0xff2563EB);
@@ -30,6 +31,7 @@ class AppColor {
   static const cF3F5F9 = Color(0xffF3F5F9);
   static const cEAEAEA = Color(0xffEAEAEA);
   static const c008CFF = Color(0xff008CFF);
+  static const primary = Color(0xFF2563EB);
 
   static const c101010 = Color(0xff101010);
   static const c5A5A58 = Color(0xff5A5A58);

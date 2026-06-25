@@ -1,12 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
-import '../models/models.dart';
-import '../service/cloudinary_service.dart';
-import 'gym_provider.dart';
+import '../../service/cloudinary_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddMemberProvider extends ChangeNotifier {
@@ -200,140 +197,286 @@ class AddMemberProvider extends ChangeNotifier {
   }
 
   Future<void> submit(BuildContext context) async {
-    if (nameCtrl.text.isEmpty || emailCtrl.text.isEmpty) {
+    // Image Validation
+    if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name and Email are required.')),
+        SnackBar(
+          content: Text('Image is mandatory!'),
+          backgroundColor: Colors.red,
+        ),
       );
+      // appTopToast(message: "Please select a profile image");
       return;
     }
 
-    if (phoneCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Phone number is required.')),
-      );
+    // Form Validation
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
-    isLoading = true;
-    notifyListeners();
+    try {
+      isLoading = true;
+      notifyListeners();
 
-    // ── 1. Duplicate phone check ──────────────────────────────────────────
-    final duplicate = await _firestore
-        .collection('members')
-        .where('phone', isEqualTo: phoneCtrl.text.trim())
-        .limit(1)
-        .get();
+      // ── Duplicate Phone Check ──────────────────────────
+      final duplicate = await _firestore
+          .collection('members')
+          .where('phone', isEqualTo: phoneCtrl.text.trim())
+          .limit(1)
+          .get();
 
-    if (duplicate.docs.isNotEmpty) {
+      if (duplicate.docs.isNotEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Member with phone ${phoneCtrl.text.trim()} already exists',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+        isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      // ── Upload Image ───────────────────────────────────
+      if (imageFile != null) {
+        imageUrl = await _cloudinaryService.uploadImage(imageFile!);
+      }
+
+      // ── Save Data ──────────────────────────────────────
+      await saveData();
+
+      // ── Success ────────────────────────────────────────
+      if (message.startsWith('✅')) {
+        reset();
+
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
       isLoading = false;
       notifyListeners();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'A member with phone "${phoneCtrl.text.trim()}" already exists.',
-            ),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
-      return;
-    }
-
-    // ── 2. Upload image ───────────────────────────────────────────────────
-    if (imageFile != null) {
-      imageUrl = await _cloudinaryService.uploadImage(imageFile!);
-    }
-
-    if (!context.mounted) return;
-
-    // ── 3. Add to local state ─────────────────────────────────────────────
-    final gym = context.read<GymProvider>();
-    final newId = gym.members.length + 1;
-
-    if (otherGoal != null && otherGoal!.isNotEmpty) {
-      fitnessGoals.add(otherGoal!);
-    }
-
-    DateTime parsedJoinDate;
-    try {
-      parsedJoinDate = DateTime.parse(startDateCtrl.text);
-    } catch (_) {
-      parsedJoinDate = DateTime.now();
-    }
-
-    DateTime expiryDateCalc;
-    if (membership.contains('3-Month')) {
-      expiryDateCalc = DateTime(
-        parsedJoinDate.year,
-        parsedJoinDate.month + 3,
-        parsedJoinDate.day,
-      );
-    } else if (membership.contains('6-Month')) {
-      expiryDateCalc = DateTime(
-        parsedJoinDate.year,
-        parsedJoinDate.month + 6,
-        parsedJoinDate.day,
-      );
-    } else if (membership.contains('Annual')) {
-      expiryDateCalc = DateTime(
-        parsedJoinDate.year + 1,
-        parsedJoinDate.month,
-        parsedJoinDate.day,
-      );
-    } else {
-      expiryDateCalc = DateTime(
-        parsedJoinDate.year,
-        parsedJoinDate.month + 1,
-        parsedJoinDate.day,
-      );
-    }
-
-    final newMember = Member(
-      id: newId,
-      name: nameCtrl.text,
-      email: emailCtrl.text,
-      phone: phoneCtrl.text,
-      membership: membership,
-      status: 'Active',
-      joinDate: parsedJoinDate.toIso8601String().split('T')[0],
-      expiryDate: expiryDateCalc.toIso8601String().split('T')[0],
-      profileImageUrl: imageUrl,
-      dateOfBirth: dobCtrl.text,
-      address: addressCtrl.text,
-      fitnessGoals: List.from(fitnessGoals),
-      addOnServices: List.from(addOns),
-      paymentMethod: paymentMethod,
-      billingFrequency: billingFrequency,
-      preferredStartDate: startDateCtrl.text,
-      signature: signatureCtrl.text,
-      dateSigned: dateSignedCtrl.text,
-    );
-
-    gym.addMember(newMember);
-
-    // ── 4. Persist to Firestore ───────────────────────────────────────────
-    await saveData();
-
-    isLoading = false;
-    notifyListeners();
-
-    // ── 5. Clear form on success ──────────────────────────────────────────
-    if (message.startsWith('✅')) {
-      reset();
-      if (context.mounted) Navigator.pop(context);
-    } else {
-      // Firestore write failed — show error but stay on screen
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
     }
   }
+
+  // Future<void> submit(BuildContext context) async {
+  //   if (imageUrl == null || imageUrl == "") {
+  //     appTopToast();
+  //   } else if (!formKey.currentState!.validate()) {
+  //     return;
+  //   }
+
+  //   try {
+  //     isLoading = true;
+  //     notifyListeners();
+
+  //     // Duplicate Phone Check
+  //     final duplicate = await _firestore
+  //         .collection('members')
+  //         .where('phone', isEqualTo: phoneCtrl.text.trim())
+  //         .limit(1)
+  //         .get();
+
+  //     if (duplicate.docs.isNotEmpty) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(
+  //             'Member with phone ${phoneCtrl.text.trim()} already exists',
+  //           ),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+
+  //       isLoading = false;
+  //       notifyListeners();
+  //       return;
+  //     }
+
+  //     // Upload Image
+  //     if (imageFile != null) {
+  //       imageUrl = await _cloudinaryService.uploadImage(imageFile!);
+  //     }
+
+  //     // Save Member
+  //     await saveData();
+
+  //     if (message.startsWith('✅')) {
+  //       reset();
+
+  //       if (context.mounted) {
+  //         Navigator.pop(context);
+  //       }
+  //     } else {
+  //       if (context.mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text(message), backgroundColor: Colors.red),
+  //         );
+  //       }
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+  //     );
+  //   } finally {
+  //     isLoading = false;
+  //     notifyListeners();
+  //   }
+  // }
+
+  // Future<void> submit(BuildContext context) async {
+  //   // if (nameCtrl.text.isEmpty || emailCtrl.text.isEmpty) {
+  //   //   ScaffoldMessenger.of(context).showSnackBar(
+  //   //     const SnackBar(content: Text('Name and Email are required.')),
+  //   //   );
+  //   //   return;
+  //   // }
+
+  //   // if (phoneCtrl.text.isEmpty) {
+  //   //   ScaffoldMessenger.of(context).showSnackBar(
+  //   //     const SnackBar(content: Text('Phone number is required.')),
+  //   //   );
+  //   //   return;
+  //   // }
+
+  //   // isLoading = true;
+  //   // notifyListeners();
+
+  //   // ── 1. Duplicate phone check ──────────────────────────────────────────
+  //   final duplicate = await _firestore
+  //       .collection('members')
+  //       .where('phone', isEqualTo: phoneCtrl.text.trim())
+  //       .limit(1)
+  //       .get();
+
+  //   if (duplicate.docs.isNotEmpty) {
+  //     isLoading = false;
+  //     notifyListeners();
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(
+  //             'A member with phone "${phoneCtrl.text.trim()}" already exists.',
+  //           ),
+  //           backgroundColor: Colors.red.shade700,
+  //         ),
+  //       );
+  //     }
+  //     return;
+  //   }
+
+  //   // ── 2. Upload image ───────────────────────────────────────────────────
+  //   if (imageFile != null) {
+  //     imageUrl = await _cloudinaryService.uploadImage(imageFile!);
+  //   }
+
+  //   if (!context.mounted) return;
+
+  //   // ── 3. Add to local state ─────────────────────────────────────────────
+  //   final gym = context.read<GymProvider>();
+  //   final newId = gym.members.length + 1;
+
+  //   if (otherGoal != null && otherGoal!.isNotEmpty) {
+  //     fitnessGoals.add(otherGoal!);
+  //   }
+
+  //   DateTime parsedJoinDate;
+  //   try {
+  //     parsedJoinDate = DateTime.parse(startDateCtrl.text);
+  //   } catch (_) {
+  //     parsedJoinDate = DateTime.now();
+  //   }
+
+  //   DateTime expiryDateCalc;
+  //   if (membership.contains('3-Month')) {
+  //     expiryDateCalc = DateTime(
+  //       parsedJoinDate.year,
+  //       parsedJoinDate.month + 3,
+  //       parsedJoinDate.day,
+  //     );
+  //   } else if (membership.contains('6-Month')) {
+  //     expiryDateCalc = DateTime(
+  //       parsedJoinDate.year,
+  //       parsedJoinDate.month + 6,
+  //       parsedJoinDate.day,
+  //     );
+  //   } else if (membership.contains('Annual')) {
+  //     expiryDateCalc = DateTime(
+  //       parsedJoinDate.year + 1,
+  //       parsedJoinDate.month,
+  //       parsedJoinDate.day,
+  //     );
+  //   } else {
+  //     expiryDateCalc = DateTime(
+  //       parsedJoinDate.year,
+  //       parsedJoinDate.month + 1,
+  //       parsedJoinDate.day,
+  //     );
+  //   }
+
+  //   final newMember = Member(
+  //     id: newId,
+  //     name: nameCtrl.text,
+  //     email: emailCtrl.text,
+  //     phone: phoneCtrl.text,
+  //     membership: membership,
+  //     status: 'Active',
+  //     joinDate: parsedJoinDate.toIso8601String().split('T')[0],
+  //     expiryDate: expiryDateCalc.toIso8601String().split('T')[0],
+  //     profileImageUrl: imageUrl,
+  //     dateOfBirth: dobCtrl.text,
+  //     address: addressCtrl.text,
+  //     emergencyContact: emergencyCtrl.text,
+  //     cnic: cnicCtrl.text
+  //     // fitnessGoals: List.from(fitnessGoals),
+  //     // addOnServices: List.from(addOns),
+  //     // paymentMethod: paymentMethod,
+  //     // billingFrequency: billingFrequency,
+  //     // preferredStartDate: startDateCtrl.text,
+  //     // signature: signatureCtrl.text,
+  //     // dateSigned: dateSignedCtrl.text,
+  //   );
+
+  //   gym.addMember(newMember);
+
+  //   // ── 4. Persist to Firestore ───────────────────────────────────────────
+  //   await saveData();
+
+  //   isLoading = false;
+  //   notifyListeners();
+
+  //   // ── 5. Clear form on success ──────────────────────────────────────────
+  //   if (message.startsWith('✅')) {
+  //     reset();
+  //     if (context.mounted) Navigator.pop(context);
+  //   } else {
+  //     // Firestore write failed — show error but stay on screen
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(message),
+  //           backgroundColor: Colors.red.shade700,
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
 
   Future<int> _getNextMemberId() async {
     final counterRef = _firestore.collection('counters').doc('members');

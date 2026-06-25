@@ -13,6 +13,10 @@ InputDecoration customInputDecoration(String label) => InputDecoration(
     borderRadius: BorderRadius.circular(8),
     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
   ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: const BorderSide(color: Color(0xFF2563EB)),
+  ),
   contentPadding: EdgeInsets.symmetric(horizontal: cw(11.2), vertical: ch(9.7)),
   isDense: true,
 );

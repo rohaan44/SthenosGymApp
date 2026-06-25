@@ -1,5 +1,5 @@
 import 'package:app/models/models.dart';
-import 'package:app/providers/members_provider.dart';
+import 'package:app/providers/members/members_provider.dart';
 import 'package:app/service/firestore_service.dart';
 import 'package:app/shared_widgets.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
@@ -107,15 +107,16 @@ class MembersScreen extends StatelessWidget {
                         ? Column(
                             children: [
                               TextField(
-                                decoration: customInputDecoration(
-                                  'Search members...',
-                                ).copyWith(
-                                  prefixIcon: const Icon(
-                                    Icons.search,
-                                    size: 18,
-                                    color: Color(0xFF9CA3AF),
-                                  ),
-                                ),
+                                decoration:
+                                    customInputDecoration(
+                                      'Search members...',
+                                    ).copyWith(
+                                      prefixIcon: const Icon(
+                                        Icons.search,
+                                        size: 18,
+                                        color: Color(0xFF9CA3AF),
+                                      ),
+                                    ),
                                 onChanged: (v) => state.setSearch(v),
                               ),
                               SizedBox(height: ch(9.7)),
@@ -149,15 +150,16 @@ class MembersScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: TextField(
-                                  decoration: customInputDecoration(
-                                    'Search members...',
-                                  ).copyWith(
-                                    prefixIcon: const Icon(
-                                      Icons.search,
-                                      size: 18,
-                                      color: Color(0xFF9CA3AF),
-                                    ),
-                                  ),
+                                  decoration:
+                                      customInputDecoration(
+                                        'Search members...',
+                                      ).copyWith(
+                                        prefixIcon: const Icon(
+                                          Icons.search,
+                                          size: 18,
+                                          color: Color(0xFF9CA3AF),
+                                        ),
+                                      ),
                                   onChanged: (v) => state.setSearch(v),
                                 ),
                               ),
@@ -251,14 +253,20 @@ class MembersScreen extends StatelessWidget {
                       // so it updates on every snapshot without N+1 payment queries.
                       final allMembers = snapshot.data ?? [];
                       final filtered = allMembers.where((m) {
-                        final computedStatus = FirestoreService.isOverdueByDate(m)
+                        final computedStatus =
+                            FirestoreService.isOverdueByDate(m)
                             ? 'overdue'
                             : m.status.toLowerCase();
 
                         final matchSearch =
-                            m.name.toLowerCase().contains(state.search.toLowerCase()) ||
-                                m.email.toLowerCase().contains(state.search.toLowerCase());
-                        final matchStatus = state.filterStatus == 'all' ||
+                            m.name.toLowerCase().contains(
+                              state.search.toLowerCase(),
+                            ) ||
+                            m.email.toLowerCase().contains(
+                              state.search.toLowerCase(),
+                            );
+                        final matchStatus =
+                            state.filterStatus == 'all' ||
                             computedStatus == state.filterStatus.toLowerCase();
                         return matchSearch && matchStatus;
                       }).toList();
@@ -285,49 +293,61 @@ class MembersScreen extends StatelessWidget {
                                           child: DataTable(
                                             headingRowColor:
                                                 WidgetStateProperty.all(
-                                              const Color(0xFFF9FAFB),
-                                            ),
+                                                  const Color(0xFFF9FAFB),
+                                                ),
                                             columns: [
                                               DataColumn(
                                                 label: AppText(
                                                   txt: 'Member',
                                                   fontSize: 12,
-                                                  color: const Color(0xFF6B7280),
+                                                  color: const Color(
+                                                    0xFF6B7280,
+                                                  ),
                                                 ),
                                               ),
                                               DataColumn(
                                                 label: AppText(
                                                   txt: 'Contact',
                                                   fontSize: AppFontSize.f12,
-                                                  color: const Color(0xFF6B7280),
+                                                  color: const Color(
+                                                    0xFF6B7280,
+                                                  ),
                                                 ),
                                               ),
                                               DataColumn(
                                                 label: AppText(
                                                   txt: 'Membership',
                                                   fontSize: AppFontSize.f12,
-                                                  color: const Color(0xFF6B7280),
+                                                  color: const Color(
+                                                    0xFF6B7280,
+                                                  ),
                                                 ),
                                               ),
                                               DataColumn(
                                                 label: AppText(
                                                   txt: 'Status',
                                                   fontSize: AppFontSize.f12,
-                                                  color: const Color(0xFF6B7280),
+                                                  color: const Color(
+                                                    0xFF6B7280,
+                                                  ),
                                                 ),
                                               ),
                                               DataColumn(
                                                 label: AppText(
                                                   txt: 'Expiry',
                                                   fontSize: AppFontSize.f12,
-                                                  color: const Color(0xFF6B7280),
+                                                  color: const Color(
+                                                    0xFF6B7280,
+                                                  ),
                                                 ),
                                               ),
                                               DataColumn(
                                                 label: AppText(
                                                   txt: 'Actions',
                                                   fontSize: AppFontSize.f12,
-                                                  color: const Color(0xFF6B7280),
+                                                  color: const Color(
+                                                    0xFF6B7280,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -338,20 +358,34 @@ class MembersScreen extends StatelessWidget {
                                                       DataCell(
                                                         Column(
                                                           crossAxisAlignment:
-                                                              CrossAxisAlignment.start,
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           mainAxisAlignment:
-                                                              MainAxisAlignment.center,
+                                                              MainAxisAlignment
+                                                                  .center,
                                                           children: [
                                                             AppText(
                                                               txt: m.name,
-                                                              fontSize: AppFontSize.f16,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontSize:
+                                                                  AppFontSize
+                                                                      .f16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
                                                             ),
-                                                            SizedBox(height: ch(5)),
+                                                            SizedBox(
+                                                              height: ch(5),
+                                                            ),
                                                             AppText(
-                                                              txt: 'Joined ${m.joinDate}',
-                                                              fontSize: AppFontSize.f13,
-                                                              color: const Color(0xFF9CA3AF),
+                                                              txt:
+                                                                  'Joined ${m.joinDate}',
+                                                              fontSize:
+                                                                  AppFontSize
+                                                                      .f13,
+                                                              color:
+                                                                  const Color(
+                                                                    0xFF9CA3AF,
+                                                                  ),
                                                             ),
                                                           ],
                                                         ),
@@ -359,38 +393,60 @@ class MembersScreen extends StatelessWidget {
                                                       DataCell(
                                                         Column(
                                                           crossAxisAlignment:
-                                                              CrossAxisAlignment.start,
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           mainAxisAlignment:
-                                                              MainAxisAlignment.center,
+                                                              MainAxisAlignment
+                                                                  .center,
                                                           children: [
                                                             Row(
                                                               children: [
                                                                 Icon(
-                                                                  Icons.email_outlined,
+                                                                  Icons
+                                                                      .email_outlined,
                                                                   size: cw(4),
-                                                                  color: const Color(0xFF9CA3AF),
+                                                                  color: const Color(
+                                                                    0xFF9CA3AF,
+                                                                  ),
                                                                 ),
-                                                                const SizedBox(width: 4),
+                                                                const SizedBox(
+                                                                  width: 4,
+                                                                ),
                                                                 AppText(
                                                                   txt: m.email,
-                                                                  fontSize: AppFontSize.f15,
-                                                                  color: const Color(0xFF6B7280),
+                                                                  fontSize:
+                                                                      AppFontSize
+                                                                          .f15,
+                                                                  color: const Color(
+                                                                    0xFF6B7280,
+                                                                  ),
                                                                 ),
                                                               ],
                                                             ),
-                                                            SizedBox(height: ch(5)),
+                                                            SizedBox(
+                                                              height: ch(5),
+                                                            ),
                                                             Row(
                                                               children: [
                                                                 Icon(
-                                                                  Icons.phone_outlined,
+                                                                  Icons
+                                                                      .phone_outlined,
                                                                   size: cw(4),
-                                                                  color: const Color(0xFF9CA3AF),
+                                                                  color: const Color(
+                                                                    0xFF9CA3AF,
+                                                                  ),
                                                                 ),
-                                                                const SizedBox(width: 4),
+                                                                const SizedBox(
+                                                                  width: 4,
+                                                                ),
                                                                 AppText(
                                                                   txt: m.phone,
-                                                                  fontSize: AppFontSize.f13,
-                                                                  color: const Color(0xFF6B7280),
+                                                                  fontSize:
+                                                                      AppFontSize
+                                                                          .f13,
+                                                                  color: const Color(
+                                                                    0xFF6B7280,
+                                                                  ),
                                                                 ),
                                                               ],
                                                             ),
@@ -400,15 +456,22 @@ class MembersScreen extends StatelessWidget {
                                                       DataCell(
                                                         _Chip(
                                                           label: m.membership,
-                                                          color: const Color(0xFF7C3AED),
-                                                          bg: const Color(0xFFF5F3FF),
+                                                          color: const Color(
+                                                            0xFF7C3AED,
+                                                          ),
+                                                          bg: const Color(
+                                                            0xFFF5F3FF,
+                                                          ),
                                                         ),
                                                       ),
                                                       DataCell(
                                                         // Overdue is computed from expiryDate —
                                                         // badge updates on every snapshot.
                                                         StatusBadge(
-                                                          status: FirestoreService.isOverdueByDate(m)
+                                                          status:
+                                                              FirestoreService.isOverdueByDate(
+                                                                m,
+                                                              )
                                                               ? 'Overdue'
                                                               : m.status,
                                                         ),
@@ -416,8 +479,11 @@ class MembersScreen extends StatelessWidget {
                                                       DataCell(
                                                         AppText(
                                                           txt: m.expiryDate,
-                                                          fontSize: AppFontSize.f13,
-                                                          color: const Color(0xFF6B7280),
+                                                          fontSize:
+                                                              AppFontSize.f13,
+                                                          color: const Color(
+                                                            0xFF6B7280,
+                                                          ),
                                                         ),
                                                       ),
                                                       DataCell(
@@ -425,23 +491,34 @@ class MembersScreen extends StatelessWidget {
                                                           children: [
                                                             IconButton(
                                                               icon: const Icon(
-                                                                Icons.edit_outlined,
+                                                                Icons
+                                                                    .edit_outlined,
                                                                 size: 18,
-                                                                color: Color(0xFF2563EB),
+                                                                color: Color(
+                                                                  0xFF2563EB,
+                                                                ),
                                                               ),
                                                               onPressed: () {
                                                                 // Edit member — wire to edit screen
-                                                                debugPrint('Edit ${m.docId}');
+                                                                debugPrint(
+                                                                  'Edit ${m.docId}',
+                                                                );
                                                               },
                                                             ),
                                                             IconButton(
                                                               icon: const Icon(
-                                                                Icons.delete_outline,
+                                                                Icons
+                                                                    .delete_outline,
                                                                 size: 18,
-                                                                color: Color(0xFFDC2626),
+                                                                color: Color(
+                                                                  0xFFDC2626,
+                                                                ),
                                                               ),
                                                               onPressed: () =>
-                                                                  _confirmDelete(context, m),
+                                                                  _confirmDelete(
+                                                                    context,
+                                                                    m,
+                                                                  ),
                                                             ),
                                                           ],
                                                         ),
@@ -483,14 +560,18 @@ class MembersScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              final error = await FirestoreService.instance.deleteMember(member.docId);
+              final error = await FirestoreService.instance.deleteMember(
+                member.docId,
+              );
               if (error != null && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error)),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(error)));
               }
             },
             child: const Text('Delete'),
@@ -523,7 +604,9 @@ class _MobileList extends StatelessWidget {
       itemBuilder: (context, index) {
         final m = members[index];
         // Compute overdue per-card — updates on every snapshot rebuild.
-        final displayStatus = FirestoreService.isOverdueByDate(m) ? 'Overdue' : m.status;
+        final displayStatus = FirestoreService.isOverdueByDate(m)
+            ? 'Overdue'
+            : m.status;
 
         return Container(
           margin: EdgeInsets.only(bottom: ch(9.7)),
@@ -582,7 +665,8 @@ class _MobileList extends StatelessWidget {
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => _MembersScreenHelper.confirmDelete(context, m),
+                    onPressed: () =>
+                        _MembersScreenHelper.confirmDelete(context, m),
                   ),
                 ],
               ),
@@ -658,14 +742,17 @@ class _MembersScreenHelper {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFDC2626)),
+              backgroundColor: const Color(0xFFDC2626),
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              final error = await FirestoreService.instance.deleteMember(member.docId);
+              final error = await FirestoreService.instance.deleteMember(
+                member.docId,
+              );
               if (error != null && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error)),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(error)));
               }
             },
             child: const Text('Delete'),
@@ -684,15 +771,14 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w500, color: color),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    decoration: BoxDecoration(
+      color: bg,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: color),
+    ),
+  );
 }

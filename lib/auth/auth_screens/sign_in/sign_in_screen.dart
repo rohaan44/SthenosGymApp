@@ -1,5 +1,5 @@
 import 'package:app/auth/auth_providers/auth_provider.dart';
-import 'package:app/main.dart';
+import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,7 +34,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const MainScaffold()),
+        MaterialPageRoute(builder: (_) => const MainDashboardScreen()),
         (route) => false,
       );
     } else {
