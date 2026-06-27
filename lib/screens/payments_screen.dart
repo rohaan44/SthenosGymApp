@@ -162,7 +162,7 @@ class PaymentsScreen extends StatelessWidget {
                               width: cardWidth,
                               child: _SummaryCard(
                                 title: 'Total Revenue',
-                                value: '\$${totalRevenue.toInt()}',
+                                value: 'Rs. ${totalRevenue.toInt()}',
                                 sub:
                                     '${allPayments.where((p) => p.status == 'Paid').length} payments',
                                 icon: Icons.attach_money,
@@ -174,7 +174,7 @@ class PaymentsScreen extends StatelessWidget {
                               width: cardWidth,
                               child: _SummaryCard(
                                 title: 'Pending',
-                                value: '\$${pendingTotal.toInt()}',
+                                value: 'Rs. ${pendingTotal.toInt()}',
                                 sub: '$pendingCount invoices',
                                 icon: Icons.pending_outlined,
                                 iconColor: const Color(0xFFD97706),
@@ -185,7 +185,7 @@ class PaymentsScreen extends StatelessWidget {
                               width: cardWidth,
                               child: _SummaryCard(
                                 title: 'Overdue',
-                                value: '\$${overdueTotal.toInt()}',
+                                value: 'Rs. ${overdueTotal.toInt()}',
                                 sub: '$overdueCount members',
                                 icon: Icons.warning_amber_outlined,
                                 iconColor: const Color(0xFFDC2626),
@@ -469,7 +469,7 @@ class _DesktopPaymentTable extends StatelessWidget {
           fontWeight: FontWeight.w500)),
       DataCell(_PlanChip(plan: p.plan)),
       DataCell(Text(
-        '\$${p.amount.toInt()}',
+        'Rs. ${p.amount.toInt()}',
         style:
             const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       )),
@@ -746,7 +746,7 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                 ),
               ),
               Text(
-                '\$${p.amount.toInt()}',
+                'Rs. ${p.amount.toInt()}',
                 style: TextStyle(
                   fontSize: AppFontSize.f14,
                   fontWeight: FontWeight.w700,

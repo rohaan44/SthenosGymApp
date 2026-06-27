@@ -1,6 +1,7 @@
 import 'package:app/models/models.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/service/firestore_service.dart';
+import 'package:app/service/printer_service.dart';
 import 'package:app/shared_widgets.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
@@ -9,6 +10,15 @@ import 'package:app/ui/routes/app_routes.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+// Helper: navigate to payment history for a member
+void _openPaymentHistory(BuildContext context, Member member) {
+  Navigator.pushNamed(
+    context,
+    AppRoutes.memberPaymentHistory,
+    arguments: member,
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Members Screen — bound to a live Firestore snapshot stream.
@@ -355,6 +365,12 @@ class MembersScreen extends StatelessWidget {
                                             rows: filtered
                                                 .map(
                                                   (m) => DataRow(
+                                                    // Tap anywhere on the row → open payment history
+                                                    onSelectChanged: (_) =>
+                                                        _openPaymentHistory(
+                                                          context,
+                                                          m,
+                                                        ),
                                                     cells: [
                                                       DataCell(
                                                         Column(
@@ -492,6 +508,21 @@ class MembersScreen extends StatelessWidget {
                                                           children: [
                                                             IconButton(
                                                               icon: const Icon(
+                                                                Icons.payments,
+                                                                size: 18,
+                                                                color: Color(
+                                                                  0xFF7C3AED,
+                                                                ),
+                                                              ),
+                                                              tooltip: 'Collect Payment',
+                                                              onPressed: () =>
+                                                                  _MembersScreenHelper.showPaymentDialog(
+                                                                    context,
+                                                                    m,
+                                                                  ),
+                                                            ),
+                                                            IconButton(
+                                                              icon: const Icon(
                                                                 Icons
                                                                     .edit_outlined,
                                                                 size: 18,
@@ -624,132 +655,177 @@ class _MobileList extends StatelessWidget {
             ? 'Overdue'
             : m.status;
 
-        return Container(
-          margin: EdgeInsets.only(bottom: ch(9.7)),
-          padding: EdgeInsets.all(cw(11.2)),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: cw(16.9).clamp(16.0, 22.0),
-                    backgroundColor: const Color(0xFFEFF6FF),
-                    child: Text(
-                      m.name.isNotEmpty ? m.name[0] : '?',
-                      style: TextStyle(
-                        color: const Color(0xFF2563EB),
-                        fontWeight: FontWeight.w600,
-                        fontSize: AppFontSize.f15,
+        return GestureDetector(
+          // Tap anywhere on the card → open payment history
+          onTap: () => _openPaymentHistory(context, m),
+          child: Container(
+            margin: EdgeInsets.only(bottom: ch(9.7)),
+            padding: EdgeInsets.all(cw(11.2)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: cw(16.9).clamp(16.0, 22.0),
+                      backgroundColor: const Color(0xFFEFF6FF),
+                      backgroundImage: (m.profileImageUrl != null &&
+                              m.profileImageUrl!.isNotEmpty)
+                          ? NetworkImage(m.profileImageUrl!)
+                          : null,
+                      child: (m.profileImageUrl == null ||
+                              m.profileImageUrl!.isEmpty)
+                          ? Text(
+                              m.name.isNotEmpty ? m.name[0] : '?',
+                              style: TextStyle(
+                                color: const Color(0xFF2563EB),
+                                fontWeight: FontWeight.w600,
+                                fontSize: AppFontSize.f15,
+                              ),
+                            )
+                          : null,
+                    ),
+                    SizedBox(width: cw(7.5)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            m.name,
+                            style: TextStyle(
+                              fontSize: AppFontSize.f15,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF111827),
+                            ),
+                          ),
+                          Text(
+                            m.membership,
+                            style: TextStyle(
+                              fontSize: AppFontSize.f11,
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  SizedBox(width: cw(7.5)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          m.name,
-                          style: TextStyle(
-                            fontSize: AppFontSize.f15,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF111827),
-                          ),
+                    StatusBadge(status: displayStatus),
+                    const SizedBox(width: 4),
+                    // History button
+                    IconButton(
+                      icon: const Icon(
+                        Icons.payments,
+                        size: 18,
+                        color: Color(0xFF7C3AED),
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Collect Payment',
+                      onPressed: () => _MembersScreenHelper.showPaymentDialog(context, m),
+                    ),
+                    SizedBox(width: cw(2)),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 18,
+                        color: AppColor.primary,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        context.read<MembersProvider>().setMemberData({
+                          "members": m,
+                        });
+                        Navigator.pushNamed(context, AppRoutes.editMemberScreen);
+                      },
+                    ),
+                    SizedBox(width: cw(2)),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Color(0xFFDC2626),
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () =>
+                          _MembersScreenHelper.confirmDelete(context, m),
+                    ),
+                  ],
+                ),
+                SizedBox(height: ch(8.1)),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.email_outlined,
+                      size: 13,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                    SizedBox(width: cw(5.6)),
+                    Expanded(
+                      child: Text(
+                        m.email,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f11,
+                          color: const Color(0xFF6B7280),
                         ),
-                        Text(
-                          m.membership,
-                          style: TextStyle(
-                            fontSize: AppFontSize.f11,
-                            color: const Color(0xFF6B7280),
-                          ),
-                        ),
-                      ],
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  StatusBadge(status: displayStatus),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.edit,
-                      size: 18,
-                      color: AppColor.primary,
+                  ],
+                ),
+                SizedBox(height: ch(4.1)),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.phone_outlined,
+                      size: 13,
+                      color: Color(0xFF9CA3AF),
                     ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      context.read<MembersProvider>().setMemberData({
-                        "members": m,
-                      });
-                      Navigator.pushNamed(context, AppRoutes.editMemberScreen);
-                    },
-                  ),
-                  SizedBox(width: cw(5)),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: Color(0xFFDC2626),
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () =>
-                        _MembersScreenHelper.confirmDelete(context, m),
-                  ),
-                ],
-              ),
-              SizedBox(height: ch(8.1)),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.email_outlined,
-                    size: 13,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                  SizedBox(width: cw(5.6)),
-                  Expanded(
-                    child: Text(
-                      m.email,
+                    SizedBox(width: cw(5.6)),
+                    Text(
+                      m.phone,
                       style: TextStyle(
                         fontSize: AppFontSize.f11,
                         color: const Color(0xFF6B7280),
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: ch(4.1)),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.phone_outlined,
-                    size: 13,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                  SizedBox(width: cw(5.6)),
-                  Text(
-                    m.phone,
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      color: const Color(0xFF6B7280),
+                    const Spacer(),
+                    Text(
+                      'Exp: ${m.expiryDate}',
+                      style: TextStyle(
+                        fontSize: AppFontSize.f10,
+                        color: const Color(0xFF9CA3AF),
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    'Exp: ${m.expiryDate}',
-                    style: TextStyle(
-                      fontSize: AppFontSize.f10,
-                      color: const Color(0xFF9CA3AF),
+                  ],
+                ),
+                // Tap hint
+                SizedBox(height: ch(6)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Icon(
+                      Icons.touch_app_outlined,
+                      size: 11,
+                      color: Color(0xFFD1D5DB),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    SizedBox(width: cw(3)),
+                    const Text(
+                      'Tap to view payment history',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFFD1D5DB),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -761,6 +837,122 @@ class _MobileList extends StatelessWidget {
 // Shared helper for delete confirmation (used by both desktop + mobile)
 // ─────────────────────────────────────────────────────────────────────────────
 class _MembersScreenHelper {
+  static void showPaymentDialog(BuildContext context, Member member) {
+    String selectedMethod = 'Cash';
+    final amountController = TextEditingController();
+    bool isProcessing = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Collect Payment'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Member: ${member.name}'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Amount',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.attach_money),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedMethod,
+                decoration: const InputDecoration(
+                  labelText: 'Payment Method',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['Cash', 'Bank Transfer', 'Credit Card']
+                    .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                    .toList(),
+                onChanged: (v) => setState(() => selectedMethod = v!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isProcessing ? null : () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: isProcessing
+                  ? null
+                  : () async {
+                      final amountStr = amountController.text.trim();
+                      if (amountStr.isEmpty) return;
+                      final amount = double.tryParse(amountStr);
+                      if (amount == null || amount <= 0) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(content: Text('Enter a valid amount')),
+                        );
+                        return;
+                      }
+
+                      setState(() => isProcessing = true);
+
+                      final error = await FirestoreService.instance.processPayment(
+                        member: member,
+                        method: selectedMethod,
+                        amount: amount,
+                      );
+
+                      if (error != null) {
+                        if (ctx.mounted) {
+                          Navigator.pop(ctx); // close dialog first
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(error),
+                              backgroundColor: const Color(0xFFDC2626),
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
+                      } else {
+                        // Print receipt
+                        try {
+                          final memberData = {
+                            'name': member.name,
+                            'gymId': member.id,
+                            'membership': member.membership,
+                            'expiryDate': member.expiryDate,
+                          };
+                          await AppPrinter.printReceipt(
+                            memberData,
+                            amount,
+                            selectedMethod,
+                          );
+                        } catch (e) {
+                          debugPrint('Printing error: $e');
+                        }
+                        if (ctx.mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Payment recorded successfully')),
+                          );
+                        }
+                      }
+                    },
+              child: isProcessing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Confirm'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   static void confirmDelete(BuildContext context, Member member) {
     showDialog(
       context: context,

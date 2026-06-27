@@ -16,20 +16,14 @@ import '../../ui/utils/app_text.dart';
 import '../../ui/helpers/font_size_helper.dart';
 import '../../ui/helpers/app_layout_helper.dart';
 
-/// All mutable state lives exclusively in [AddMemberProvider].
-/// This widget contains zero setState / StatefulWidget usage.
-/// It is split into targeted Consumer sections so only the widgets
-/// that actually depend on changing state are rebuilt.
 class AddMemberScreen extends StatelessWidget {
   const AddMemberScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // context.read — just reads the provider once, no rebuild triggered here.
-    // Individual Consumer widgets below subscribe to only what they need.
     final p = context.read<AddMemberProvider>();
-
     return Scaffold(
+      backgroundColor: AppColor.white,
       body: Form(
         key: p.formKey,
         child: Stack(
@@ -52,8 +46,8 @@ class AddMemberScreen extends StatelessWidget {
                                 // ),
                                 Image.asset(
                                   AssetUtils.titleLogo1,
-                                  height: ch(200),
-                                  width: cw(200),
+                                  height: ch(300),
+                                  width: cw(300),
                                   fit: BoxFit.contain,
                                 ),
                               ],
@@ -79,7 +73,7 @@ class AddMemberScreen extends StatelessWidget {
                                     child: p.imageFile == null
                                         ? Icon(
                                             Icons.camera_alt,
-                                            size: cw(24),
+                                            size: cw(15),
                                             color: AppColor.primary,
                                           )
                                         : null,

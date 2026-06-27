@@ -178,6 +178,9 @@ class Payment {
   /// Firestore document ID of the member who made this payment.
   final String memberId;
 
+  /// Server-side timestamp — used for ordering and display.
+  final DateTime? timestamp;
+
   Payment({
     this.docId = '',
     required this.id,
@@ -191,12 +194,25 @@ class Payment {
     required this.invoiceId,
     this.gymId = '',
     this.memberId = '',
+    this.timestamp,
   });
 
   factory Payment.fromFirestore(Map<String, dynamic> data, String docId) {
     final rawGymId = data['gymId']?.toString() ?? '';
     final rawMemberId = data['memberId']?.toString() ?? '';
     final gymIdVal = rawGymId.isNotEmpty ? rawGymId : rawMemberId;
+
+    // Safely parse Firestore Timestamp → DateTime
+    DateTime? ts;
+    final rawTs = data['timestamp'];
+    if (rawTs != null) {
+      try {
+        // cloud_firestore Timestamp has a .toDate() method
+        ts = (rawTs as dynamic).toDate() as DateTime;
+      } catch (_) {
+        ts = null;
+      }
+    }
 
     return Payment(
       docId: docId,
@@ -211,6 +227,66 @@ class Payment {
       invoiceId: data['invoiceId'] ?? docId,
       gymId: gymIdVal,
       memberId: rawMemberId,
+      timestamp: ts,
+    );
+  }
+
+  /// Converts a Payment back to a Firestore-compatible map.
+  Map<String, dynamic> toMap() => {
+    'docId': docId,
+    'member': member,
+    'amount': amount,
+    'plan': plan,
+    'method': method,
+    'status': status,
+    'date': date,
+    'invoiceId': invoiceId,
+    'gymId': gymId,
+    'memberId': memberId,
+  };
+}
+
+// ── Payment Summary ──────────────────────────────────────────────────────────
+
+/// Aggregated payment stats for a single member.
+class PaymentSummary {
+  final double totalPaid;
+  final double totalOverdue;
+  final String? lastPaymentDate;
+  final int totalCount;
+
+  const PaymentSummary({
+    required this.totalPaid,
+    required this.totalOverdue,
+    this.lastPaymentDate,
+    required this.totalCount,
+  });
+
+  /// Computes the summary from a member's payment list.
+  /// - [totalPaid]    = sum of amounts where status == 'Paid'
+  /// - [totalOverdue] = sum of amounts where status == 'Overdue'
+  /// - [lastPaymentDate] = date string of the most recent Paid payment
+  /// - [totalCount]   = total number of payment records
+  factory PaymentSummary.fromPayments(List<Payment> payments) {
+    double paid = 0;
+    double overdue = 0;
+    String? lastDate;
+
+    for (final p in payments) {
+      if (p.status == 'Paid') {
+        paid += p.amount;
+        // Payments are ordered by timestamp desc — first Paid hit is the latest.
+        lastDate ??= p.date.isNotEmpty ? p.date : null;
+      } else if (p.status == 'Overdue') {
+        overdue += p.amount;
+      }
+    }
+
+    return PaymentSummary(
+      totalPaid: paid,
+      totalOverdue: overdue,
+      lastPaymentDate: lastDate,
+      totalCount: payments.length,
     );
   }
 }

@@ -90,16 +90,16 @@ class AppPrinter {
     printer.printCustom("MEMBERSHIP: ${memberData['membership'] ?? ''}", 0, 1);
     printer.printCustom("--------------------------------", 0, 1);
 
-    printer.printLeftRight(itemLine, "\$${amount.toStringAsFixed(2)}", 0);
+    printer.printLeftRight(itemLine, "Rs. ${amount.toStringAsFixed(2)}", 0);
     printer.printCustom("--------------------------------", 0, 1);
 
-    printer.printLeftRight("TOTAL", "\$${amount.toStringAsFixed(2)}", 1);
+    printer.printLeftRight("TOTAL", "Rs. ${amount.toStringAsFixed(2)}", 1);
 
     printer.printLeftRight("PAYMENT", paymentType, 0);
     if (cardNum != null) {
       printer.printLeftRight("CARD #", cardNum, 0);
     }
-    printer.printLeftRight("AMOUNT", "\$${amount.toStringAsFixed(2)}", 0);
+    printer.printLeftRight("AMOUNT", "Rs. ${amount.toStringAsFixed(2)}", 0);
     printer.printNewLine();
 
     printer.printCustom("MEMBERSHIP VALID THRU: $expiryDate", 0, 1);

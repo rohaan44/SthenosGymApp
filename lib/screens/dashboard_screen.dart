@@ -568,7 +568,7 @@ class DashboardScreen extends StatelessWidget {
                       width: cardWidth,
                       child: _StatCard(
                         title: 'Revenue',
-                        value: '\$${totalRevenue.toInt()}',
+                        value: 'Rs. ${totalRevenue.toInt()}',
                         subtitle: 'this month',
                         icon: Icons.attach_money,
                         iconColor: const Color(0xFFD97706),

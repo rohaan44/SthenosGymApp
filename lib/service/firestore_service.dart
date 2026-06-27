@@ -60,17 +60,32 @@ class FirestoreService {
 
   /// Live stream of payments scoped to a single member's Firestore doc ID,
   /// newest first. Used for per-member payment history and cycle checks.
+  ///
+  /// NOTE: orderBy is intentionally done client-side to avoid requiring a
+  /// Firestore composite index on (memberId + timestamp).
   Stream<List<Payment>> memberPaymentsStream(String memberDocId) {
     return _db
         .collection('payments')
         .where('memberId', isEqualTo: memberDocId)
-        .orderBy('timestamp', descending: true)
         .snapshots()
-        .map(
-          (snap) => snap.docs
+        .map((snap) {
+          final list = snap.docs
               .map((doc) => Payment.fromFirestore(doc.data(), doc.id))
-              .toList(),
-        );
+              .toList();
+
+          // Sort by timestamp descending (newest first) — client-side,
+          // no composite index needed.
+          list.sort((a, b) {
+            final ta = a.timestamp;
+            final tb = b.timestamp;
+            if (ta == null && tb == null) return 0;
+            if (ta == null) return 1;  // nulls go to end
+            if (tb == null) return -1;
+            return tb.compareTo(ta); // descending
+          });
+
+          return list;
+        });
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -123,21 +138,50 @@ class FirestoreService {
   }
 
   /// Returns `true` if the member MAY pay now (no Paid payment exists
-  /// within the current cycle window).
+  /// within the current cycle window OR the current calendar period).
   ///
-  /// Algorithm:
-  ///   1. Compute [cycleStart, cycleEnd] from expiryDate + billingFrequency.
-  ///   2. Filter [payments] for status == "Paid" and date within that window.
-  ///   3. If any matching payment exists → block (return false).
+  /// Two-layer guard:
+  ///   1. Calendar-period check — for monthly: same year+month; for quarterly:
+  ///      same year+quarter; for yearly: same year. This is the primary check
+  ///      and catches the case where expiryDate is stale in the passed Member.
+  ///   2. Cycle-window check (legacy) — [expiryDate − period, expiryDate].
+  ///      Kept as a fallback for edge cases (e.g. mid-cycle plan change).
   ///
-  /// This runs on every StreamBuilder rebuild, so a payment made on another
-  /// device disables this button as soon as the snapshot arrives.
+  /// Returns false (= block) if EITHER check finds an existing paid payment.
   static bool canPayThisCycle(Member member, List<Payment> payments) {
-    if (member.expiryDate.isEmpty) return true; // no expiry set → allow
+    final now = DateTime.now();
+
+    final freq = (member.billingFrequency ?? '').toLowerCase();
+    final isYearly = freq.contains('yearly') || freq.contains('annual');
+    final isQuarterly = freq.contains('quarterly') || freq.contains('3-month');
+
+    // ── Layer 1: Calendar-period guard ───────────────────────────────────────
+    // Blocks if ANY Paid payment falls in the same calendar period as today.
+    for (final p in payments) {
+      if (p.status != 'Paid') continue;
+      if (p.date.isEmpty) continue;
+
+      final payDate = _parseDate(p.date);
+
+      if (isYearly) {
+        // Same calendar year
+        if (payDate.year == now.year) return false;
+      } else if (isQuarterly) {
+        // Same calendar quarter (Jan-Mar, Apr-Jun, Jul-Sep, Oct-Dec)
+        final sameYear = payDate.year == now.year;
+        final sameQuarter = ((payDate.month - 1) ~/ 3) == ((now.month - 1) ~/ 3);
+        if (sameYear && sameQuarter) return false;
+      } else {
+        // Monthly (default): same year + same month
+        if (payDate.year == now.year && payDate.month == now.month) return false;
+      }
+    }
+
+    // ── Layer 2: Cycle-window guard (fallback) ────────────────────────────────
+    if (member.expiryDate.isEmpty) return true;
 
     final window = currentCycleWindow(member.expiryDate, member.billingFrequency);
 
-    // Compare date strings only — strip any time component for safety.
     for (final p in payments) {
       if (p.status != 'Paid') continue;
       if (p.date.isEmpty) continue;
@@ -245,7 +289,12 @@ class FirestoreService {
 
       // 2. Cycle guard.
       if (!canPayThisCycle(member, latestPayments)) {
-        return 'Already paid for this cycle. Next due: ${member.expiryDate}';
+        final now = DateTime.now();
+        final monthName = [
+          '', 'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'
+        ][now.month];
+        return 'Payment already collected for $monthName ${now.year}. Next due: ${member.expiryDate}';
       }
 
       final now = DateTime.now();
