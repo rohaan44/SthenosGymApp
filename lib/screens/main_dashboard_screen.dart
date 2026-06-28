@@ -1,10 +1,8 @@
+import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
-import 'package:app/screens/attendance_screen.dart';
-import 'package:app/screens/classes_screen.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
-import 'package:app/screens/trainers_screen.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
@@ -26,34 +24,35 @@ class MainDashboardScreen extends StatelessWidget {
       icon: Icons.people_outlined,
       activeIcon: Icons.people,
     ),
-    _NavItem(
-      label: 'Classes',
-      icon: Icons.calendar_today_outlined,
-      activeIcon: Icons.calendar_today,
-    ),
-    _NavItem(
-      label: 'Trainers',
-      icon: Icons.fitness_center_outlined,
-      activeIcon: Icons.fitness_center,
-    ),
-    _NavItem(
-      label: 'Attendance',
-      icon: Icons.fact_check_outlined,
-      activeIcon: Icons.fact_check,
-    ),
+
     _NavItem(
       label: 'Payments',
       icon: Icons.credit_card_outlined,
       activeIcon: Icons.credit_card,
     ),
+    // _NavItem(
+    //   label: 'Classes',
+    //   icon: Icons.calendar_today_outlined,
+    //   activeIcon: Icons.calendar_today,
+    // ),
+    // _NavItem(
+    //   label: 'Trainers',
+    //   icon: Icons.fitness_center_outlined,
+    //   activeIcon: Icons.fitness_center,
+    // ),
+    // _NavItem(
+    //   label: 'Attendance',
+    //   icon: Icons.fact_check_outlined,
+    //   activeIcon: Icons.fact_check,
+    // ),
   ];
 
   static const List<Widget> _screens = [
     DashboardScreen(),
     MembersScreen(),
-    ClassesScreen(),
-    TrainersScreen(),
-    AttendanceScreen(),
+    // ClassesScreen(),
+    // TrainersScreen(),
+    // AttendanceScreen(),
     PaymentsScreen(),
   ];
 
@@ -225,8 +224,8 @@ class _SidebarNav extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  height: 40,
-                  width: 40,
+                  height: ch(40),
+                  width: cw(40),
                   padding: EdgeInsets.zero,
                   decoration: BoxDecoration(
                     color: const Color(0xFF2563EB),
@@ -307,6 +306,44 @@ class _SidebarNav extends StatelessWidget {
               ),
             );
           }),
+          const Spacer(),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: cw(4.5),
+              vertical: ch(12.0),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                Provider.of<AuthProvider>(context, listen: false).logout(context);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: cw(3.8),
+                  vertical: ch(8.9),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.logout,
+                      size: 20,
+                      color: Color(0xFFDC2626),
+                    ),
+                    SizedBox(width: cw(3.8)),
+                    const Text(
+                      'Logout',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFDC2626),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: ch(8.1)),
         ],
       ),
     );
@@ -485,6 +522,22 @@ class _MobileDrawer extends StatelessWidget {
                 },
               ),
             ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Color(0xFFDC2626)),
+              title: const Text(
+                'Logout',
+                style: TextStyle(
+                  color: Color(0xFFDC2626),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Provider.of<AuthProvider>(context, listen: false).logout(context);
+              },
+            ),
+            const SizedBox(height: 12),
           ],
         ),
       ),

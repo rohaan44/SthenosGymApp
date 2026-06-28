@@ -1,9 +1,9 @@
+import 'package:app/auth/auth_gate/auth_gate.dart';
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
-import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/ui/routes/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
             surfaceTintColor: Colors.transparent,
           ),
         ),
-        home: const MainDashboardScreen(),
+        home: const AuthGate(),
         onGenerateRoute: AppRouter.generateRoute,
         // home: SignUpScreen(),
         // home: FirestoreTestScreen(),

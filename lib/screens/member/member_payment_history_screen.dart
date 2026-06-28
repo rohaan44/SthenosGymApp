@@ -157,11 +157,12 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-        color: const Color(0xFF111827),
-        onPressed: () => Navigator.pop(context),
-      ),
+      leading: SizedBox.shrink(),
+      //  IconButton(
+      //   icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+      //   color: const Color(0xFF111827),
+      //   onPressed: () => Navigator.pop(context),
+      // ),
       titleSpacing: 0,
       title: Row(
         children: [

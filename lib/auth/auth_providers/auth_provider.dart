@@ -1,6 +1,5 @@
-
-
 import 'package:app/auth/auth_screens/sign_in/sign_in_screen.dart';
+import 'package:app/ui/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -110,10 +109,14 @@ class AuthProvider extends ChangeNotifier {
   // =========================
   // LOGOUT
   // =========================
-  Future<void> logout() async {
+  Future<void> logout(context) async {
     await _auth.signOut();
     _user = null;
     notifyListeners();
+
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.loginView, (route) => false);
   }
 
   // =========================

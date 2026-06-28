@@ -1,3 +1,4 @@
+import 'package:app/auth/auth_screens/sign_in/sign_in_screen.dart';
 import 'package:app/providers/members/add_member_provider.dart';
 import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/screens/member/add_member_screen.dart';
@@ -14,10 +15,8 @@ import 'app_routes.dart';
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      // case AppRoutes.loginView:
-      //   return MaterialPageRoute(
-      //     builder: (_) => const LoginView(),
-      //   );
+      case AppRoutes.loginView:
+        return MaterialPageRoute(builder: (_) => const SignInScreen  ());
       case AppRoutes.membersScreen:
         return MaterialPageRoute(builder: (_) => const MembersScreen());
       case AppRoutes.addMemberScreen:
@@ -51,4 +50,3 @@ class AppRouter {
     }
   }
 }
-

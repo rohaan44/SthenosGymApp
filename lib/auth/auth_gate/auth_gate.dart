@@ -1,33 +1,28 @@
-// import 'package:app/auth/auth_providers/auth_provider.dart';
-// import 'package:app/auth/auth_screens/sign_in/sign_in_screen.dart';
-// import 'package:app/auth/auth_screens/sign_up/sign_up_screen.dart';
-// import 'package:app/main.dart';
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
+import 'package:app/auth/auth_screens/sign_in/sign_in_screen.dart';
+import 'package:app/screens/main_dashboard_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
-// class AuthGate extends StatelessWidget {
-//   const AuthGate({super.key});
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final auth = Provider.of<AuthProvider>(context);
-
-//     // 🔥 IMPORTANT: WAIT UNTIL INIT COMPLETE
-//     if (!auth.initialized) {
-//       return const Scaffold(body: Center(child: CircularProgressIndicator()));
-//     }
-
-//     // logged in
-//     if (auth.user != null) {
-//       return MainScaffold();
-//     }
-
-//     // first time
-//     if (!auth.adminExists) {
-//       return const SignUpScreen();
-//     }
-
-//     // normal login
-//     return const SignInScreen();
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+            ),
+          );
+        }
+        if (snapshot.hasData && snapshot.data != null) {
+          return const MainDashboardScreen();
+        }
+        return const SignInScreen();
+      },
+    );
+  }
+}
