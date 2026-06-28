@@ -1,6 +1,7 @@
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:flutter/material.dart';
+
 // ignore: must_be_immutable
 class AppText extends StatelessWidget {
   AppText({
@@ -41,7 +42,7 @@ class AppText extends StatelessWidget {
   // Auth screen
   final bool? fromAuthScreen;
 
-// REASON : one dialog has button inside which  AppText is called
+  // REASON : one dialog has button inside which  AppText is called
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -52,22 +53,24 @@ class AppText extends StatelessWidget {
       // softWrap: softWrap ?? false,
       textAlign: textAlign ?? TextAlign.start,
       overflow: overflow ?? TextOverflow.ellipsis,
-      style: textStyle ??
+      style:
+          textStyle ??
           TextStyle(
-            fontFamily: fontFamily ??
+            fontFamily:
+                fontFamily ??
                 // (ProviderScope.containerOf(context)
                 //             .read(appViewModel)
                 //             .appLocale
                 //             .toString() ==
                 //         "ar"
                 //     ? "FrutigerLTArabic"
-                     "Lato",
+                "Lato",
             fontSize: fontSize ?? AppFontSize.f14,
             fontWeight: fontWeight ?? FontWeight.w400,
 
-            color: color ?? AppColor.c101010,
-            //?? true with this -> not working for all screens
+            color: color ?? AppColor.cFFFFFF,
 
+            //?? true with this -> not working for all screens
             height: height ?? 1.0,
             letterSpacing: letterspacing ?? 0,
             wordSpacing: wordspacing ?? 0,

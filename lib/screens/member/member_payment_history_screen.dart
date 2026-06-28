@@ -1,7 +1,9 @@
 import 'package:app/models/models.dart';
 import 'package:app/providers/payment_provider.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
+import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
+import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +27,6 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
     final provider = context.read<PaymentsProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
       appBar: _buildAppBar(context),
       body: StreamBuilder<List<Payment>>(
         stream: provider.memberPaymentsStream(member.docId),
@@ -33,7 +34,7 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
           // ── Loading ──────────────────────────────────────────────────────
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+              child: CircularProgressIndicator(color:AppColor.cFFFFFF),
             );
           }
 
@@ -95,21 +96,20 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
                         txt: 'Payment History',
                         fontSize: AppFontSize.f15,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF111827),
                       ),
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: cw(8),
-                          vertical: ch(3),
+                          vertical: ch(6),
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
+                          color: AppColor.cFFFFFF,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: AppText(
                           txt: '${payments.length} records',
                           fontSize: AppFontSize.f11,
-                          color: const Color(0xFF2563EB),
+                          color: AppColor.blue2,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -138,7 +138,8 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: cw(12)),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => _PaymentTile(payment: payments[index]),
+                      (context, index) =>
+                          _PaymentTile(payment: payments[index]),
                       childCount: payments.length,
                     ),
                   ),
@@ -154,14 +155,16 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      automaticallyImplyLeading: false,
+      backgroundColor: AppColor.c252525,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-        color: const Color(0xFF111827),
-        onPressed: () => Navigator.pop(context),
-      ),
+      leading: SizedBox(width: cw(15)),
+      // IconButton(
+      //   icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+      //   color: const Color(0xFF111827),
+      //   onPressed: () => Navigator.pop(context),
+      // ),
       titleSpacing: 0,
       title: Row(
         children: [
@@ -169,11 +172,13 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
           CircleAvatar(
             radius: 18,
             backgroundColor: const Color(0xFFEFF6FF),
-            backgroundImage: (member.profileImageUrl != null &&
+            backgroundImage:
+                (member.profileImageUrl != null &&
                     member.profileImageUrl!.isNotEmpty)
                 ? NetworkImage(member.profileImageUrl!)
                 : null,
-            child: (member.profileImageUrl == null ||
+            child:
+                (member.profileImageUrl == null ||
                     member.profileImageUrl!.isEmpty)
                 ? Text(
                     member.name.isNotEmpty ? member.name[0].toUpperCase() : '?',
@@ -194,15 +199,12 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF111827),
+                  color: AppColor.cFFFFFF,
                 ),
               ),
               Text(
                 member.membership,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF6B7280),
-                ),
+                style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
               ),
             ],
           ),
@@ -210,7 +212,7 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: const Color(0xFFE5E7EB)),
+        child: Container(height: 1, color: AppColor.cFFFFFF),
       ),
     );
   }
@@ -229,19 +231,8 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1D4ED8), Color(0xFF2563EB), Color(0xFF3B82F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppGradients.redGradient,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Padding(
         padding: EdgeInsets.all(cw(16)),
@@ -253,16 +244,16 @@ class _SummaryCard extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.account_balance_wallet_rounded,
-                  color: Colors.white70,
+                  color: AppColor.cFFFFFF,
                   size: 18,
                 ),
                 SizedBox(width: cw(6)),
                 const Text(
                   'Payment Summary',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: AppColor.cFFFFFF,
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -292,7 +283,7 @@ class _SummaryCard extends StatelessWidget {
                     label: 'Overdue',
                     value: 'Rs ${summary.totalOverdue.toStringAsFixed(0)}',
                     icon: Icons.warning_amber_rounded,
-                    accent: const Color(0xFFFCA5A5),
+                    accent: AppColor.cFFFFFF,
                   ),
                 ),
               ],
@@ -310,7 +301,7 @@ class _SummaryCard extends StatelessWidget {
                     label: 'Last Payment',
                     value: summary.lastPaymentDate ?? '—',
                     icon: Icons.calendar_today_outlined,
-                    accent: const Color(0xFFBAE6FD),
+                    accent: AppColor.cFFFFFF,
                     smallText: true,
                   ),
                 ),
@@ -363,7 +354,11 @@ class _StatCell extends StatelessWidget {
             SizedBox(width: cw(4)),
             Text(
               label,
-              style: const TextStyle(color: Colors.white60, fontSize: 11),
+              style: const TextStyle(
+                color: AppColor.cFFFFFF,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -399,7 +394,7 @@ class _PaymentTile extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: ch(10)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.c252525,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
@@ -420,10 +415,10 @@ class _PaymentTile extends StatelessWidget {
               width: cw(38).clamp(36.0, 48.0),
               height: cw(38).clamp(36.0, 48.0),
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                gradient: AppGradients.redGradient,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(methodIcon, color: const Color(0xFF2563EB), size: 18),
+              child: Icon(methodIcon, color: AppColor.cFFFFFF, size: 18),
             ),
 
             SizedBox(width: cw(10)),
@@ -438,7 +433,7 @@ class _PaymentTile extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF111827),
+                      color: AppColor.cFFFFFF,
                     ),
                   ),
                   SizedBox(height: ch(2)),
@@ -496,7 +491,7 @@ class _PaymentTile extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
+                    color: AppColor.cFFFFFF,
                   ),
                 ),
                 SizedBox(height: ch(6)),
@@ -585,7 +580,9 @@ class _PaymentTile extends StatelessWidget {
     if (m.contains('bank') || m.contains('transfer')) {
       return Icons.account_balance_rounded;
     }
-    if (m.contains('online') || m.contains('jazzcash') || m.contains('easypaisa')) {
+    if (m.contains('online') ||
+        m.contains('jazzcash') ||
+        m.contains('easypaisa')) {
       return Icons.phone_android_rounded;
     }
     return Icons.receipt_long_rounded;
@@ -621,16 +618,13 @@ class _EmptyState extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
+              color: AppColor.cFFFFFF,
             ),
           ),
           SizedBox(height: ch(6)),
           const Text(
             'This member has no payment records.',
-            style: TextStyle(
-              fontSize: 13,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
             textAlign: TextAlign.center,
           ),
         ],

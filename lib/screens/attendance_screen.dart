@@ -133,7 +133,7 @@ class AttendanceScreen extends StatelessWidget {
                         children: [
                           TextField(
                             decoration:
-                                customInputDecoration(
+                                customInputDecoration(label: 
                                   'Search member or class...',
                                 ).copyWith(
                                   prefixIcon: const Icon(
@@ -148,7 +148,7 @@ class AttendanceScreen extends StatelessWidget {
                           DropdownButtonFormField<String>(
                             initialValue: state.filterStatus,
                             isExpanded: true,
-                            decoration: customInputDecoration('Status'),
+                            decoration: customInputDecoration( label: 'Status'),
                             items: [
                               DropdownMenuItem(
                                 value: 'all',
@@ -176,7 +176,7 @@ class AttendanceScreen extends StatelessWidget {
                           Expanded(
                             child: TextField(
                               decoration:
-                                  customInputDecoration(
+                                  customInputDecoration(label: 
                                     'Search member or class...',
                                   ).copyWith(
                                     prefixIcon: const Icon(
@@ -193,7 +193,7 @@ class AttendanceScreen extends StatelessWidget {
                             width: cw(50),
                             child: DropdownButtonFormField<String>(
                               initialValue: state.filterStatus,
-                              decoration: customInputDecoration('Status'),
+                              decoration: customInputDecoration(label:  'Status'),
                               items: [
                                 DropdownMenuItem(
                                   value: 'all',

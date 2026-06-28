@@ -8,6 +8,8 @@ class AppColor {
   static const blue = Color(0xff4D9BDA);
   static const c282828 = Colors.black;
   static const brown = Color(0xff8B6E4A);
+  static const c252525 = Color(0xff252525);
+
   static const darkblue = Color(0xff346094);
   static const blue2 = Color(0xff2563EB);
   static const beige = Color(0xffB8A999);
@@ -19,6 +21,10 @@ class AppColor {
   static const green = Color(0xff449857); // Success
   static const cf2f4f5 = Color(0xffF2F4F5);
   static const cE8E9E9 = Color(0xffE8E9E9);
+  static const c151515 = Color(0xff151515);
+  static const themeGrey = Color(0xFF6B7280);
+  static const primary = Color(0xffFF3A2F);
+
   // Gray Scale Palette
   static const transparent = Colors.transparent;
 
@@ -31,7 +37,6 @@ class AppColor {
   static const cF3F5F9 = Color(0xffF3F5F9);
   static const cEAEAEA = Color(0xffEAEAEA);
   static const c008CFF = Color(0xff008CFF);
-  static const primary = Color(0xFF2563EB);
 
   static const c101010 = Color(0xff101010);
   static const c5A5A58 = Color(0xff5A5A58);
@@ -111,4 +116,6 @@ class AppColor {
 
   static const c03D34E = Color(0xff03D34E);
   static const c11E25C = Color(0xff11E25C);
+
+  static get background => null;
 }

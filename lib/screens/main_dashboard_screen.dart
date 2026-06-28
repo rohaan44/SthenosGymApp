@@ -8,6 +8,8 @@ import 'package:app/screens/trainers_screen.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
+import 'package:app/ui/utils/app_gradient.dart';
+import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -68,7 +70,7 @@ class MainDashboardScreen extends StatelessWidget {
           // DESKTOP
           if (width >= kDesktopBreak) {
             return Scaffold(
-              backgroundColor: const Color(0xFFF9FAFB),
+              // backgroundColor: const Color(0xFFF9FAFB),
               body: Row(
                 children: [
                   _SidebarNav(
@@ -85,7 +87,7 @@ class MainDashboardScreen extends StatelessWidget {
           // TABLET
           if (width >= kPhoneBreak) {
             return Scaffold(
-              backgroundColor: const Color(0xFFF9FAFB),
+              // backgroundColor: const Color(0xFFF9FAFB),
               body: Row(
                 children: [
                   _RailNav(
@@ -101,16 +103,17 @@ class MainDashboardScreen extends StatelessWidget {
 
           // MOBILE
           return Scaffold(
-            backgroundColor: const Color(0xFFF9FAFB),
-
+            // backgroundColor: const Color(0xFFF9FAFB),
             appBar: AppBar(
+              // leading: Icon(Icons.menu, color: AppColor.white),
               actions: [
                 Image.asset(
                   AssetUtils.reciptLogo,
                   width: cw(50),
+                  color: AppColor.cFFFFFF,
                   fit: BoxFit.contain,
                 ),
-                const Text("Sthenos Gym"),
+                AppText(txt: "Sthenos Gym"),
                 SizedBox(width: cw(20)),
               ],
             ),
@@ -212,9 +215,9 @@ class _SidebarNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: cw(82.5).clamp(200.0, 260.0),
-      color: Colors.white,
+      // color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -229,7 +232,7 @@ class _SidebarNav extends StatelessWidget {
                   width: 40,
                   padding: EdgeInsets.zero,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB),
+                    gradient: AppGradients.redGradient,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
@@ -247,7 +250,7 @@ class _SidebarNav extends StatelessWidget {
                     style: TextStyle(
                       fontSize: AppFontSize.f13,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF111827),
+                      color: AppColor.cFFFFFF,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -276,9 +279,10 @@ class _SidebarNav extends StatelessWidget {
                     vertical: ch(8.9),
                   ),
                   decoration: BoxDecoration(
-                    color: isActive
-                        ? const Color(0xFFEFF6FF)
-                        : Colors.transparent,
+                    gradient: isActive ? AppGradients.redGradient : null,
+                    // color: isActive
+                    //     ?
+                    //     : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -287,7 +291,7 @@ class _SidebarNav extends StatelessWidget {
                         isActive ? item.activeIcon : item.icon,
                         size: cw(6.8).clamp(16.0, 20.0),
                         color: isActive
-                            ? const Color(0xFF2563EB)
+                            ? AppColor.cFFFFFF
                             : const Color(0xFF6B7280),
                       ),
                       SizedBox(width: cw(3.8)),
@@ -297,7 +301,7 @@ class _SidebarNav extends StatelessWidget {
                           fontSize: AppFontSize.f12,
                           fontWeight: FontWeight.w500,
                           color: isActive
-                              ? const Color(0xFF2563EB)
+                              ? AppColor.cFFFFFF
                               : const Color(0xFF374151),
                         ),
                       ),
@@ -307,6 +311,12 @@ class _SidebarNav extends StatelessWidget {
               ),
             );
           }),
+          Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Image.asset(AssetUtils.titleLogo1, width: cw(50))],
+          ),
+          SizedBox(height: ch(12)),
         ],
       ),
     );
@@ -330,7 +340,7 @@ class _RailNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Colors.red,
       child: Column(
         children: [
           SizedBox(height: ch(12.2)),
@@ -338,7 +348,7 @@ class _RailNav extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF2563EB),
+              color: AppColor.cFFFFFF,
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
@@ -365,7 +375,7 @@ class _RailNav extends StatelessWidget {
                 size: 22,
               ),
               selectedLabelTextStyle: TextStyle(
-                color: const Color(0xFF2563EB),
+                color: AppColor.cFFFFFF,
                 fontSize: AppFontSize.f12,
                 fontWeight: FontWeight.w600,
               ),
@@ -419,73 +429,100 @@ class _MobileDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              color: const Color(0xFF2563EB),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Container(
+          color: AppColor.c151515,
 
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        AssetUtils.reciptLogo,
-                        color: AppColor.cFFFFFF,
-                        width: 100,
-                        fit: BoxFit.contain,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    "Sthenos Gym",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(gradient: AppGradients.redGradient),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          AssetUtils.reciptLogo,
+                          color: AppColor.cFFFFFF,
+                          width: 100,
+                          fit: BoxFit.contain,
+                        ),
+                      ],
                     ),
+                    SizedBox(height: 12),
+                    Text(
+                      "Sthenos Gym",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              Expanded(
+                child: ListView.separated(
+                  separatorBuilder: (context, index) => SizedBox(height: ch(6)),
+
+                  itemCount: navItems.length,
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+
+                  itemBuilder: (context, index) {
+                    final item = navItems[index];
+                    final isSelected = selectedIndex == index;
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: AppGradients.redGradient,
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          isSelected ? item.activeIcon : item.icon,
+                          color: isSelected
+                              ? AppColor.cFFFFFF
+                              : AppColor.cFFFFFF.withValues(alpha: 0.5),
+                        ),
+                        title: Text(
+                          item.label,
+                          style: TextStyle(
+                            color: isSelected
+                                ? AppColor.cFFFFFF
+                                : AppColor.cFFFFFF.withValues(alpha: 0.5),
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                        selected: isSelected,
+                        onTap: () {
+                          onTap(index);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    AssetUtils.reciptLogo,
+                    color: AppColor.cFFFFFF,
+                    width: cw(100),
                   ),
                 ],
               ),
-            ),
-
-            Expanded(
-              child: ListView.builder(
-                itemCount: navItems.length,
-                itemBuilder: (context, index) {
-                  final item = navItems[index];
-                  final isSelected = selectedIndex == index;
-
-                  return ListTile(
-                    leading: Icon(
-                      isSelected ? item.activeIcon : item.icon,
-                      color: isSelected ? const Color(0xFF2563EB) : Colors.grey,
-                    ),
-                    title: Text(
-                      item.label,
-                      style: TextStyle(
-                        color: isSelected
-                            ? const Color(0xFF2563EB)
-                            : Colors.black,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
-                    ),
-                    selected: isSelected,
-                    onTap: () {
-                      onTap(index);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+              SizedBox(height: ch(12)),
+            ],
+          ),
         ),
       ),
     );

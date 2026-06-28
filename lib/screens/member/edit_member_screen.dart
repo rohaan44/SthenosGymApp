@@ -5,8 +5,12 @@ import 'dart:io';
 import 'package:app/models/models.dart';
 import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
+import 'package:app/screens/member/add_member_screen.dart';
 import 'package:app/ui/helpers/color_helper.dart';
+import 'package:app/ui/utils/app_gradient.dart';
+import 'package:app/ui/utils/app_helper.dart';
 import 'package:app/ui/utils/asset_utils.dart';
+import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -94,7 +98,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                   onTap: () => _showImageSourcePicker(ctx, p),
                                   child: CircleAvatar(
                                     radius: cw(40).clamp(32.0, 56.0),
-                                    backgroundColor: Colors.grey[200],
+                                    backgroundColor: AppColor.c252525,
                                     backgroundImage: p.imageFile != null
                                         ? (kIsWeb
                                               ? NetworkImage(p.imageFile!.path)
@@ -107,7 +111,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                         ? Icon(
                                             Icons.camera_alt,
                                             size: cw(24),
-                                            color: AppColor.primary,
+                                            color: AppColor.c151515,
                                           )
                                         : null,
                                   ),
@@ -118,7 +122,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                             Center(
                               child: AppText(
                                 txt: 'Tap to upload profile picture',
-                                color: AppColor.primary,
+                                color: AppColor.themeGrey,
                                 fontSize: AppFontSize.f12,
                               ),
                             ),
@@ -131,7 +135,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                             Container(
                               padding: EdgeInsets.all(cw(16)),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                                color: AppColor.c252525,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
@@ -140,8 +144,9 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                   _ResponsiveRow(
                                     gap: cw(16),
                                     children: [
-                                      _labeledField(
-                                        label: 'Full Name',
+                                      primaryTextField(
+                                        hintText: "Full Name",
+
                                         controller: p.nameCtrl,
                                         prefixIcon: const Icon(
                                           Icons.person_outline,
@@ -154,11 +159,26 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                           return null;
                                         },
                                       ),
-                                      _labeledField(
+                                      // _labeledField(
+                                      //   label: 'Full Name',
+                                      //   controller: p.nameCtrl,
+                                      //   prefixIcon: const Icon(
+                                      //     Icons.person_outline,
+                                      //   ),
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Full Name is required";
+                                      //     }
+                                      //     return null;
+                                      //   },
+                                      // ),
+                                      primaryTextField(
+                                        hintText: "Email",
                                         prefixIcon: Icon(Icons.mail_outline),
-                                        label: 'Email',
                                         controller: p.emailCtrl,
-                                        type: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
 
                                         validator: (value) {
                                           if (value == null ||
@@ -175,16 +195,38 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                           return null;
                                         },
                                       ),
-                                      _labeledField(
-                                        label: 'Phone Number',
+
+                                      // _labeledField(
+                                      //   prefixIcon: Icon(Icons.mail_outline),
+                                      //   label: 'Email',
+                                      //   controller: p.emailCtrl,
+                                      //   type: TextInputType.emailAddress,
+
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Email is required";
+                                      //     }
+
+                                      //     if (!RegExp(
+                                      //       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                      //     ).hasMatch(value)) {
+                                      //       return "Enter valid email";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
+                                      primaryTextField(
+                                        hintText: "Phone",
                                         controller: p.phoneCtrl,
                                         prefixIcon: Icon(Icons.phone_outlined),
-                                        inputFormator: [
+                                        inputFormatters: [
                                           FilteringTextInputFormatter
                                               .digitsOnly,
                                         ],
-                                        type: TextInputType.phone,
-                                        maxLenth: 11,
+                                        keyboardType: TextInputType.phone,
+                                        maxLength: 11,
                                         validator: (value) {
                                           if (value == null ||
                                               value.trim().isEmpty) {
@@ -198,6 +240,29 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                           return null;
                                         },
                                       ),
+                                      // _labeledField(
+                                      //   label: 'Phone Number',
+                                      //   controller: p.phoneCtrl,
+                                      //   prefixIcon: Icon(Icons.phone_outlined),
+                                      //   inputFormator: [
+                                      //     FilteringTextInputFormatter
+                                      //         .digitsOnly,
+                                      //   ],
+                                      //   type: TextInputType.phone,
+                                      //   maxLenth: 11,
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Phone Number is required";
+                                      //     }
+
+                                      //     if (value.length < 11) {
+                                      //       return "Enter valid phone number";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
                                     ],
                                   ),
                                   SizedBox(height: ch(16)),
@@ -205,72 +270,37 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                     gap: cw(16),
                                     flexes: const [1, 2],
                                     children: [
-                                      _dateField(
-                                        context: context,
-                                        label: 'Date of Birth',
-                                        controller: p.dobCtrl,
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return "DOB is required";
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                      _labeledField(
-                                        label: 'Emergency Contact Number',
-                                        controller: p.emergencyCtrl,
-                                        prefixIcon: Icon(CupertinoIcons.phone),
-                                        maxLenth: 11,
-                                        type: TextInputType.phone,
-                                        inputFormator: [
+                                      primaryTextField(
+                                        hintText: 'Cnic Number',
+                                        maxLength: 15,
+                                        controller: p.cnicCtrl,
+                                        inputFormatters: [
                                           FilteringTextInputFormatter
                                               .digitsOnly,
+                                          CnicSlashFormatter(),
                                         ],
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return "Emergency Contact is required";
-                                          }
-
-                                          if (value.length < 11) {
-                                            return "Enter valid contact number";
-                                          }
-
-                                          return null;
-                                        },
-                                      ),
-                                      _labeledField(
-                                        label: 'Cnic Number',
-                                        maxLenth: 13,
-                                        controller: p.cnicCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
-                                        type: TextInputType.phone,
+                                        keyboardType: TextInputType.phone,
                                         validator: (value) {
                                           if (value == null ||
                                               value.trim().isEmpty) {
                                             return "CNIC is required";
                                           }
+                                          final digits = value.replaceAll(
+                                            '-',
+                                            '',
+                                          );
 
                                           if (!RegExp(
                                             r'^\d{13}$',
-                                          ).hasMatch(value)) {
+                                          ).hasMatch(digits)) {
                                             return "CNIC must be 13 digits";
                                           }
 
                                           return null;
                                         },
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(height: ch(16)),
-
-                                  _ResponsiveRow(
-                                    gap: cw(16),
-                                    flexes: const [1, 1],
-                                    children: [
-                                      _labeledField(
-                                        label: 'Address',
+                                      primaryTextField(
                                         controller: p.addressCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
 
@@ -281,26 +311,249 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                           }
                                           return null;
                                         },
+                                        hintText: 'Address',
                                       ),
-                                      _labeledField(
-                                        label: 'Muscle Injury (Optional)',
+                                      dateField(
+                                        context: context,
+                                        label: 'Date of Birth (optional)',
+                                        controller: p.dobCtrl,
+                                        // validator: (value) {
+                                        //   if (value == null ||
+                                        //       value.trim().isEmpty) {
+                                        //     return "DOB is required";
+                                        //   }
+                                        //   return null;
+                                        // },
+                                      ),
+
+                                      // _labeledField(
+                                      //   label: 'Emergency Contact Number',
+                                      //   controller: p.emergencyCtrl,
+                                      //   prefixIcon: Icon(CupertinoIcons.phone),
+                                      //   maxLenth: 11,
+                                      //   type: TextInputType.phone,
+                                      //   inputFormator: [
+                                      //     FilteringTextInputFormatter
+                                      //         .digitsOnly,
+                                      //   ],
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Emergency Contact is required";
+                                      //     }
+
+                                      //     if (value.length < 11) {
+                                      //       return "Enter valid contact number";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
+
+                                      // _labeledField(
+                                      //   label: 'Cnic Number',
+                                      //   maxLenth: 13,
+                                      //   controller: p.cnicCtrl,
+                                      //   prefixIcon: Icon(Icons.badge_outlined),
+                                      //   type: TextInputType.phone,
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "CNIC is required";
+                                      //     }
+
+                                      //     if (!RegExp(
+                                      //       r'^\d{13}$',
+                                      //     ).hasMatch(value)) {
+                                      //       return "CNIC must be 13 digits";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
+                                    ],
+                                  ),
+                                  SizedBox(height: ch(16)),
+
+                                  _ResponsiveRow(
+                                    gap: cw(16),
+                                    flexes: const [1, 1],
+                                    children: [
+                                      primaryTextField(
+                                        hintText:
+                                            'Emergency Contact Number (optional)',
+                                        controller: p.emergencyCtrl,
+                                        prefixIcon: Icon(CupertinoIcons.phone),
+                                        maxLength: 11,
+                                        keyboardType: TextInputType.phone,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        // validator: (value) {
+                                        //   if (value == null ||
+                                        //       value.trim().isEmpty) {
+                                        //     return "Emergency Contact is required";
+                                        //   }
+
+                                        //   if (value.length < 11) {
+                                        //     return "Enter valid contact number";
+                                        //   }
+
+                                        //   return null;
+                                        // },
+                                      ),
+
+                                      // _labeledField(
+                                      // controller: p.addressCtrl,
+                                      //   prefixIcon: Icon(Icons.badge_outlined),
+
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Address is required";
+                                      //     }
+                                      //     return null;
+                                      //   },  label: 'Address',
+
+                                      // ),
+                                      primaryTextField(
+                                        hintText: 'Muscle Injury (Optional)',
                                         controller: p.injuryCtrl,
                                         prefixIcon: Icon(
                                           Icons.personal_injury_outlined,
                                         ),
-                                        type: TextInputType.phone,
+                                        keyboardType: TextInputType.phone,
                                       ),
+                                      // _labeledField(
+                                      //   label: 'Muscle Injury (Optional)',
+                                      //   controller: p.injuryCtrl,
+                                      //   prefixIcon: Icon(
+                                      //     Icons.personal_injury_outlined,
+                                      //   ),
+                                      //   type: TextInputType.phone,
+                                      // ),
                                     ],
                                   ),
                                 ],
                               ),
                             ),
+
+                            Consumer<EditMemberProvider>(
+                              builder: (_, p, __) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    spacing: 24,
+                                    runSpacing: 8,
+                                    children: EditMemberProvider.membershipPlans
+                                        .map(
+                                          (plan) => _radioOption<String>(
+                                            title: plan,
+                                            value: plan,
+                                            groupValue: p.membership,
+                                            onChanged: (v) =>
+                                                p.setMembership(v!),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+
+                                  if (p.membership == "Manually") ...[
+                                    const SizedBox(height: 16),
+
+                                    SizedBox(
+                                      width: cw(100),
+                                      child: primaryTextField(
+                                        prefixIcon: Icon(Icons.money),
+                                        hintText: "Enter Amount ...",
+                                        controller: p.manuallyAmountCtrl,
+                                        validator: (value) {
+                                          if (p.membership == "Manually") {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return "Amount is required!!";
+                                            }
+                                          }
+
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            // ── Payment Details ──────────────────────────────
+                            // Rebuilds when payment method / billing changes
+                            SizedBox(height: ch(16)),
+
+                            Consumer<EditMemberProvider>(
+                              builder: (_, p, __) => _ResponsiveRow(
+                                gap: cw(24),
+                                crossAxisAlignmentStart: true,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AppText(
+                                        txt: 'Payment Method',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: AppFontSize.f15,
+                                      ),
+                                      SizedBox(height: ch(8)),
+                                      ...EditMemberProvider.paymentMethods.map(
+                                        (m) => _radioOption<String>(
+                                          title: m,
+                                          value: m,
+                                          groupValue: p.paymentMethod,
+                                          onChanged: (v) =>
+                                              p.setPaymentMethod(v!),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  // Column(
+                                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                                  //   children: [
+                                  //     AppText(
+                                  //       txt: 'Billing Frequency',
+                                  //       fontWeight: FontWeight.bold,
+                                  //       fontSize: AppFontSize.f15,
+                                  //     ),
+                                  //     SizedBox(height: ch(8)),
+                                  //     ...EditMemberProvider.billingFrequencies.map(
+                                  //       (m) => _radioOption<String>(
+                                  //         title: m,
+                                  //         value: m,
+                                  //         groupValue: p.billingFrequency,
+                                  //         onChanged: (v) =>
+                                  //             p.setBillingFrequency(v!),
+                                  //       ),
+                                  //     ),
+                                  //   ],
+                                  // ),
+                                  // Column(
+                                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                                  //   children: [
+                                  //     _dateField(
+                                  //       context: context,
+                                  //       label: 'Preferred Start Date',
+                                  //       controller: p.startDateCtrl,
+                                  //     ),
+                                  //   ],
+                                  // ),
+                                ],
+                              ),
+                            ),
+
                             _sectionTitle('Terms & Conditions'),
 
                             Container(
                               padding: EdgeInsets.all(cw(16)),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                                color: AppColor.c252525,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: ListView.separated(
@@ -315,7 +568,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                   return Container(
                                     padding: EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: AppColor.c151515,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: Colors.grey.shade300,
@@ -328,6 +581,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                         Text(
                                           item['title'],
                                           style: TextStyle(
+                                            color: AppColor.cFFFFFF,
                                             fontSize: AppFontSize.f14,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -348,6 +602,8 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                                 Text(
                                                   "• ",
                                                   style: TextStyle(
+                                                    color: AppColor.cFFFFFF,
+
                                                     fontSize: AppFontSize.f16,
                                                     fontWeight: FontWeight.bold,
                                                     height: 1.1,
@@ -357,6 +613,8 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                                   child: Text(
                                                     item['points'][pointIndex],
                                                     style: TextStyle(
+                                                      color: AppColor.cFFFFFF,
+
                                                       fontSize: AppFontSize.f14,
                                                     ),
                                                   ),
@@ -385,23 +643,23 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
 
                             // ── Membership Plan ──────────────────────────────
                             // Rebuilds when membership selection changes
-                            _sectionTitle('Membership Plan'),
-                            Consumer<EditMemberProvider>(
-                              builder: (_, p, __) => Wrap(
-                                spacing: cw(24),
-                                runSpacing: ch(4),
-                                children: EditMemberProvider.membershipPlans
-                                    .map(
-                                      (plan) => _radioOption<String>(
-                                        title: plan,
-                                        value: plan,
-                                        groupValue: p.membership,
-                                        onChanged: (v) => p.setMembership(v!),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
+                            // _sectionTitle('Membership Plan'),
+                            // Consumer<EditMemberProvider>(
+                            //   builder: (_, p, __) => Wrap(
+                            //     spacing: cw(24),
+                            //     runSpacing: ch(4),
+                            //     children: EditMemberProvider.membershipPlans
+                            //         .map(
+                            //           (plan) => _radioOption<String>(
+                            //             title: plan,
+                            //             value: plan,
+                            //             groupValue: p.membership,
+                            //             onChanged: (v) => p.setMembership(v!),
+                            //           ),
+                            //         )
+                            //         .toList(),
+                            //   ),
+                            // ),
 
                             // ── Fitness Goals & Add-Ons ──────────────────────
                             // Rebuilds when checkboxes change
@@ -477,66 +735,66 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
 
                             // ── Payment Details ──────────────────────────────
                             // Rebuilds when payment method / billing changes
-                            SizedBox(height: ch(16)),
-                            Consumer<EditMemberProvider>(
-                              builder: (_, p, __) => _ResponsiveRow(
-                                gap: cw(24),
-                                crossAxisAlignmentStart: true,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      AppText(
-                                        txt: 'Payment Method',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: AppFontSize.f15,
-                                      ),
-                                      SizedBox(height: ch(8)),
-                                      ...EditMemberProvider.paymentMethods.map(
-                                        (m) => _radioOption<String>(
-                                          title: m,
-                                          value: m,
-                                          groupValue: p.paymentMethod,
-                                          onChanged: (v) =>
-                                              p.setPaymentMethod(v!),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  // Column(
-                                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                                  //   children: [
-                                  //     AppText(
-                                  //       txt: 'Billing Frequency',
-                                  //       fontWeight: FontWeight.bold,
-                                  //       fontSize: AppFontSize.f15,
-                                  //     ),
-                                  //     SizedBox(height: ch(8)),
-                                  //     ...EditMemberProvider.billingFrequencies.map(
-                                  //       (m) => _radioOption<String>(
-                                  //         title: m,
-                                  //         value: m,
-                                  //         groupValue: p.billingFrequency,
-                                  //         onChanged: (v) =>
-                                  //             p.setBillingFrequency(v!),
-                                  //       ),
-                                  //     ),
-                                  //   ],
-                                  // ),
-                                  // Column(
-                                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                                  //   children: [
-                                  //     _dateField(
-                                  //       context: context,
-                                  //       label: 'Preferred Start Date',
-                                  //       controller: p.startDateCtrl,
-                                  //     ),
-                                  //   ],
-                                  // ),
-                                ],
-                              ),
-                            ),
+                            // SizedBox(height: ch(16)),
+                            // Consumer<EditMemberProvider>(
+                            //   builder: (_, p, __) => _ResponsiveRow(
+                            //     gap: cw(24),
+                            //     crossAxisAlignmentStart: true,
+                            //     children: [
+                            //       Column(
+                            //         crossAxisAlignment:
+                            //             CrossAxisAlignment.start,
+                            //         children: [
+                            //           AppText(
+                            //             txt: 'Payment Method',
+                            //             fontWeight: FontWeight.bold,
+                            //             fontSize: AppFontSize.f15,
+                            //           ),
+                            //           SizedBox(height: ch(8)),
+                            //           ...EditMemberProvider.paymentMethods.map(
+                            //             (m) => _radioOption<String>(
+                            //               title: m,
+                            //               value: m,
+                            //               groupValue: p.paymentMethod,
+                            //               onChanged: (v) =>
+                            //                   p.setPaymentMethod(v!),
+                            //             ),
+                            //           ),
+                            //         ],
+                            //       ),
+                            //       // Column(
+                            //       //   crossAxisAlignment: CrossAxisAlignment.start,
+                            //       //   children: [
+                            //       //     AppText(
+                            //       //       txt: 'Billing Frequency',
+                            //       //       fontWeight: FontWeight.bold,
+                            //       //       fontSize: AppFontSize.f15,
+                            //       //     ),
+                            //       //     SizedBox(height: ch(8)),
+                            //       //     ...EditMemberProvider.billingFrequencies.map(
+                            //       //       (m) => _radioOption<String>(
+                            //       //         title: m,
+                            //       //         value: m,
+                            //       //         groupValue: p.billingFrequency,
+                            //       //         onChanged: (v) =>
+                            //       //             p.setBillingFrequency(v!),
+                            //       //       ),
+                            //       //     ),
+                            //       //   ],
+                            //       // ),
+                            //       // Column(
+                            //       //   crossAxisAlignment: CrossAxisAlignment.start,
+                            //       //   children: [
+                            //       //     _dateField(
+                            //       //       context: context,
+                            //       //       label: 'Preferred Start Date',
+                            //       //       controller: p.startDateCtrl,
+                            //       //     ),
+                            //       //   ],
+                            //       // ),
+                            //     ],
+                            //   ),
+                            // ),
                             SizedBox(height: ch(100)),
                             // ── Terms & Signature ────────────────────────────
                             // Static text + static input fields — no Consumer needed
@@ -595,6 +853,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                 ),
               ),
             ),
+
             Positioned(
               left: 20,
               right: 20,
@@ -608,7 +867,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 5),
                     decoration: BoxDecoration(
-                      color: Color(0xFF2563EB),
+                      gradient: AppGradients.redGradient,
                       borderRadius: BorderRadius.circular(cw(16)),
                     ),
                     child: p.isLoading
@@ -632,6 +891,82 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                 ),
               ),
             ),
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: Consumer<EditMemberProvider>(
+                builder: (ctx, p, __) => InkWell(
+                  onTap: p.isLoading ? null : () => p.submit(ctx),
+
+                  child: Container(
+                    height: ch(45),
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.redGradient,
+                      borderRadius: BorderRadius.circular(cw(16)),
+                    ),
+                    child: p.isLoading
+                        ? Center(
+                            child: SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: AppText(
+                              txt: 'Add Member',
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Positioned(
+            //   left: 20,
+            //   right: 20,
+            //   bottom: 20,
+            //   child: Consumer<EditMemberProvider>(
+            //     builder: (ctx, p, __) => InkWell(
+            //       onTap: p.isLoading ? null : () => p.submit(ctx),
+
+            //       child: Container(
+            //         height: ch(45),
+            //         width: double.infinity,
+            //         padding: EdgeInsets.symmetric(vertical: 5),
+            //         decoration: BoxDecoration(
+            //           color: Color(0xFF2563EB),
+            //           borderRadius: BorderRadius.circular(cw(16)),
+            //         ),
+            //         child: p.isLoading
+            //             ? Center(
+            //                 child: SizedBox(
+            //                   height: 20,
+            //                   width: 20,
+            //                   child: const CircularProgressIndicator(
+            //                     strokeWidth: 2,
+            //                     color: Colors.white,
+            //                   ),
+            //                 ),
+            //               )
+            //             : Center(
+            //                 child: AppText(
+            //                   txt: 'Add Member',
+            //                   color: Colors.white,
+            //                 ),
+            //               ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+
             // ── Loading overlay ──────────────────────────────────────────────
             // Only rebuilds when isLoading changes
             // Consumer<EditMemberProvider>(
@@ -863,36 +1198,6 @@ Widget _sectionTitle(String title) {
   );
 }
 
-Widget _labeledField({
-  required String label,
-  required Widget prefixIcon,
-  required TextEditingController controller,
-  TextInputType type = TextInputType.text,
-  String? Function(String?)? validator,
-  List<TextInputFormatter>? inputFormator,
-  int? maxLenth,
-}) {
-  return TextFormField(
-    controller: controller,
-    keyboardType: type,
-    maxLength: maxLenth,
-    validator: validator,
-    inputFormatters: inputFormator,
-    decoration: InputDecoration(
-      labelText: label,
-      counterText: "", // 👈 hide counter
-      prefixIcon: prefixIcon,
-
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-
-        borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
-    ),
-  );
-}
-
 // Widget _labeledField({
 //   required String label,
 //   required TextEditingController controller,
@@ -925,56 +1230,6 @@ Widget _labeledField({
 //     ],
 //   );
 // }
-
-Widget _dateField({
-  required BuildContext context,
-  required String label,
-  required TextEditingController controller,
-  String? Function(String?)? validator,
-}) {
-  return TextFormField(
-    controller: controller,
-    readOnly: true,
-    validator: validator,
-    decoration: InputDecoration(
-      labelText: label,
-      prefixIcon: const Icon(Icons.calendar_month_outlined),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-
-        borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
-    ),
-    onTap: () async {
-      final picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100),
-        builder: (context, child) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: AppColor.primary, // selected date color
-                onPrimary: Colors.white, // selected date text
-                onSurface: Colors.black, // normal dates
-              ),
-            ),
-            child: child!,
-          );
-        },
-      );
-
-      if (picked != null) {
-        controller.text =
-            '${picked.month.toString().padLeft(2, '0')}/'
-            '${picked.day.toString().padLeft(2, '0')}/'
-            '${picked.year}';
-      }
-    },
-  );
-}
 
 // Widget _dateField({
 //   required BuildContext context,

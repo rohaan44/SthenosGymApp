@@ -98,146 +98,148 @@ class TrainersScreen extends StatelessWidget {
           final filtered = state.filtered(provider.trainers);
           final phone = isPhone(context);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: SingleChildScrollView(
-        padding: pagePadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: ch(8.1)),
+          return Scaffold(
+            backgroundColor: const Color(0xFFF9FAFB),
+            body: SingleChildScrollView(
+              padding: pagePadding(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: ch(8.1)),
 
-            // ── Header ────────────────────────────────────────────────────────
-            phone
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Trainers',
-                        style: TextStyle(
-                          fontSize: AppFontSize.f19,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF111827),
-                        ),
-                      ),
-                      Text(
-                        'Manage your fitness trainers',
-                        style: TextStyle(
-                          fontSize: AppFontSize.f12,
-                          color: const Color(0xFF6B7280),
-                        ),
-                      ),
-                      SizedBox(height: ch(12.2)),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: () => _showAddDialog(context),
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Add Trainer'),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Trainers',
-                            style: TextStyle(
-                              fontSize: AppFontSize.f19,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF111827),
+                  // ── Header ────────────────────────────────────────────────────────
+                  phone
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Trainers',
+                              style: TextStyle(
+                                fontSize: AppFontSize.f19,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF111827),
+                              ),
                             ),
-                          ),
-                          Text(
-                            'Manage your fitness trainers',
-                            style: TextStyle(
-                              fontSize: AppFontSize.f12,
-                              color: const Color(0xFF6B7280),
+                            Text(
+                              'Manage your fitness trainers',
+                              style: TextStyle(
+                                fontSize: AppFontSize.f12,
+                                color: const Color(0xFF6B7280),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => _showAddDialog(context),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Trainer'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
+                            SizedBox(height: ch(12.2)),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                onPressed: () => _showAddDialog(context),
+                                icon: const Icon(Icons.add, size: 18),
+                                label: const Text('Add Trainer'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2563EB),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Trainers',
+                                  style: TextStyle(
+                                    fontSize: AppFontSize.f19,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF111827),
+                                  ),
+                                ),
+                                Text(
+                                  'Manage your fitness trainers',
+                                  style: TextStyle(
+                                    fontSize: AppFontSize.f12,
+                                    color: const Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            FilledButton.icon(
+                              onPressed: () => _showAddDialog(context),
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Add Trainer'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
                         ),
+
+                  SizedBox(height: ch(16.2)),
+
+                  // ── Search ────────────────────────────────────────────────────────
+                  Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(cw(11.2)),
+                      child: TextField(
+                        decoration:
+                            customInputDecoration(
+                              label: 'Search trainers...',
+                            ).copyWith(
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                size: 18,
+                                color: Color(0xFF9CA3AF),
+                              ),
+                            ),
+                        onChanged: (v) => state.setSearch(v),
                       ),
-                    ],
-                  ),
-
-            SizedBox(height: ch(16.2)),
-
-            // ── Search ────────────────────────────────────────────────────────
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(cw(11.2)),
-                child: TextField(
-                  decoration: customInputDecoration('Search trainers...')
-                      .copyWith(
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          size: 18,
-                          color: Color(0xFF9CA3AF),
-                        ),
-                      ),
-                  onChanged: (v) => state.setSearch(v),
-                ),
-              ),
-            ),
-
-            SizedBox(height: ch(12.2)),
-
-            Text(
-              'All Trainers (${filtered.length})',
-              style: TextStyle(
-                fontSize: AppFontSize.f13,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF111827),
-              ),
-            ),
-            SizedBox(height: ch(9.7)),
-
-            // ── Responsive grid: 1/2/3 cols ──────────────────────────────────
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final w = constraints.maxWidth;
-                final crossAxis = w > 900 ? 3 : (w > 560 ? 2 : 1);
-                final aspectRatio = w > 900 ? 2.0 : (w > 560 ? 1.9 : 2.1);
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxis,
-                    crossAxisSpacing: cw(7.5),
-                    mainAxisSpacing: ch(12.2),
-                    childAspectRatio: aspectRatio,
-                  ),
-                  itemCount: filtered.length,
-                  itemBuilder: (_, i) => _TrainerCard(
-                    trainer: filtered[i],
-                    onDelete: () => context.read<GymProvider>().deleteTrainer(
-                      filtered[i].id,
                     ),
                   ),
-                );
-              },
-            ),
 
-            SizedBox(height: ch(16.2)),
-          ],
-        ),
-      ),
-    );
+                  SizedBox(height: ch(12.2)),
+
+                  Text(
+                    'All Trainers (${filtered.length})',
+                    style: TextStyle(
+                      fontSize: AppFontSize.f13,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF111827),
+                    ),
+                  ),
+                  SizedBox(height: ch(9.7)),
+
+                  // ── Responsive grid: 1/2/3 cols ──────────────────────────────────
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final w = constraints.maxWidth;
+                      final crossAxis = w > 900 ? 3 : (w > 560 ? 2 : 1);
+                      final aspectRatio = w > 900 ? 2.0 : (w > 560 ? 1.9 : 2.1);
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxis,
+                          crossAxisSpacing: cw(7.5),
+                          mainAxisSpacing: ch(12.2),
+                          childAspectRatio: aspectRatio,
+                        ),
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) => _TrainerCard(
+                          trainer: filtered[i],
+                          onDelete: () => context
+                              .read<GymProvider>()
+                              .deleteTrainer(filtered[i].id),
+                        ),
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: ch(16.2)),
+                ],
+              ),
+            ),
+          );
         },
       ),
     );
