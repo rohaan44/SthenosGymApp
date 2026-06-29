@@ -30,7 +30,6 @@ class AddMemberProvider extends ChangeNotifier {
   static const fitnessGoalOptions = [
     'General Fitness',
 
-    
     'Weight Loss',
     'Cardio / Endurance',
     'Flexibility / Mobility',
@@ -196,16 +195,16 @@ class AddMemberProvider extends ChangeNotifier {
 
   Future submit(BuildContext context) async {
     // Image Validation
-    if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Image is mandatory!'),
-          backgroundColor: Color(0xFF790600),
-        ),
-      );
-      // appTopToast(message: "Please select a profile image");
-      return;
-    }
+    // if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Image is mandatory!'),
+    //       backgroundColor: Color(0xFF790600),
+    //     ),
+    //   );
+    //   // appTopToast(message: "Please select a profile image");
+    //   return;
+    // }
 
     // Form Validation
     if (!formKey.currentState!.validate()) {
@@ -600,7 +599,7 @@ class AddMemberProvider extends ChangeNotifier {
         'email': emailCtrl.text,
         'phone': phoneCtrl.text.trim(),
         'membership': membership == "Manually"
-            ? manuallyAmountCtrl
+            ? "Monthly - Rs. ${manuallyAmountCtrl.text}/month"
             : membership,
         'status': 'Active',
         'joinDate': parsedJoinDate.toIso8601String().split('T')[0],

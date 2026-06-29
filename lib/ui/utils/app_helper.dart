@@ -91,3 +91,26 @@ class CnicSlashFormatter extends TextInputFormatter {
     );
   }
 }
+
+String commaAmountFormatter(amount, {bool twoDecimal = false}) {
+  if (amount == null) return "";
+  if (amount.runtimeType == String) {
+    amount = double.tryParse(amount.toString().replaceAll(",", ""));
+  }
+  // formattedAmount = amount.toString();
+  String formattedAmount = "";
+  if (amount == null || amount.toString().isEmpty) {
+    return "";
+  } else {
+    formattedAmount = amount?.toStringAsFixed(2);
+  }
+
+  if (!twoDecimal && formattedAmount.endsWith('.00')) {
+    formattedAmount = formattedAmount.substring(0, formattedAmount.length - 3);
+  }
+  formattedAmount = formattedAmount.replaceAllMapped(
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    (Match m) => '${m[1]},',
+  );
+  return formattedAmount;
+}

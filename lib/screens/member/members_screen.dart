@@ -266,8 +266,9 @@ class MembersScreen extends StatelessWidget {
                           child: Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: ch(40)),
-                              child:  CircularProgressIndicator(
-color: AppColor.cFFFFFF,                              ),
+                              child: CircularProgressIndicator(
+                                color: AppColor.cFFFFFF,
+                              ),
                             ),
                           ),
                         );
@@ -342,6 +343,8 @@ color: AppColor.cFFFFFF,                              ),
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
                                           child: DataTable(
+                                            showCheckboxColumn: false,
+
                                             headingRowColor:
                                                 WidgetStateProperty.all(
                                                   Color(0xFF790600),
@@ -972,10 +975,6 @@ class _MembersScreenHelper {
                   DropdownButtonFormField<String>(
                     initialValue: selectedMethod,
                     dropdownColor: AppColor.cFFFFFF,
-
-                    
-
-
 
                     decoration: customInputDecoration(label: "Payment Method"),
 

@@ -208,16 +208,16 @@ class EditMemberProvider extends ChangeNotifier {
 
   Future<void> submit(BuildContext context) async {
     // Image Validation
-    if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Image is mandatory!'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      // appTopToast(message: "Please select a profile image");
-      return;
-    }
+    // if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Image is mandatory!'),
+    //       backgroundColor: Colors.red,
+    //     ),
+    //   );
+    //   // appTopToast(message: "Please select a profile image");
+    //   return;
+    // }
 
     // Form Validation
     if (!formKey.currentState!.validate()) {
@@ -612,7 +612,7 @@ class EditMemberProvider extends ChangeNotifier {
         'email': emailCtrl.text,
         'phone': phoneCtrl.text.trim(),
         'membership': membership == "Manually"
-            ? manuallyAmountCtrl
+            ? manuallyAmountCtrl.text
             : membership,
         'status': 'Active',
         'joinDate': parsedJoinDate.toIso8601String().split('T')[0],

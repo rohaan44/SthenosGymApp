@@ -4,6 +4,7 @@ import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_primary_button.dart';
 import 'package:app/ui/utils/app_text.dart';
+import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
@@ -50,7 +51,20 @@ class PaymentsScreen extends StatelessWidget {
                       SizedBox(height: ch(12.2)),
                       AppButton(
                         width: 100,
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(Icons.av_timer, color: AppColor.cFFFFFF),
+                                  SizedBox(width: cw(5)),
+                                  AppText(txt: 'Coming Soon!'),
+                                ],
+                              ),
+                              backgroundColor: AppColor.blue2,
+                            ),
+                          );
+                        },
                         isRow: true,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -92,7 +106,20 @@ class PaymentsScreen extends StatelessWidget {
                       ),
                       AppButton(
                         width: 100,
-                        onPressed: () {},
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(Icons.av_timer, color: AppColor.cFFFFFF),
+                                  SizedBox(width: cw(5)),
+                                  AppText(txt: 'Coming Soon!'),
+                                ],
+                              ),
+                              backgroundColor: AppColor.blue2,
+                            ),
+                          );
+                        },
                         isRow: true,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -437,17 +464,24 @@ class PaymentsScreen extends StatelessWidget {
     }
   }
 
-  static Widget _searchField(PaymentsProvider state) => TextField(
-    decoration: customInputDecoration(label: 'Search member or invoice...')
-        .copyWith(
-          prefixIcon: const Icon(
-            Icons.search,
-            size: 18,
-            color: Color(0xFF9CA3AF),
-          ),
-        ),
+  static Widget _searchField(PaymentsProvider state) => primaryTextField(
+    hintText: "Search member or invoice...",
+
+    prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
+
     onChanged: state.setSearch,
   );
+  //  TextField(
+  //   decoration: customInputDecoration(label: 'Search member or invoice...')
+  //       .copyWith(
+  //         prefixIcon: const Icon(
+  //           Icons.search,
+  //           size: 18,
+  //           color: Color(0xFF9CA3AF),
+  //         ),
+  //       ),
+  //   onChanged: state.setSearch,
+  // );
 
   static Widget _statusDropdown(
     PaymentsProvider state, {
@@ -492,7 +526,7 @@ class _DesktopPaymentTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DataTable(
-      headingRowColor: WidgetStateProperty.all(AppColor.primary),
+      headingRowColor: WidgetStateProperty.all(Color(0xFF790600)),
       columns: [
         DataColumn(
           label: AppText(txt: 'Gym ID', fontSize: AppFontSize.f12),
@@ -955,6 +989,7 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
               ),
               SizedBox(width: cw(8)),
               AppButton(
+                progressSize: 5,
                 isLoading: _saving,
                 width: cw(35),
                 onPressed: _save,

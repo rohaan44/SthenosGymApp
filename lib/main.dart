@@ -1,4 +1,3 @@
-import 'package:app/auth/auth_gate/auth_gate.dart';
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/gym_provider.dart';
@@ -79,8 +78,9 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: "Sthenos Gym",
 
-          home: const MainDashboardScreen(),
-
+          home:
+              // AdminAuthDialog(),
+              const MainDashboardScreen(),
           onGenerateRoute: AppRouter.generateRoute,
 
           theme: ThemeData(

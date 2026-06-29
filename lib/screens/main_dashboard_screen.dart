@@ -1,8 +1,8 @@
-import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
+import 'package:app/ui/custom_gradient.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
@@ -227,8 +227,8 @@ class _SidebarNav extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  height: ch(40),
-                  width: cw(40),
+                  height: 40,
+                  width: 40,
                   padding: EdgeInsets.zero,
                   decoration: BoxDecoration(
                     gradient: AppGradients.redGradient,
@@ -243,16 +243,16 @@ class _SidebarNav extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: cw(3.8)),
-                Expanded(
-                  child: Text(
-                    'SthenosGymApp',
-                    style: TextStyle(
-                      fontSize: AppFontSize.f13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColor.cFFFFFF,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+
+                CustomGradientAnimationText(
+                  text: "Sthenos Gym",
+                  colors: [
+                    Color(0xFFDB2016),
+                    AppColor.cFFFFFF,
+
+                    Color(0xFF790600),
+                  ],
+                  duration: Duration(seconds: 5),
                 ),
               ],
             ),

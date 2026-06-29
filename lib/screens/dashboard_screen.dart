@@ -462,6 +462,7 @@
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
+import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
@@ -495,9 +496,8 @@ class DashboardScreen extends StatelessWidget {
             if (memberSnapshot.connectionState == ConnectionState.waiting ||
                 paymentSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
-                backgroundColor: Color(0xFFF9FAFB),
                 body: Center(
-                  child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                  child: CircularProgressIndicator(color: AppColor.cFFFFFF),
                 ),
               );
             }
@@ -585,29 +585,29 @@ class DashboardScreen extends StatelessWidget {
                                 iconBg: const Color(0xFFEFF6FF),
                               ),
                             ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _StatCard(
-                                title: 'Classes Today',
-                                value: '${provider.classes.length}',
-                                subtitle:
-                                    '${provider.classes.where((c) => c.status == "Full").length} full',
-                                icon: Icons.calendar_today,
-                                iconColor: const Color(0xFF7C3AED),
-                                iconBg: const Color(0xFFF5F3FF),
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _StatCard(
-                                title: 'Attendance',
-                                value: '$todayPresent',
-                                subtitle: 'present today',
-                                icon: Icons.fact_check,
-                                iconColor: const Color(0xFF059669),
-                                iconBg: const Color(0xFFECFDF5),
-                              ),
-                            ),
+                            // SizedBox(
+                            //   width: cardWidth,
+                            //   child: _StatCard(
+                            //     title: 'Classes Today',
+                            //     value: '${provider.classes.length}',
+                            //     subtitle:
+                            //         '${provider.classes.where((c) => c.status == "Full").length} full',
+                            //     icon: Icons.calendar_today,
+                            //     iconColor: const Color(0xFF7C3AED),
+                            //     iconBg: const Color(0xFFF5F3FF),
+                            //   ),
+                            // ),
+                            // SizedBox(
+                            //   width: cardWidth,
+                            //   child: _StatCard(
+                            //     title: 'Attendance',
+                            //     value: '$todayPresent',
+                            //     subtitle: 'present today',
+                            //     icon: Icons.fact_check,
+                            //     iconColor: const Color(0xFF059669),
+                            //     iconBg: const Color(0xFFECFDF5),
+                            //   ),
+                            // ),
                             SizedBox(
                               width: cardWidth,
                               child: _StatCard(
@@ -619,6 +619,12 @@ class DashboardScreen extends StatelessWidget {
                                 iconColor: const Color(0xFFD97706),
                                 iconBg: const Color(0xFFFFFBEB),
                               ),
+                            ),
+                            Spacer(),
+                            Image.asset(
+                              AssetUtils.titleLogo1,
+                              width: cw(100),
+                              height: ch(100),
                             ),
                           ],
                         );
@@ -637,7 +643,7 @@ class DashboardScreen extends StatelessWidget {
                               Expanded(
                                 child: _RecentMembersCard(members: members),
                               ),
-                              SizedBox(width: cw(7.5)),
+                              // SizedBox(width: cw(7.5)),
                               // Expanded(child: _ClassScheduleCard()),
                             ],
                           );
@@ -789,7 +795,7 @@ class _RecentMembersCard extends StatelessWidget {
                           radius: cw(15.0).clamp(16.0, 20.0),
                           backgroundColor: AppColor.cFFFFFF,
                           child: Text(
-                            m.name.isNotEmpty ? m.name[0] : 'M',
+                            m.name.isNotEmpty ? m.name[0].toUpperCase() : 'M',
                             style: TextStyle(
                               color: AppColor.blue2,
                               fontWeight: FontWeight.w700,
@@ -803,7 +809,7 @@ class _RecentMembersCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                m.name,
+                                capitalizeFirstLetter(m.name),
                                 style: TextStyle(
                                   fontSize: AppFontSize.f12,
                                   fontWeight: FontWeight.w500,
@@ -824,6 +830,7 @@ class _RecentMembersCard extends StatelessWidget {
                             ],
                           ),
                         ),
+
                         StatusBadge(
                           status: FirestoreService.isOverdueByDate(m)
                               ? 'Overdue'
@@ -841,86 +848,86 @@ class _RecentMembersCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-class _ClassScheduleCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Today's Classes",
-              style: TextStyle(
-                fontSize: AppFontSize.f13,
-                fontWeight: FontWeight.w600,
-                color: AppColor.cFFFFFF,
-              ),
-            ),
-            SizedBox(height: ch(12.2)),
-            ...context
-                .watch<GymProvider>()
-                .classes
-                .take(4)
-                .map(
-                  (c) => Padding(
-                    padding: EdgeInsets.only(bottom: ch(9.7)),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: cw(2.2).clamp(3.0, 4.0),
-                          height: ch(32.0).clamp(28.0, 36.0),
-                          decoration: BoxDecoration(
-                            gradient: AppGradients.redGradient,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        SizedBox(width: cw(7.5)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                c.name,
-                                style: TextStyle(
-                                  fontSize: AppFontSize.f12,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColor.cFFFFFF,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                '${c.time} · ${c.trainer}',
-                                style: TextStyle(
-                                  fontSize: AppFontSize.f10,
-                                  color: const Color(0xFF6B7280),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${c.enrolled}/${c.capacity}',
-                          style: TextStyle(
-                            fontSize: AppFontSize.f11,
-                            color: const Color(0xFF6B7280),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// class _ClassScheduleCard extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Card(
+//       margin: EdgeInsets.zero,
+//       child: Padding(
+//         padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               "Today's Classes",
+//               style: TextStyle(
+//                 fontSize: AppFontSize.f13,
+//                 fontWeight: FontWeight.w600,
+//                 color: AppColor.cFFFFFF,
+//               ),
+//             ),
+//             SizedBox(height: ch(12.2)),
+//             ...context
+//                 .watch<GymProvider>()
+//                 .classes
+//                 .take(4)
+//                 .map(
+//                   (c) => Padding(
+//                     padding: EdgeInsets.only(bottom: ch(9.7)),
+//                     child: Row(
+//                       children: [
+//                         Container(
+//                           width: cw(2.2).clamp(3.0, 4.0),
+//                           height: ch(32.0).clamp(28.0, 36.0),
+//                           decoration: BoxDecoration(
+//                             gradient: AppGradients.redGradient,
+//                             borderRadius: BorderRadius.circular(2),
+//                           ),
+//                         ),
+//                         SizedBox(width: cw(7.5)),
+//                         Expanded(
+//                           child: Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               Text(
+//                                 c.name,
+//                                 style: TextStyle(
+//                                   fontSize: AppFontSize.f12,
+//                                   fontWeight: FontWeight.w500,
+//                                   color: AppColor.cFFFFFF,
+//                                 ),
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                               ),
+//                               Text(
+//                                 '${c.time} · ${c.trainer}',
+//                                 style: TextStyle(
+//                                   fontSize: AppFontSize.f10,
+//                                   color: const Color(0xFF6B7280),
+//                                 ),
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         Text(
+//                           '${c.enrolled}/${c.capacity}',
+//                           style: TextStyle(
+//                             fontSize: AppFontSize.f11,
+//                             color: const Color(0xFF6B7280),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 /// **_ClassScheduleCard**
 ///
