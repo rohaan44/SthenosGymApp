@@ -21,16 +21,13 @@ class EditMemberProvider extends ChangeNotifier {
   final dobCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
   final signatureCtrl = TextEditingController();
+  final manuallyAmountCtrl = TextEditingController();
+
   final dateSignedCtrl = TextEditingController();
   final startDateCtrl = TextEditingController();
   final otherGoalCtrl = TextEditingController();
 
-  static const membershipPlans = [
-    'Monthly - Rs. 4000 / month',
-    '3-Month Plan - Rs. 10000',
-    '6-Month Plan - Rs. 24000',
-    'Annual Plan - Rs. 40000',
-  ];
+  static const membershipPlans = ['Monthly - Rs. 4000 / month', "Manually"];
 
   static const fitnessGoalOptions = [
     'General Fitness',
@@ -614,7 +611,9 @@ class EditMemberProvider extends ChangeNotifier {
         'name': nameCtrl.text,
         'email': emailCtrl.text,
         'phone': phoneCtrl.text.trim(),
-        'membership': membership,
+        'membership': membership == "Manually"
+            ? manuallyAmountCtrl
+            : membership,
         'status': 'Active',
         'joinDate': parsedJoinDate.toIso8601String().split('T')[0],
         'expiryDate': expiryDateCalc.toIso8601String().split('T')[0],

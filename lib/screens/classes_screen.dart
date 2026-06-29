@@ -383,7 +383,7 @@ class ClassesScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: category,
-                  decoration: customInputDecoration('Category'),
+                  decoration: customInputDecoration( label: 'Category'),
                   items: ['Yoga', 'Cardio', 'Strength', 'Pilates', 'Boxing']
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                       .toList(),
@@ -523,7 +523,7 @@ class ClassesScreen extends StatelessWidget {
                               children: [
                                 TextField(
                                   decoration:
-                                      customInputDecoration(
+                                      customInputDecoration(label: 
                                         'Search classes...',
                                       ).copyWith(
                                         prefixIcon: const Icon(
@@ -559,7 +559,7 @@ class ClassesScreen extends StatelessWidget {
                                 Expanded(
                                   child: TextField(
                                     decoration:
-                                        customInputDecoration(
+                                        customInputDecoration(label: 
                                           'Search classes...',
                                         ).copyWith(
                                           prefixIcon: const Icon(
@@ -576,7 +576,7 @@ class ClassesScreen extends StatelessWidget {
                                   width: 220,
                                   child: DropdownButtonFormField<String>(
                                     value: state.filterCategory,
-                                    decoration: customInputDecoration(
+                                    decoration: customInputDecoration(label: 
                                       'Category',
                                     ),
                                     items: state

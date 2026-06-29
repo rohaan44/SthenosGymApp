@@ -27,15 +27,28 @@ dependencies:
   another_flushbar: ^1.12.30
   universal_html: ^2.3.0
   flutter_svg: ^2.2.3
+  flutter_launcher_icons: ^0.14.4
   pdf: ^3.11.0
   printing: ^5.13.4
   blue_thermal_printer: ^1.2.3
+ 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
 
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/png/title_logo1.png"
+
+  web:
+    generate: true
+    image_path: "assets/images/png/title_logo1.png"
+    background_color: "#151515"
+    theme_color: "#E53935"
 flutter:
   uses-material-design: true
 

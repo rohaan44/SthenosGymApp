@@ -459,6 +459,9 @@
 //   }
 // }
 
+import 'package:app/ui/helpers/color_helper.dart';
+import 'package:app/ui/utils/app_gradient.dart';
+import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
@@ -525,7 +528,6 @@ class DashboardScreen extends StatelessWidget {
                 .length;
 
             return Scaffold(
-              backgroundColor: const Color(0xFFF9FAFB),
               body: SingleChildScrollView(
                 padding: pagePadding(context),
                 child: Column(
@@ -537,7 +539,7 @@ class DashboardScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: AppFontSize.f19,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF111827),
+                        color: AppColor.cFFFFFF,
                       ),
                     ),
                     SizedBox(height: ch(4.1)),
@@ -577,35 +579,35 @@ class DashboardScreen extends StatelessWidget {
                               child: _StatCard(
                                 title: 'Active Members',
                                 value: '$activeMembers',
-                                subtitle: 'of ${members.length} total',
+                                subtitle: 'of ${provider.members.length} total',
                                 icon: Icons.people,
-                                iconColor: const Color(0xFF2563EB),
+                                iconColor: AppColor.cFFFFFF,
                                 iconBg: const Color(0xFFEFF6FF),
                               ),
                             ),
-                            // SizedBox(
-                            //   width: cardWidth,
-                            //   child: _StatCard(
-                            //     title: 'Classes Today',
-                            //     value: '${provider.classes.length}',
-                            //     subtitle:
-                            //         '${provider.classes.where((c) => c.status == "Full").length} full',
-                            //     icon: Icons.calendar_today,
-                            //     iconColor: const Color(0xFF7C3AED),
-                            //     iconBg: const Color(0xFFF5F3FF),
-                            //   ),
-                            // ),
-                            // SizedBox(
-                            //   width: cardWidth,
-                            //   child: _StatCard(
-                            //     title: 'Attendance',
-                            //     value: '$todayPresent',
-                            //     subtitle: 'present today',
-                            //     icon: Icons.fact_check,
-                            //     iconColor: const Color(0xFF059669),
-                            //     iconBg: const Color(0xFFECFDF5),
-                            //   ),
-                            // ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StatCard(
+                                title: 'Classes Today',
+                                value: '${provider.classes.length}',
+                                subtitle:
+                                    '${provider.classes.where((c) => c.status == "Full").length} full',
+                                icon: Icons.calendar_today,
+                                iconColor: const Color(0xFF7C3AED),
+                                iconBg: const Color(0xFFF5F3FF),
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StatCard(
+                                title: 'Attendance',
+                                value: '$todayPresent',
+                                subtitle: 'present today',
+                                icon: Icons.fact_check,
+                                iconColor: const Color(0xFF059669),
+                                iconBg: const Color(0xFFECFDF5),
+                              ),
+                            ),
                             SizedBox(
                               width: cardWidth,
                               child: _StatCard(
@@ -613,6 +615,7 @@ class DashboardScreen extends StatelessWidget {
                                 value: 'Rs. ${totalRevenue.toInt()}',
                                 subtitle: 'this month',
                                 icon: Icons.attach_money,
+                                isRupeeIocn: true,
                                 iconColor: const Color(0xFFD97706),
                                 iconBg: const Color(0xFFFFFBEB),
                               ),
@@ -675,9 +678,11 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.iconBg,
+    this.isRupeeIocn = false,
   });
   final String title, value, subtitle;
   final IconData icon;
+  final bool isRupeeIocn;
   final Color iconColor, iconBg;
 
   @override
@@ -698,7 +703,7 @@ class _StatCard extends StatelessWidget {
                     title,
                     style: TextStyle(
                       fontSize: AppFontSize.f11,
-                      color: const Color(0xFF6B7280),
+                      color: AppColor.cFFFFFF,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -707,14 +712,16 @@ class _StatCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(cw(5.6).clamp(6.0, 8.0)),
                   decoration: BoxDecoration(
-                    color: iconBg,
+                    gradient: AppGradients.redGradient,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    size: cw(9.4).clamp(16.0, 20.0),
-                    color: iconColor,
-                  ),
+                  child: isRupeeIocn
+                      ? AppText(txt: "Rs")
+                      : Icon(
+                          icon,
+                          size: cw(9.4).clamp(16.0, 20.0),
+                          color: AppColor.cFFFFFF,
+                        ),
                 ),
               ],
             ),
@@ -724,7 +731,7 @@ class _StatCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: AppFontSize.f16,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF111827),
+                color: AppColor.cFFFFFF,
               ),
             ),
             SizedBox(height: ch(2.4)),
@@ -732,7 +739,7 @@ class _StatCard extends StatelessWidget {
               subtitle,
               style: TextStyle(
                 fontSize: AppFontSize.f9,
-                color: const Color(0xFF9CA3AF),
+                color: AppColor.cFFFFFF,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -767,7 +774,7 @@ class _RecentMembersCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: AppFontSize.f13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF111827),
+                color: AppColor.cFFFFFF,
               ),
             ),
             SizedBox(height: ch(12.2)),
@@ -780,12 +787,12 @@ class _RecentMembersCard extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: cw(15.0).clamp(16.0, 20.0),
-                          backgroundColor: const Color(0xFFEFF6FF),
+                          backgroundColor: AppColor.cFFFFFF,
                           child: Text(
                             m.name.isNotEmpty ? m.name[0] : 'M',
                             style: TextStyle(
-                              color: const Color(0xFF2563EB),
-                              fontWeight: FontWeight.w600,
+                              color: AppColor.blue2,
+                              fontWeight: FontWeight.w700,
                               fontSize: AppFontSize.f12,
                             ),
                           ),
@@ -800,7 +807,7 @@ class _RecentMembersCard extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: AppFontSize.f12,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF111827),
+                                  color: AppColor.cFFFFFF,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -821,6 +828,88 @@ class _RecentMembersCard extends StatelessWidget {
                           status: FirestoreService.isOverdueByDate(m)
                               ? 'Overdue'
                               : m.status,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+class _ClassScheduleCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Today's Classes",
+              style: TextStyle(
+                fontSize: AppFontSize.f13,
+                fontWeight: FontWeight.w600,
+                color: AppColor.cFFFFFF,
+              ),
+            ),
+            SizedBox(height: ch(12.2)),
+            ...context
+                .watch<GymProvider>()
+                .classes
+                .take(4)
+                .map(
+                  (c) => Padding(
+                    padding: EdgeInsets.only(bottom: ch(9.7)),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: cw(2.2).clamp(3.0, 4.0),
+                          height: ch(32.0).clamp(28.0, 36.0),
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.redGradient,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(width: cw(7.5)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                c.name,
+                                style: TextStyle(
+                                  fontSize: AppFontSize.f12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.cFFFFFF,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '${c.time} · ${c.trainer}',
+                                style: TextStyle(
+                                  fontSize: AppFontSize.f10,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${c.enrolled}/${c.capacity}',
+                          style: TextStyle(
+                            fontSize: AppFontSize.f11,
+                            color: const Color(0xFF6B7280),
+                          ),
                         ),
                       ],
                     ),
@@ -945,7 +1034,7 @@ class _PaymentStatusCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: AppFontSize.f13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF111827),
+                color: AppColor.cFFFFFF,
               ),
             ),
             SizedBox(height: ch(12.2)),
@@ -1030,7 +1119,7 @@ class _PaymentPill extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: ch(12.2).clamp(12.0, 16.0)),
         decoration: BoxDecoration(
-          color: bg,
+          gradient: AppGradients.redGradient,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -1040,13 +1129,16 @@ class _PaymentPill extends StatelessWidget {
               style: TextStyle(
                 fontSize: AppFontSize.f16,
                 fontWeight: FontWeight.w700,
-                color: color,
+                color: AppColor.cFFFFFF,
               ),
             ),
             SizedBox(height: ch(2.4)),
             Text(
               label,
-              style: TextStyle(fontSize: AppFontSize.f11, color: color),
+              style: TextStyle(
+                fontSize: AppFontSize.f11,
+                color: AppColor.cFFFFFF,
+              ),
             ),
           ],
         ),
@@ -1074,7 +1166,7 @@ class _PaymentPillHorizontal extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
       decoration: BoxDecoration(
-        color: bg,
+        gradient: AppGradients.redGradient,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -1085,7 +1177,7 @@ class _PaymentPillHorizontal extends StatelessWidget {
             style: TextStyle(
               fontSize: AppFontSize.f11,
               fontWeight: FontWeight.w500,
-              color: color,
+              color: AppColor.cFFFFFF,
             ),
           ),
           Text(
@@ -1093,7 +1185,7 @@ class _PaymentPillHorizontal extends StatelessWidget {
             style: TextStyle(
               fontSize: AppFontSize.f16,
               fontWeight: FontWeight.w700,
-              color: color,
+              color: AppColor.cFFFFFF,
             ),
           ),
         ],
