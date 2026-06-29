@@ -3,7 +3,10 @@
 import 'dart:io';
 
 import 'package:app/ui/helpers/color_helper.dart';
+import 'package:app/ui/utils/app_gradient.dart';
+import 'package:app/ui/utils/app_helper.dart';
 import 'package:app/ui/utils/asset_utils.dart';
+import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +26,6 @@ class AddMemberScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.read<AddMemberProvider>();
     return Scaffold(
-      backgroundColor: AppColor.white,
       body: Form(
         key: p.formKey,
         child: Stack(
@@ -61,7 +63,7 @@ class AddMemberScreen extends StatelessWidget {
                                   onTap: () => _showImageSourcePicker(ctx, p),
                                   child: CircleAvatar(
                                     radius: cw(40).clamp(32.0, 56.0),
-                                    backgroundColor: Colors.grey[200],
+                                    backgroundColor: AppColor.c252525,
                                     backgroundImage: p.imageFile != null
                                         ? (kIsWeb
                                               ? NetworkImage(p.imageFile!.path)
@@ -74,7 +76,7 @@ class AddMemberScreen extends StatelessWidget {
                                         ? Icon(
                                             Icons.camera_alt,
                                             size: cw(15),
-                                            color: AppColor.primary,
+                                            color: AppColor.themeGrey,
                                           )
                                         : null,
                                   ),
@@ -85,7 +87,7 @@ class AddMemberScreen extends StatelessWidget {
                             Center(
                               child: AppText(
                                 txt: 'Tap to upload profile picture',
-                                color: AppColor.primary,
+                                color: AppColor.themeGrey,
                                 fontSize: AppFontSize.f12,
                               ),
                             ),
@@ -98,7 +100,7 @@ class AddMemberScreen extends StatelessWidget {
                             Container(
                               padding: EdgeInsets.all(cw(16)),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                                color: AppColor.c252525,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
@@ -107,8 +109,9 @@ class AddMemberScreen extends StatelessWidget {
                                   _ResponsiveRow(
                                     gap: cw(16),
                                     children: [
-                                      _labeledField(
-                                        label: 'Full Name',
+                                      primaryTextField(
+                                        hintText: "Full Name",
+
                                         controller: p.nameCtrl,
                                         prefixIcon: const Icon(
                                           Icons.person_outline,
@@ -121,11 +124,26 @@ class AddMemberScreen extends StatelessWidget {
                                           return null;
                                         },
                                       ),
-                                      _labeledField(
+                                      // _labeledField(
+                                      //   label: 'Full Name',
+                                      //   controller: p.nameCtrl,
+                                      //   prefixIcon: const Icon(
+                                      //     Icons.person_outline,
+                                      //   ),
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Full Name is required";
+                                      //     }
+                                      //     return null;
+                                      //   },
+                                      // ),
+                                      primaryTextField(
+                                        hintText: "Email",
                                         prefixIcon: Icon(Icons.mail_outline),
-                                        label: 'Email',
                                         controller: p.emailCtrl,
-                                        type: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
 
                                         validator: (value) {
                                           if (value == null ||
@@ -142,16 +160,38 @@ class AddMemberScreen extends StatelessWidget {
                                           return null;
                                         },
                                       ),
-                                      _labeledField(
-                                        label: 'Phone Number',
+
+                                      // _labeledField(
+                                      //   prefixIcon: Icon(Icons.mail_outline),
+                                      //   label: 'Email',
+                                      //   controller: p.emailCtrl,
+                                      //   type: TextInputType.emailAddress,
+
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Email is required";
+                                      //     }
+
+                                      //     if (!RegExp(
+                                      //       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                      //     ).hasMatch(value)) {
+                                      //       return "Enter valid email";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
+                                      primaryTextField(
+                                        hintText: "Phone",
                                         controller: p.phoneCtrl,
                                         prefixIcon: Icon(Icons.phone_outlined),
-                                        inputFormator: [
+                                        inputFormatters: [
                                           FilteringTextInputFormatter
                                               .digitsOnly,
                                         ],
-                                        type: TextInputType.phone,
-                                        maxLenth: 11,
+                                        keyboardType: TextInputType.phone,
+                                        maxLength: 11,
                                         validator: (value) {
                                           if (value == null ||
                                               value.trim().isEmpty) {
@@ -165,6 +205,29 @@ class AddMemberScreen extends StatelessWidget {
                                           return null;
                                         },
                                       ),
+                                      // _labeledField(
+                                      //   label: 'Phone Number',
+                                      //   controller: p.phoneCtrl,
+                                      //   prefixIcon: Icon(Icons.phone_outlined),
+                                      //   inputFormator: [
+                                      //     FilteringTextInputFormatter
+                                      //         .digitsOnly,
+                                      //   ],
+                                      //   type: TextInputType.phone,
+                                      //   maxLenth: 11,
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Phone Number is required";
+                                      //     }
+
+                                      //     if (value.length < 11) {
+                                      //       return "Enter valid phone number";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
                                     ],
                                   ),
                                   SizedBox(height: ch(16)),
@@ -172,72 +235,37 @@ class AddMemberScreen extends StatelessWidget {
                                     gap: cw(16),
                                     flexes: const [1, 2],
                                     children: [
-                                      _dateField(
-                                        context: context,
-                                        label: 'Date of Birth',
-                                        controller: p.dobCtrl,
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return "DOB is required";
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                      _labeledField(
-                                        label: 'Emergency Contact Number',
-                                        controller: p.emergencyCtrl,
-                                        prefixIcon: Icon(CupertinoIcons.phone),
-                                        maxLenth: 11,
-                                        type: TextInputType.phone,
-                                        inputFormator: [
+                                      primaryTextField(
+                                        hintText: 'Cnic Number',
+                                        maxLength: 15,
+                                        controller: p.cnicCtrl,
+                                        inputFormatters: [
                                           FilteringTextInputFormatter
                                               .digitsOnly,
+                                          CnicSlashFormatter(),
                                         ],
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return "Emergency Contact is required";
-                                          }
-
-                                          if (value.length < 11) {
-                                            return "Enter valid contact number";
-                                          }
-
-                                          return null;
-                                        },
-                                      ),
-                                      _labeledField(
-                                        label: 'Cnic Number',
-                                        maxLenth: 13,
-                                        controller: p.cnicCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
-                                        type: TextInputType.phone,
+                                        keyboardType: TextInputType.phone,
                                         validator: (value) {
                                           if (value == null ||
                                               value.trim().isEmpty) {
                                             return "CNIC is required";
                                           }
+                                          final digits = value.replaceAll(
+                                            '-',
+                                            '',
+                                          );
 
                                           if (!RegExp(
                                             r'^\d{13}$',
-                                          ).hasMatch(value)) {
+                                          ).hasMatch(digits)) {
                                             return "CNIC must be 13 digits";
                                           }
 
                                           return null;
                                         },
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(height: ch(16)),
-
-                                  _ResponsiveRow(
-                                    gap: cw(16),
-                                    flexes: const [1, 1],
-                                    children: [
-                                      _labeledField(
-                                        label: 'Address',
+                                      primaryTextField(
                                         controller: p.addressCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
 
@@ -248,40 +276,200 @@ class AddMemberScreen extends StatelessWidget {
                                           }
                                           return null;
                                         },
+                                        hintText: 'Address',
                                       ),
-                                      _labeledField(
-                                        label: 'Muscle Injury (Optional)',
+                                      dateField(
+                                        context: context,
+                                        label: 'Date of Birth (optional)',
+                                        controller: p.dobCtrl,
+                                        // validator: (value) {
+                                        //   if (value == null ||
+                                        //       value.trim().isEmpty) {
+                                        //     return "DOB is required";
+                                        //   }
+                                        //   return null;
+                                        // },
+                                      ),
+
+                                      // _labeledField(
+                                      //   label: 'Emergency Contact Number',
+                                      //   controller: p.emergencyCtrl,
+                                      //   prefixIcon: Icon(CupertinoIcons.phone),
+                                      //   maxLenth: 11,
+                                      //   type: TextInputType.phone,
+                                      //   inputFormator: [
+                                      //     FilteringTextInputFormatter
+                                      //         .digitsOnly,
+                                      //   ],
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Emergency Contact is required";
+                                      //     }
+
+                                      //     if (value.length < 11) {
+                                      //       return "Enter valid contact number";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
+
+                                      // _labeledField(
+                                      //   label: 'Cnic Number',
+                                      //   maxLenth: 13,
+                                      //   controller: p.cnicCtrl,
+                                      //   prefixIcon: Icon(Icons.badge_outlined),
+                                      //   type: TextInputType.phone,
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "CNIC is required";
+                                      //     }
+
+                                      //     if (!RegExp(
+                                      //       r'^\d{13}$',
+                                      //     ).hasMatch(value)) {
+                                      //       return "CNIC must be 13 digits";
+                                      //     }
+
+                                      //     return null;
+                                      //   },
+                                      // ),
+                                    ],
+                                  ),
+                                  SizedBox(height: ch(16)),
+
+                                  _ResponsiveRow(
+                                    gap: cw(16),
+                                    flexes: const [1, 1],
+                                    children: [
+                                      primaryTextField(
+                                        hintText:
+                                            'Emergency Contact Number (optional)',
+                                        controller: p.emergencyCtrl,
+                                        prefixIcon: Icon(CupertinoIcons.phone),
+                                        maxLength: 11,
+                                        keyboardType: TextInputType.phone,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        // validator: (value) {
+                                        //   if (value == null ||
+                                        //       value.trim().isEmpty) {
+                                        //     return "Emergency Contact is required";
+                                        //   }
+
+                                        //   if (value.length < 11) {
+                                        //     return "Enter valid contact number";
+                                        //   }
+
+                                        //   return null;
+                                        // },
+                                      ),
+
+                                      // _labeledField(
+                                      // controller: p.addressCtrl,
+                                      //   prefixIcon: Icon(Icons.badge_outlined),
+
+                                      //   validator: (value) {
+                                      //     if (value == null ||
+                                      //         value.trim().isEmpty) {
+                                      //       return "Address is required";
+                                      //     }
+                                      //     return null;
+                                      //   },  label: 'Address',
+
+                                      // ),
+                                      primaryTextField(
+                                        hintText: 'Muscle Injury (Optional)',
                                         controller: p.injuryCtrl,
                                         prefixIcon: Icon(
                                           Icons.personal_injury_outlined,
                                         ),
-                                        type: TextInputType.phone,
+                                        keyboardType: TextInputType.phone,
                                       ),
+                                      // _labeledField(
+                                      //   label: 'Muscle Injury (Optional)',
+                                      //   controller: p.injuryCtrl,
+                                      //   prefixIcon: Icon(
+                                      //     Icons.personal_injury_outlined,
+                                      //   ),
+                                      //   type: TextInputType.phone,
+                                      // ),
                                     ],
                                   ),
                                 ],
                               ),
                             ),
+                 
                             // ── Membership Plan ──────────────────────────────
                             // Rebuilds when membership selection changes
                             _sectionTitle('Membership Plan'),
+                            // Consumer<AddMemberProvider>(
+                            //   builder: (_, p, __) => Wrap(
+                            //     spacing: cw(24),
+                            //     runSpacing: ch(4),
+                            //     children: AddMemberProvider.membershipPlans
+                            //         .map(
+                            //           (plan) => _radioOption<String>(
+                            //             title: plan,
+                            //             value: plan,
+                            //             groupValue: p.membership,
+                            //             onChanged: (v) => p.setMembership(v!),
+                            //           ),
+                            //         )
+                            //         .toList(),
+
+                            //   ),
+
+                            // ),
                             Consumer<AddMemberProvider>(
-                              builder: (_, p, __) => Wrap(
-                                spacing: cw(24),
-                                runSpacing: ch(4),
-                                children: AddMemberProvider.membershipPlans
-                                    .map(
-                                      (plan) => _radioOption<String>(
-                                        title: plan,
-                                        value: plan,
-                                        groupValue: p.membership,
-                                        onChanged: (v) => p.setMembership(v!),
+                              builder: (_, p, __) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Wrap(
+                                    spacing: 24,
+                                    runSpacing: 8,
+                                    children: AddMemberProvider.membershipPlans
+                                        .map(
+                                          (plan) => _radioOption<String>(
+                                            title: plan,
+                                            value: plan,
+                                            groupValue: p.membership,
+                                            onChanged: (v) =>
+                                                p.setMembership(v!),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+
+                                  if (p.membership == "Manually") ...[
+                                    const SizedBox(height: 16),
+
+                                    SizedBox(
+                                      width: cw(100),
+                                      child: primaryTextField(
+                                        prefixIcon: Icon(Icons.money),
+                                        hintText: "Enter Amount ...",
+                                        controller: p.manuallyAmountCtrl,
+                                        validator: (value) {
+                                          if (p.membership == "Manually") {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return "Amount is required!!";
+                                            }
+                                          }
+
+                                          return null;
+                                        },
                                       ),
-                                    )
-                                    .toList(),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
-
                             // ── Payment Details ──────────────────────────────
                             // Rebuilds when payment method / billing changes
                             SizedBox(height: ch(16)),
@@ -351,7 +539,7 @@ class AddMemberScreen extends StatelessWidget {
                             Container(
                               padding: EdgeInsets.all(cw(16)),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                                color: AppColor.c252525,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: ListView.separated(
@@ -366,7 +554,6 @@ class AddMemberScreen extends StatelessWidget {
                                   return Container(
                                     padding: EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: Colors.grey.shade300,
@@ -381,6 +568,7 @@ class AddMemberScreen extends StatelessWidget {
                                           style: TextStyle(
                                             fontSize: AppFontSize.f14,
                                             fontWeight: FontWeight.bold,
+                                            color: AppColor.cFFFFFF,
                                           ),
                                         ),
 
@@ -402,6 +590,7 @@ class AddMemberScreen extends StatelessWidget {
                                                     fontSize: AppFontSize.f16,
                                                     fontWeight: FontWeight.bold,
                                                     height: 1.1,
+                                                    color: AppColor.cFFFFFF,
                                                   ),
                                                 ),
                                                 Expanded(
@@ -409,6 +598,7 @@ class AddMemberScreen extends StatelessWidget {
                                                     item['points'][pointIndex],
                                                     style: TextStyle(
                                                       fontSize: AppFontSize.f14,
+                                                      color: AppColor.cFFFFFF,
                                                     ),
                                                   ),
                                                 ),
@@ -576,7 +766,7 @@ class AddMemberScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 5),
                     decoration: BoxDecoration(
-                      color: Color(0xFF2563EB),
+                      gradient: AppGradients.redGradient,
                       borderRadius: BorderRadius.circular(cw(16)),
                     ),
                     child: p.isLoading
@@ -600,6 +790,7 @@ class AddMemberScreen extends StatelessWidget {
                 ),
               ),
             ),
+       
             // ── Loading overlay ──────────────────────────────────────────────
             // Only rebuilds when isLoading changes
             // Consumer<AddMemberProvider>(
@@ -627,10 +818,14 @@ class AddMemberScreen extends StatelessWidget {
         context: context,
         builder: (ctx) => Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Container(
             width: 320,
+            decoration: BoxDecoration(
+              gradient: AppGradients.redGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -642,29 +837,46 @@ class AddMemberScreen extends StatelessWidget {
                 ),
                 SizedBox(height: ch(16)),
                 ListTile(
-                  leading: const Icon(
-                    Icons.photo_library_outlined,
-                    color: Colors.blue,
+                  title: Row(
+                    children: [
+                      const Icon(
+                        Icons.photo_library_outlined,
+                        color: Colors.blue,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          provider.pickImage(ImageSource.gallery, context);
+                        },
+                        child: AppText(
+                          txt: 'Upload from Gallery',
+                          fontSize: AppFontSize.f14,
+                        ),
+                      ),
+                    ],
                   ),
-                  title: AppText(
-                    txt: 'Upload from Gallery',
-                    fontSize: AppFontSize.f14,
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    provider.pickImage(ImageSource.gallery, context);
-                  },
                 ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: Colors.green,
+                  title: Row(
+                    children: [
+                      const Icon(
+                        Icons.camera_alt_outlined,
+                        color: Colors.green,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showWebCameraDialog(context, provider);
+                        },
+                        child: AppText(
+                          txt: 'Take a Photo',
+                          fontSize: AppFontSize.f14,
+                        ),
+                      ),
+                    ],
                   ),
-                  title: AppText(
-                    txt: 'Take a Photo',
-                    fontSize: AppFontSize.f14,
-                  ),
+
                   onTap: () {
                     Navigator.pop(ctx);
                     _showWebCameraDialog(context, provider);
@@ -675,7 +887,7 @@ class AddMemberScreen extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Cancel'),
+                    child: AppText(txt: "Cancel"),
                   ),
                 ),
               ],
@@ -831,35 +1043,35 @@ Widget _sectionTitle(String title) {
   );
 }
 
-Widget _labeledField({
-  required String label,
-  required Widget prefixIcon,
-  required TextEditingController controller,
-  TextInputType type = TextInputType.text,
-  String? Function(String?)? validator,
-  List<TextInputFormatter>? inputFormator,
-  int? maxLenth,
-}) {
-  return TextFormField(
-    controller: controller,
-    keyboardType: type,
-    maxLength: maxLenth,
-    validator: validator,
-    inputFormatters: inputFormator,
-    decoration: InputDecoration(
-      labelText: label,
-      counterText: "", // 👈 hide counter
-      prefixIcon: prefixIcon,
+// Widget _labeledField({
+//   required String label,
+//   required Widget prefixIcon,
+//   required TextEditingController controller,
+//   TextInputType type = TextInputType.text,
+//   String? Function(String?)? validator,
+//   List<TextInputFormatter>? inputFormator,
+//   int? maxLenth,
+// }) {
+//   return TextFormField(
+//     controller: controller,
+//     keyboardType: type,
+//     maxLength: maxLenth,
+//     validator: validator,
+//     inputFormatters: inputFormator,
+//     decoration: InputDecoration(
+//       labelText: label,
+//       counterText: "", // 👈 hide counter
+//       prefixIcon: prefixIcon,
 
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+//       focusedBorder: OutlineInputBorder(
+//         borderRadius: BorderRadius.circular(6),
 
-        borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
-    ),
-  );
-}
+//         borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
+//       ),
+//       border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+//     ),
+//   );
+// }
 
 // Widget _labeledField({
 //   required String label,
@@ -894,26 +1106,29 @@ Widget _labeledField({
 //   );
 // }
 
-Widget _dateField({
+Widget dateField({
   required BuildContext context,
   required String label,
   required TextEditingController controller,
   String? Function(String?)? validator,
 }) {
-  return TextFormField(
+  return primaryTextField(
     controller: controller,
     readOnly: true,
     validator: validator,
-    decoration: InputDecoration(
-      labelText: label,
-      prefixIcon: const Icon(Icons.calendar_month_outlined),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+    hintText: label,
+    prefixIcon: const Icon(Icons.calendar_month_outlined),
 
-        borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
-    ),
+    // InputDecoration(
+    //   labelText: label,
+    //   prefixIcon: const Icon(Icons.calendar_month_outlined),
+    //   focusedBorder: OutlineInputBorder(
+    //     borderRadius: BorderRadius.circular(6),
+
+    //     borderSide: BorderSide(color: const Color(0xFF2563EB), width: 2),
+    //   ),
+    //   border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+    // ),
     onTap: () async {
       final picked = await showDatePicker(
         context: context,

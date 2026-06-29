@@ -144,14 +144,14 @@ class AppPrinter {
         
         <div class="row">
           <span>$itemLine</span>
-          <span>\$${amount.toStringAsFixed(2)}</span>
+          <span>Rs ${amount.toStringAsFixed(2)}</span>
         </div>
         
         <div class="double-divider"></div>
         
         <div class="row total">
           <span>TOTAL</span>
-          <span>\$${amount.toStringAsFixed(2)}</span>
+          <span>Rs ${amount.toStringAsFixed(2)}</span>
         </div>
         
         <div class="row">
@@ -161,16 +161,17 @@ class AppPrinter {
         $cardRow
         <div class="row">
           <span>AMOUNT</span>
-          <span>\$${amount.toStringAsFixed(2)}</span>
+          <span>Rs: ${amount.toStringAsFixed(2)}</span>
         </div>
         
         <div class="row-center" style="margin-top: 15px;">
           MEMBERSHIP VALID THRU: $expiryDate
         </div>
         
-        <div class="footer">
-          KEEP PUSHING YOUR LIMITS!
-        </div>
+        <div class="footer" style="text-align: center;">
+  <div style="margin-top: 5px;">KEEP PUSHING YOUR LIMITS!</div>
+  <div>Near Ayesha Masjid Opposite Chaska Unit # 6 Latifabad Hyderabad</div>
+</div>
         
         <script>
           window.onload = function() {

@@ -19,20 +19,18 @@ class AddMemberProvider extends ChangeNotifier {
   final phoneCtrl = TextEditingController();
   final dobCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
+  final manuallyAmountCtrl = TextEditingController();
   final signatureCtrl = TextEditingController();
   final dateSignedCtrl = TextEditingController();
   final startDateCtrl = TextEditingController();
   final otherGoalCtrl = TextEditingController();
 
-  static const membershipPlans = [
-    'Monthly - Rs. 4000 / month',
-    '3-Month Plan - Rs. 10000',
-    '6-Month Plan - Rs. 24000',
-    'Annual Plan - Rs. 40000',
-  ];
+  static const membershipPlans = ['Monthly - Rs. 4000 / month', "Manually"];
 
   static const fitnessGoalOptions = [
     'General Fitness',
+
+    
     'Weight Loss',
     'Cardio / Endurance',
     'Flexibility / Mobility',
@@ -196,13 +194,13 @@ class AddMemberProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> submit(BuildContext context) async {
+  Future submit(BuildContext context) async {
     // Image Validation
     if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Image is mandatory!'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFF790600),
         ),
       );
       // appTopToast(message: "Please select a profile image");
@@ -601,7 +599,9 @@ class AddMemberProvider extends ChangeNotifier {
         'name': nameCtrl.text,
         'email': emailCtrl.text,
         'phone': phoneCtrl.text.trim(),
-        'membership': membership,
+        'membership': membership == "Manually"
+            ? manuallyAmountCtrl
+            : membership,
         'status': 'Active',
         'joinDate': parsedJoinDate.toIso8601String().split('T')[0],
         'expiryDate': expiryDateCalc.toIso8601String().split('T')[0],

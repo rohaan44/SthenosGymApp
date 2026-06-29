@@ -1,7 +1,6 @@
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
-import 'package:app/ui/utils/app_gradient.dart';
 import 'package:flutter/material.dart';
 
 class AppButton extends StatelessWidget {
@@ -32,6 +31,9 @@ class AppButton extends StatelessWidget {
     this.isRow = false,
     this.svg,
     this.boxShadow,
+    this.showIcon = false,
+    this.icon,
+    this.iconSpacing = 8.0,
   });
 
   final String? text;
@@ -60,6 +62,11 @@ class AppButton extends StatelessWidget {
   final Widget? svg;
   final bool? fromAuthScreen;
 
+  // 🔹 New properties for icon support
+  final bool showIcon;
+  final Widget? icon;
+  final double iconSpacing;
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -73,24 +80,22 @@ class AppButton extends StatelessWidget {
         alignment: Alignment.center,
         padding: padding ?? EdgeInsets.zero,
         width: width ?? double.infinity,
-        height: height ?? ch(45),
+        height: height ?? ch(51),
         decoration:
             buttonStyle ??
             BoxDecoration(
-              boxShadow:
-                  boxShadow ??
-                  [
-                    BoxShadow(
-                      color: AppColor.c000000.withValues(alpha: 0.10),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-              borderRadius: BorderRadius.circular(borderRadius ?? cw(16)),
+              // boxShadow: boxShadow ??
+              //     [
+              //       BoxShadow(
+              //         color: AppColor.c000000.withValues(alpha:  0.10),
+              //         blurRadius: 4,
+              //         offset: const Offset(0, 2),
+              //       ),
+              //     ],
+              borderRadius: BorderRadius.circular(borderRadius ?? cw(50)),
               color: isButtonEnable
-                  ? (buttonColor ?? AppColor.blue2)
-                  : AppColor.cFFFFFF,
-              gradient: buttonColor == null ? AppGradients.redGradient : null,
+                  ? (buttonColor ?? AppColor.white)
+                  : AppColor.c252525,
               border: isBorder
                   ? Border.all(
                       color: borderColor ?? AppColor.cFFF7EF,
@@ -102,21 +107,26 @@ class AppButton extends StatelessWidget {
             child ??
             (!isLoading
                 ? Row(
-                    mainAxisAlignment: isRow
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      // 🔹 Optional icon (centered with text)
+                      if (showIcon && icon != null) ...[
+                        icon!,
+                        if (text != null) SizedBox(width: iconSpacing),
+                      ],
+
                       if (text != null)
                         Text(
                           text!,
                           style:
                               textStyle ??
                               TextStyle(
-                                fontFamily: "Lato",
-                                fontSize: fontSize ?? AppFontSize.f15,
+                                fontFamily: "SF-Pro",
+                                fontSize: fontSize ?? AppFontSize.f16 - 1.5,
                                 color: isButtonEnable
-                                    ? textColor ?? Colors.white
-                                    : AppColor.c007077,
+                                    ? textColor ?? AppColor.background
+                                    : AppColor.white.withValues(alpha: 0.5),
                                 fontWeight: fontWeight ?? FontWeight.w600,
                                 decoration:
                                     textDecoration ?? TextDecoration.none,
@@ -124,10 +134,14 @@ class AppButton extends StatelessWidget {
                                 height: textHeight,
                               ),
                         ),
+
                       if (isRow && svg != null) ...[const Spacer(), svg!],
                     ],
                   )
-                : const CircularProgressIndicator(color: AppColor.c006E76)),
+                : const CircularProgressIndicator(
+                    color: AppColor.black,
+                    strokeWidth: 4,
+                  )),
       ),
     );
   }
