@@ -1,3 +1,4 @@
+import 'package:app/ui/helpers/web_cam_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -146,52 +147,87 @@ class AddMemberProvider extends ChangeNotifier {
   }
 
   Future<void> pickImage(ImageSource source, BuildContext context) async {
-    if (!kIsWeb && source == ImageSource.camera) {
-      var status = await Permission.camera.status;
-      if (status.isDenied) {
-        status = await Permission.camera.request();
+    if (kIsWeb && source == ImageSource.camera) {
+      final XFile? file = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const WebCameraScreen()),
+      );
+
+      if (file != null) {
+        imageFile = file;
+        notifyListeners();
       }
 
+      return;
+    }
+
+    // Mobile ka purana logic
+
+    if (!kIsWeb && source == ImageSource.camera) {
+      var status = await Permission.camera.request();
+
       if (!status.isGranted) {
-        if (context.mounted) {
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Camera Permission Required'),
-              content: const Text(
-                'This app needs camera access to take a profile photo. '
-                'Please enable camera permissions in settings.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    openAppSettings();
-                  },
-                  child: const Text('Open Settings'),
-                ),
-              ],
-            ),
-          );
-        }
+        openAppSettings();
         return;
       }
     }
 
-    try {
-      final picked = await ImagePicker().pickImage(source: source);
-      if (picked != null) {
-        imageFile = picked;
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint("Error picking image: $e");
+    final picked = await ImagePicker().pickImage(source: source);
+
+    if (picked != null) {
+      imageFile = picked;
+      notifyListeners();
     }
   }
+
+  //// current function
+  // Future<void> pickImage(ImageSource source, BuildContext context) async {
+  //   if (!kIsWeb && source == ImageSource.camera) {
+  //     var status = await Permission.camera.status;
+  //     if (status.isDenied) {
+  //       status = await Permission.camera.request();
+  //     }
+
+  //     if (!status.isGranted) {
+  //       if (context.mounted) {
+  //         showDialog(
+  //           context: context,
+  //           builder: (ctx) => AlertDialog(
+  //             title: const Text('Camera Permission Required'),
+  //             content: const Text(
+  //               'This app needs camera access to take a profile photo. '
+  //               'Please enable camera permissions in settings.',
+  //             ),
+  //             actions: [
+  //               TextButton(
+  //                 onPressed: () => Navigator.pop(ctx),
+  //                 child: const Text('Cancel'),
+  //               ),
+  //               TextButton(
+  //                 onPressed: () {
+  //                   Navigator.pop(ctx);
+  //                   openAppSettings();
+  //                 },
+  //                 child: const Text('Open Settings'),
+  //               ),
+  //             ],
+  //           ),
+  //         );
+  //       }
+  //       return;
+  //     }
+  //   }
+
+  //   try {
+  //     final picked = await ImagePicker().pickImage(source: source);
+  //     if (picked != null) {
+  //       imageFile = picked;
+  //       notifyListeners();
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error picking image: $e");
+  //   }
+  // }
 
   Future submit(BuildContext context) async {
     // Image Validation

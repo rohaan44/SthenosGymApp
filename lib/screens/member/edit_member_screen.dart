@@ -1690,10 +1690,14 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
         context: context,
         builder: (ctx) => Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Container(
             width: 320,
+            decoration: BoxDecoration(
+              gradient: AppGradients.redGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1705,29 +1709,46 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                 ),
                 SizedBox(height: ch(16)),
                 ListTile(
-                  leading: const Icon(
-                    Icons.photo_library_outlined,
-                    color: Colors.blue,
+                  title: Row(
+                    children: [
+                      const Icon(
+                        Icons.photo_library_outlined,
+                        color: Colors.blue,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          provider.pickImage(ImageSource.gallery, context);
+                        },
+                        child: AppText(
+                          txt: 'Upload from Gallery',
+                          fontSize: AppFontSize.f14,
+                        ),
+                      ),
+                    ],
                   ),
-                  title: AppText(
-                    txt: 'Upload from Gallery',
-                    fontSize: AppFontSize.f14,
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    provider.pickImage(ImageSource.gallery, context);
-                  },
                 ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: Colors.green,
+                  title: Row(
+                    children: [
+                      const Icon(
+                        Icons.camera_alt_outlined,
+                        color: Colors.green,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showWebCameraDialog(context, provider);
+                        },
+                        child: AppText(
+                          txt: 'Take a Photo',
+                          fontSize: AppFontSize.f14,
+                        ),
+                      ),
+                    ],
                   ),
-                  title: AppText(
-                    txt: 'Take a Photo',
-                    fontSize: AppFontSize.f14,
-                  ),
+
                   onTap: () {
                     Navigator.pop(ctx);
                     _showWebCameraDialog(context, provider);
@@ -1738,7 +1759,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Cancel'),
+                    child: AppText(txt: "Cancel"),
                   ),
                 ),
               ],
