@@ -464,9 +464,7 @@ import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/models.dart';
-import '../providers/gym_provider.dart';
 import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
@@ -524,7 +522,7 @@ class DashboardScreen extends StatelessWidget {
             // (Attendance is now fetched locally where it is built to prevent broad rebuilds)
 
             return Scaffold(
-              backgroundColor: const Color(0xFFF9FAFB),
+              // backgroundColor: const Color(0xFFF9FAFB),
               body: SingleChildScrollView(
                 padding: pagePadding(context),
                 child: Column(
