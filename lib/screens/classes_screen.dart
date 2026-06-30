@@ -427,11 +427,8 @@ class ClassesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => ClassesState(),
-      child: Consumer<ClassesState>(
-        builder: (context, state, child) {
-          final provider = context.watch<GymProvider>();
-          final classes = provider.classes;
-          final filtered = state.filtered(classes);
+      child: Builder(
+        builder: (context) {
           final phone = isPhone(context);
 
           return Scaffold(
@@ -513,7 +510,16 @@ class ClassesScreen extends StatelessWidget {
 
                   SizedBox(height: ch(16.2)),
 
-                  // ── Filters ───────────────────────────────────────────────────────
+                  Consumer<ClassesState>(
+                    builder: (context, state, child) {
+                      final provider = context.watch<GymProvider>();
+                      final classes = provider.classes;
+                      final filtered = state.filtered(classes);
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── Filters ───────────────────────────────────────────────────────
                   Card(
                     margin: EdgeInsets.zero,
                     child: Padding(
@@ -641,7 +647,11 @@ class ClassesScreen extends StatelessWidget {
                     },
                   ),
 
-                  SizedBox(height: ch(16.2)),
+                          SizedBox(height: ch(16.2)),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

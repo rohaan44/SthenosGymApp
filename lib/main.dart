@@ -1,4 +1,3 @@
-import 'package:app/auth/auth_gate/auth_gate.dart';
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/gym_provider.dart';
@@ -8,14 +7,17 @@ import 'package:app/providers/payment_provider.dart';
 import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/routes/routes.dart';
+import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+List<CameraDescription> cameras = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
 
   await Firebase.initializeApp(
     options: const FirebaseOptions(
@@ -79,8 +81,9 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: "Sthenos Gym",
 
-          home: const MainDashboardScreen(),
-
+          home:
+              // AdminAuthDialog(),
+              const MainDashboardScreen(),
           onGenerateRoute: AppRouter.generateRoute,
 
           theme: ThemeData(

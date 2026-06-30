@@ -12,6 +12,8 @@ class AppButton extends StatelessWidget {
     this.textColor,
     this.child,
     this.width,
+    this.progressSize,
+    this.progressStrokeWidth = 2,
     this.height,
     this.padding,
     this.isLoading = false,
@@ -41,6 +43,8 @@ class AppButton extends StatelessWidget {
   final TextStyle? textStyle;
   final VoidCallback onPressed;
   final double? width;
+  final double? progressSize;
+  final double progressStrokeWidth;
   final double? height;
   final EdgeInsets? padding;
   final double? fontSize;
@@ -127,7 +131,14 @@ class AppButton extends StatelessWidget {
                       if (isRow && svg != null) ...[const Spacer(), svg!],
                     ],
                   )
-                : const CircularProgressIndicator(color: AppColor.c006E76)),
+                : SizedBox(
+                    height: progressSize ?? 20,
+                    width: progressSize ?? 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: progressStrokeWidth,
+                      color: AppColor.cFFFFFF,
+                    ),
+                  )),
       ),
     );
   }

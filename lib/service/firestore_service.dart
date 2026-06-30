@@ -276,6 +276,7 @@ class FirestoreService {
     required Member member,
     required String method,
     required double amount,
+    String? paymentDocIdToUpdate,
   }) async {
     try {
       // 1. Fresh payment query to catch concurrent payments (e.g. another device).
@@ -301,29 +302,61 @@ class FirestoreService {
       final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final invoiceId = 'INV-${now.millisecondsSinceEpoch.toString().substring(5)}';
 
-      // 3. Write payment doc.
-      await _db.collection('payments').add({
-        'gymId': member.id.toString(),
-        'memberId': member.docId, // Firestore doc ID for future stream queries
-        'member': member.name,
-        'plan': member.membership,
-        'amount': amount,
-        'method': method,
-        'status': 'Paid',
-        'date': dateStr,
-        'invoiceId': invoiceId,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      final batch = _db.batch();
+
+      String? targetDocId = paymentDocIdToUpdate;
+
+      if (targetDocId == null) {
+        // If not explicitly provided, look for an existing Overdue or Pending payment to update
+        // (sort so we overwrite the most recent unpaid one first)
+        final sortedPayments = List<Payment>.from(latestPayments);
+        sortedPayments.sort((a, b) => b.timestamp?.compareTo(a.timestamp ?? DateTime(0)) ?? 0);
+        for (final p in sortedPayments) {
+          if (p.status == 'Overdue' || p.status == 'Pending') {
+            targetDocId = p.docId;
+            break;
+          }
+        }
+      }
+
+      if (targetDocId != null) {
+        // Update existing invoice instead of creating a duplicate
+        final docRef = _db.collection('payments').doc(targetDocId);
+        batch.update(docRef, {
+          'amount': amount,
+          'method': method,
+          'status': 'Paid',
+          'date': dateStr, // updated to today's date
+        });
+      } else {
+        // Create new invoice
+        final newPaymentRef = _db.collection('payments').doc();
+        batch.set(newPaymentRef, {
+          'gymId': member.id.toString(),
+          'memberId': member.docId,
+          'member': member.name,
+          'plan': member.membership,
+          'amount': amount,
+          'method': method,
+          'status': 'Paid',
+          'date': dateStr,
+          'invoiceId': invoiceId,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      }
 
       // 4. Compute new expiryDate = current cycleEnd + 1 period.
       final newExpiry = _nextExpiryDate(member.expiryDate, member.billingFrequency);
 
       // 5. Update member doc.
-      await _db.collection('members').doc(member.docId).update({
+      final memberRef = _db.collection('members').doc(member.docId);
+      batch.update(memberRef, {
         'lastPaymentDate': dateStr,
         'expiryDate': newExpiry,
         'status': 'Active',
       });
+
+      await batch.commit();
 
       return null; // success
     } catch (e) {
@@ -346,7 +379,10 @@ class FirestoreService {
     Member? member,
   }) async {
     try {
-      await _db.collection('payments').doc(paymentDocId).update({
+      final batch = _db.batch();
+      final paymentRef = _db.collection('payments').doc(paymentDocId);
+
+      batch.update(paymentRef, {
         'status': newStatus,
       });
 
@@ -359,12 +395,15 @@ class FirestoreService {
           member.expiryDate,
           member.billingFrequency,
         );
-        await _db.collection('members').doc(member.docId).update({
+        final memberRef = _db.collection('members').doc(member.docId);
+        batch.update(memberRef, {
           'lastPaymentDate': dateStr,
           'expiryDate': newExpiry,
           'status': 'Active',
         });
       }
+
+      await batch.commit();
 
       return null;
     } catch (e) {

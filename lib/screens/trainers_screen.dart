@@ -92,10 +92,8 @@ class TrainersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => TrainersState(),
-      child: Consumer<TrainersState>(
-        builder: (context, state, child) {
-          final provider = context.watch<GymProvider>();
-          final filtered = state.filtered(provider.trainers);
+      child: Builder(
+        builder: (context) {
           final phone = isPhone(context);
 
           return Scaffold(
@@ -177,7 +175,15 @@ class TrainersScreen extends StatelessWidget {
 
                   SizedBox(height: ch(16.2)),
 
-                  // ── Search ────────────────────────────────────────────────────────
+                  Consumer<TrainersState>(
+                    builder: (context, state, child) {
+                      final provider = context.watch<GymProvider>();
+                      final filtered = state.filtered(provider.trainers);
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── Search ────────────────────────────────────────────────────────
                   Card(
                     child: Padding(
                       padding: EdgeInsets.all(cw(11.2)),
@@ -235,7 +241,11 @@ class TrainersScreen extends StatelessWidget {
                     },
                   ),
 
-                  SizedBox(height: ch(16.2)),
+                          SizedBox(height: ch(16.2)),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

@@ -58,7 +58,9 @@ class _SignInScreenState extends State<SignInScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Enter your registered email to receive a password reset link."),
+              const Text(
+                "Enter your registered email to receive a password reset link.",
+              ),
               const SizedBox(height: 15),
               TextField(
                 controller: emailInputController,
@@ -87,11 +89,15 @@ class _SignInScreenState extends State<SignInScreen> {
                 Navigator.pop(dialogContext);
 
                 try {
-                  await FirebaseAuth.instance.sendPasswordResetEmail(email: targetEmail);
+                  await FirebaseAuth.instance.sendPasswordResetEmail(
+                    email: targetEmail,
+                  );
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Password reset email sent! Check your inbox."),
+                        content: Text(
+                          "Password reset email sent! Check your inbox.",
+                        ),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -188,7 +194,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpScreen(),
+                        ),
                       );
                     },
                     child: const Text(
@@ -208,4 +216,3 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
-

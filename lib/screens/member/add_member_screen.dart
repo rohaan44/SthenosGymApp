@@ -33,7 +33,8 @@ class AddMemberScreen extends StatelessWidget {
             SafeArea(
               child: Padding(
                 padding: pagePadding(context),
-                child: Column(
+                child:
+                 Column(
                   children: [
                     Expanded(
                       child: SingleChildScrollView(
@@ -236,36 +237,6 @@ class AddMemberScreen extends StatelessWidget {
                                     flexes: const [1, 2],
                                     children: [
                                       primaryTextField(
-                                        hintText: 'Cnic Number',
-                                        maxLength: 15,
-                                        controller: p.cnicCtrl,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                          CnicSlashFormatter(),
-                                        ],
-                                        prefixIcon: Icon(Icons.badge_outlined),
-                                        keyboardType: TextInputType.phone,
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return "CNIC is required";
-                                          }
-                                          final digits = value.replaceAll(
-                                            '-',
-                                            '',
-                                          );
-
-                                          if (!RegExp(
-                                            r'^\d{13}$',
-                                          ).hasMatch(digits)) {
-                                            return "CNIC must be 13 digits";
-                                          }
-
-                                          return null;
-                                        },
-                                      ),
-                                      primaryTextField(
                                         controller: p.addressCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
 
@@ -278,6 +249,37 @@ class AddMemberScreen extends StatelessWidget {
                                         },
                                         hintText: 'Address',
                                       ),
+                                      primaryTextField(
+                                        hintText: 'Cnic Number (optional) ',
+                                        maxLength: 15,
+                                        controller: p.cnicCtrl,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          CnicSlashFormatter(),
+                                        ],
+                                        prefixIcon: Icon(Icons.badge_outlined),
+                                        keyboardType: TextInputType.phone,
+                                        // validator: (value) {
+                                        //   if (value == null ||
+                                        //       value.trim().isEmpty) {
+                                        //     return "CNIC is required";
+                                        //   }
+                                        //   final digits = value.replaceAll(
+                                        //     '-',
+                                        //     '',
+                                        //   );
+
+                                        //   if (!RegExp(
+                                        //     r'^\d{13}$',
+                                        //   ).hasMatch(digits)) {
+                                        //     return "CNIC must be 13 digits";
+                                        //   }
+
+                                        //   return null;
+                                        // },
+                                      ),
+
                                       dateField(
                                         context: context,
                                         label: 'Date of Birth (optional)',
@@ -403,7 +405,7 @@ class AddMemberScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                 
+
                             // ── Membership Plan ──────────────────────────────
                             // Rebuilds when membership selection changes
                             _sectionTitle('Membership Plan'),
@@ -454,6 +456,10 @@ class AddMemberScreen extends StatelessWidget {
                                         prefixIcon: Icon(Icons.money),
                                         hintText: "Enter Amount ...",
                                         controller: p.manuallyAmountCtrl,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
                                         validator: (value) {
                                           if (p.membership == "Manually") {
                                             if (value == null ||
@@ -790,7 +796,7 @@ class AddMemberScreen extends StatelessWidget {
                 ),
               ),
             ),
-       
+
             // ── Loading overlay ──────────────────────────────────────────────
             // Only rebuilds when isLoading changes
             // Consumer<AddMemberProvider>(

@@ -1,8 +1,8 @@
-import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
+import 'package:app/ui/custom_gradient.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
@@ -62,22 +62,23 @@ class MainDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => MainDashboardProvider(),
-      child: Consumer<MainDashboardProvider>(
-        builder: (context, navProvider, child) {
+      child: Builder(
+        builder: (context) {
           final width = screenWidth(context);
 
           // DESKTOP
           if (width >= kDesktopBreak) {
             return Scaffold(
-              // backgroundColor: const Color(0xFFF9FAFB),
               body: Row(
                 children: [
-                  _SidebarNav(
+                  const _SidebarNav(
                     navItems: _navItems,
-                    selectedIndex: navProvider.selectedIndex,
-                    onTap: navProvider.setSelectedIndex,
                   ),
-                  Expanded(child: _screens[navProvider.selectedIndex]),
+                  Expanded(
+                    child: Consumer<MainDashboardProvider>(
+                      builder: (context, navProvider, _) => _screens[navProvider.selectedIndex],
+                    ),
+                  ),
                 ],
               ),
             );
@@ -86,15 +87,16 @@ class MainDashboardScreen extends StatelessWidget {
           // TABLET
           if (width >= kPhoneBreak) {
             return Scaffold(
-              // backgroundColor: const Color(0xFFF9FAFB),
               body: Row(
                 children: [
-                  _RailNav(
+                  const _RailNav(
                     navItems: _navItems,
-                    selectedIndex: navProvider.selectedIndex,
-                    onTap: navProvider.setSelectedIndex,
                   ),
-                  Expanded(child: _screens[navProvider.selectedIndex]),
+                  Expanded(
+                    child: Consumer<MainDashboardProvider>(
+                      builder: (context, navProvider, _) => _screens[navProvider.selectedIndex],
+                    ),
+                  ),
                 ],
               ),
             );
@@ -102,9 +104,7 @@ class MainDashboardScreen extends StatelessWidget {
 
           // MOBILE
           return Scaffold(
-            // backgroundColor: const Color(0xFFF9FAFB),
             appBar: AppBar(
-              // leading: Icon(Icons.menu, color: AppColor.white),
               actions: [
                 Image.asset(
                   AssetUtils.reciptLogo,
@@ -116,14 +116,12 @@ class MainDashboardScreen extends StatelessWidget {
                 SizedBox(width: cw(20)),
               ],
             ),
-
-            drawer: _MobileDrawer(
+            drawer: const _MobileDrawer(
               navItems: _navItems,
-              selectedIndex: navProvider.selectedIndex,
-              onTap: navProvider.setSelectedIndex,
             ),
-
-            body: _screens[navProvider.selectedIndex],
+            body: Consumer<MainDashboardProvider>(
+              builder: (context, navProvider, _) => _screens[navProvider.selectedIndex],
+            ),
           );
         },
       ),
@@ -204,63 +202,60 @@ class MainDashboardScreen extends StatelessWidget {
 class _SidebarNav extends StatelessWidget {
   const _SidebarNav({
     required this.navItems,
-    required this.selectedIndex,
-    required this.onTap,
   });
 
   final List<_NavItem> navItems;
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
+    final navProvider = context.watch<MainDashboardProvider>();
+    final selectedIndex = navProvider.selectedIndex;
+    final onTap = navProvider.setSelectedIndex;
     return SizedBox(
       width: cw(82.5).clamp(200.0, 260.0),
       // color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // SizedBox(height: ch(8.1)),
-          // // Logo / brand
-          // Padding(
-          //   padding: EdgeInsets.all(cw(7.5)),
-          //   child: Row(
-          //     children: [
-          //       Container(
-          //         height: ch(40),
-          //         width: cw(40),
-          //         padding: EdgeInsets.zero,
-          //         decoration: BoxDecoration(
-          //           gradient: AppGradients.redGradient,
-          //           borderRadius: BorderRadius.circular(8),
-          //         ),
-          //         child: Center(
-          //           child: Image.asset(
-          //             AssetUtils.reciptLogo,
-          //             color: AppColor.cFFFFFF,
-          //             fit: BoxFit.contain,
-          //           ),
-          //         ),
-          //       ),
-          //       SizedBox(width: cw(3.8)),
-          //       Expanded(
-          //         child: Text(
-          //           'SthenosGymApp',
-          //           style: TextStyle(
-          //             fontSize: AppFontSize.f13,
-          //             fontWeight: FontWeight.w600,
-          //             color: AppColor.cFFFFFF,
-          //           ),
-          //           overflow: TextOverflow.ellipsis,
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
-          SizedBox(height: ch(10)),
+          SizedBox(height: ch(8.1)),
+          // Logo / brand
+          Padding(
+            padding: EdgeInsets.all(cw(7.5)),
+            child: Row(
+              children: [
+                Container(
+                  height: 40,
+                  width: 40,
+                  padding: EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.redGradient,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Image.asset(
+                      AssetUtils.reciptLogo,
+                      color: AppColor.cFFFFFF,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                SizedBox(width: cw(3.8)),
 
-          Center(child: Image.asset(AssetUtils.titleLogo1, width: cw(40))),
-          SizedBox(height: ch(10)),
+                CustomGradientAnimationText(
+                  text: "Sthenos Gym",
+                  colors: [
+                    Color(0xFFDB2016),
+                    AppColor.cFFFFFF,
+
+                    Color(0xFF790600),
+                  ],
+                  duration: Duration(seconds: 5),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          SizedBox(height: ch(6.5)),
           // Nav items
           ...navItems.asMap().entries.map((entry) {
             final i = entry.key;
@@ -330,16 +325,15 @@ class _SidebarNav extends StatelessWidget {
 class _RailNav extends StatelessWidget {
   const _RailNav({
     required this.navItems,
-    required this.selectedIndex,
-    required this.onTap,
   });
 
   final List<_NavItem> navItems;
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
+    final navProvider = context.watch<MainDashboardProvider>();
+    final selectedIndex = navProvider.selectedIndex;
+    final onTap = navProvider.setSelectedIndex;
     return Container(
       color: Colors.red,
       child: Column(
@@ -418,16 +412,15 @@ class _NavItem {
 class _MobileDrawer extends StatelessWidget {
   const _MobileDrawer({
     required this.navItems,
-    required this.selectedIndex,
-    required this.onTap,
   });
 
   final List<_NavItem> navItems;
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
+    final navProvider = context.watch<MainDashboardProvider>();
+    final selectedIndex = navProvider.selectedIndex;
+    final onTap = navProvider.setSelectedIndex;
     return Drawer(
       child: SafeArea(
         child: Container(

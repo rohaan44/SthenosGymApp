@@ -72,19 +72,13 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // InkWell(
-                                //   onTap: () {
-                                //     print("memberData ${member.name}");
-                                //   },
-                                //   child: Icon(Icons.abc),
-                                // ),
                                 // Image.network(
                                 //   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF2UfXfypDgiIIEszOsrOtTTYJjHFuVVpjOw&s",
                                 // ),
                                 Image.asset(
                                   AssetUtils.titleLogo1,
-                                  height: ch(200),
-                                  width: cw(200),
+                                  height: ch(300),
+                                  width: cw(300),
                                   fit: BoxFit.contain,
                                 ),
                               ],
@@ -110,8 +104,8 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                     child: p.imageFile == null
                                         ? Icon(
                                             Icons.camera_alt,
-                                            size: cw(24),
-                                            color: AppColor.c151515,
+                                            size: cw(15),
+                                            color: AppColor.themeGrey,
                                           )
                                         : null,
                                   ),
@@ -131,7 +125,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                             // Text fields are pure input widgets; their internal
                             // state is managed by TextEditingController (no
                             // setState, no rebuilds needed for typing).
-                            _sectionTitle('Edit Personal Details'),
+                            _sectionTitle('Personal Details'),
                             Container(
                               padding: EdgeInsets.all(cw(16)),
                               decoration: BoxDecoration(
@@ -271,36 +265,6 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                     flexes: const [1, 2],
                                     children: [
                                       primaryTextField(
-                                        hintText: 'Cnic Number',
-                                        maxLength: 15,
-                                        controller: p.cnicCtrl,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                          CnicSlashFormatter(),
-                                        ],
-                                        prefixIcon: Icon(Icons.badge_outlined),
-                                        keyboardType: TextInputType.phone,
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return "CNIC is required";
-                                          }
-                                          final digits = value.replaceAll(
-                                            '-',
-                                            '',
-                                          );
-
-                                          if (!RegExp(
-                                            r'^\d{13}$',
-                                          ).hasMatch(digits)) {
-                                            return "CNIC must be 13 digits";
-                                          }
-
-                                          return null;
-                                        },
-                                      ),
-                                      primaryTextField(
                                         controller: p.addressCtrl,
                                         prefixIcon: Icon(Icons.badge_outlined),
 
@@ -313,6 +277,37 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                         },
                                         hintText: 'Address',
                                       ),
+                                      primaryTextField(
+                                        hintText: 'Cnic Number (optional) ',
+                                        maxLength: 15,
+                                        controller: p.cnicCtrl,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          CnicSlashFormatter(),
+                                        ],
+                                        prefixIcon: Icon(Icons.badge_outlined),
+                                        keyboardType: TextInputType.phone,
+                                        // validator: (value) {
+                                        //   if (value == null ||
+                                        //       value.trim().isEmpty) {
+                                        //     return "CNIC is required";
+                                        //   }
+                                        //   final digits = value.replaceAll(
+                                        //     '-',
+                                        //     '',
+                                        //   );
+
+                                        //   if (!RegExp(
+                                        //     r'^\d{13}$',
+                                        //   ).hasMatch(digits)) {
+                                        //     return "CNIC must be 13 digits";
+                                        //   }
+
+                                        //   return null;
+                                        // },
+                                      ),
+
                                       dateField(
                                         context: context,
                                         label: 'Date of Birth (optional)',
@@ -439,6 +434,27 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                               ),
                             ),
 
+                            // ── Membership Plan ──────────────────────────────
+                            // Rebuilds when membership selection changes
+                            _sectionTitle('Membership Plan'),
+                            // Consumer<AddMemberProvider>(
+                            //   builder: (_, p, __) => Wrap(
+                            //     spacing: cw(24),
+                            //     runSpacing: ch(4),
+                            //     children: AddMemberProvider.membershipPlans
+                            //         .map(
+                            //           (plan) => _radioOption<String>(
+                            //             title: plan,
+                            //             value: plan,
+                            //             groupValue: p.membership,
+                            //             onChanged: (v) => p.setMembership(v!),
+                            //           ),
+                            //         )
+                            //         .toList(),
+
+                            //   ),
+
+                            // ),
                             Consumer<EditMemberProvider>(
                               builder: (_, p, __) => Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,6 +484,10 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                         prefixIcon: Icon(Icons.money),
                                         hintText: "Enter Amount ...",
                                         controller: p.manuallyAmountCtrl,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
                                         validator: (value) {
                                           if (p.membership == "Manually") {
                                             if (value == null ||
@@ -568,7 +588,6 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                   return Container(
                                     padding: EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: AppColor.c151515,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: Colors.grey.shade300,
@@ -581,9 +600,9 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                         Text(
                                           item['title'],
                                           style: TextStyle(
-                                            color: AppColor.cFFFFFF,
                                             fontSize: AppFontSize.f14,
                                             fontWeight: FontWeight.bold,
+                                            color: AppColor.cFFFFFF,
                                           ),
                                         ),
 
@@ -602,20 +621,18 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                                 Text(
                                                   "• ",
                                                   style: TextStyle(
-                                                    color: AppColor.cFFFFFF,
-
                                                     fontSize: AppFontSize.f16,
                                                     fontWeight: FontWeight.bold,
                                                     height: 1.1,
+                                                    color: AppColor.cFFFFFF,
                                                   ),
                                                 ),
                                                 Expanded(
                                                   child: Text(
                                                     item['points'][pointIndex],
                                                     style: TextStyle(
-                                                      color: AppColor.cFFFFFF,
-
                                                       fontSize: AppFontSize.f14,
+                                                      color: AppColor.cFFFFFF,
                                                     ),
                                                   ),
                                                 ),
@@ -639,26 +656,6 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                             //     borderRadius: BorderRadius.circular(8),
                             //   ),
                             //   child: TermsAndConditionsScreen(),
-                            // ),
-
-                            // ── Membership Plan ──────────────────────────────
-                            // Rebuilds when membership selection changes
-                            // _sectionTitle('Membership Plan'),
-                            // Consumer<EditMemberProvider>(
-                            //   builder: (_, p, __) => Wrap(
-                            //     spacing: cw(24),
-                            //     runSpacing: ch(4),
-                            //     children: EditMemberProvider.membershipPlans
-                            //         .map(
-                            //           (plan) => _radioOption<String>(
-                            //             title: plan,
-                            //             value: plan,
-                            //             groupValue: p.membership,
-                            //             onChanged: (v) => p.setMembership(v!),
-                            //           ),
-                            //         )
-                            //         .toList(),
-                            //   ),
                             // ),
 
                             // ── Fitness Goals & Add-Ons ──────────────────────
@@ -732,69 +729,6 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                             //     ],
                             //   ),
                             // ),
-
-                            // ── Payment Details ──────────────────────────────
-                            // Rebuilds when payment method / billing changes
-                            // SizedBox(height: ch(16)),
-                            // Consumer<EditMemberProvider>(
-                            //   builder: (_, p, __) => _ResponsiveRow(
-                            //     gap: cw(24),
-                            //     crossAxisAlignmentStart: true,
-                            //     children: [
-                            //       Column(
-                            //         crossAxisAlignment:
-                            //             CrossAxisAlignment.start,
-                            //         children: [
-                            //           AppText(
-                            //             txt: 'Payment Method',
-                            //             fontWeight: FontWeight.bold,
-                            //             fontSize: AppFontSize.f15,
-                            //           ),
-                            //           SizedBox(height: ch(8)),
-                            //           ...EditMemberProvider.paymentMethods.map(
-                            //             (m) => _radioOption<String>(
-                            //               title: m,
-                            //               value: m,
-                            //               groupValue: p.paymentMethod,
-                            //               onChanged: (v) =>
-                            //                   p.setPaymentMethod(v!),
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //       // Column(
-                            //       //   crossAxisAlignment: CrossAxisAlignment.start,
-                            //       //   children: [
-                            //       //     AppText(
-                            //       //       txt: 'Billing Frequency',
-                            //       //       fontWeight: FontWeight.bold,
-                            //       //       fontSize: AppFontSize.f15,
-                            //       //     ),
-                            //       //     SizedBox(height: ch(8)),
-                            //       //     ...EditMemberProvider.billingFrequencies.map(
-                            //       //       (m) => _radioOption<String>(
-                            //       //         title: m,
-                            //       //         value: m,
-                            //       //         groupValue: p.billingFrequency,
-                            //       //         onChanged: (v) =>
-                            //       //             p.setBillingFrequency(v!),
-                            //       //       ),
-                            //       //     ),
-                            //       //   ],
-                            //       // ),
-                            //       // Column(
-                            //       //   crossAxisAlignment: CrossAxisAlignment.start,
-                            //       //   children: [
-                            //       //     _dateField(
-                            //       //       context: context,
-                            //       //       label: 'Preferred Start Date',
-                            //       //       controller: p.startDateCtrl,
-                            //       //     ),
-                            //       //   ],
-                            //       // ),
-                            //     ],
-                            //   ),
-                            // ),
                             SizedBox(height: ch(100)),
                             // ── Terms & Signature ────────────────────────────
                             // Static text + static input fields — no Consumer needed
@@ -825,6 +759,768 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                         ),
                       ),
                     ),
+
+                    // Expanded(
+                    //   child: SingleChildScrollView(
+                    //     child: Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Row(
+                    //           mainAxisAlignment: MainAxisAlignment.center,
+                    //           children: [
+                    //             // InkWell(
+                    //             //   onTap: () {
+                    //             //     print("memberData ${member.name}");
+                    //             //   },
+                    //             //   child: Icon(Icons.abc),
+                    //             // ),
+                    //             // Image.network(
+                    //             //   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF2UfXfypDgiIIEszOsrOtTTYJjHFuVVpjOw&s",
+                    //             // ),
+                    //             Image.asset(
+                    //               AssetUtils.titleLogo1,
+                    //               height: ch(200),
+                    //               width: cw(200),
+                    //               fit: BoxFit.contain,
+                    //             ),
+                    //           ],
+                    //         ),
+                    //         SizedBox(height: ch(20)),
+                    //         // ── Profile picture ──────────────────────────────
+                    //         // Only rebuilds when imageFile changes
+                    //         Consumer<EditMemberProvider>(
+                    //           builder: (ctx, p, __) => Center(
+                    //             child: GestureDetector(
+                    //               onTap: () => _showImageSourcePicker(ctx, p),
+                    //               child: CircleAvatar(
+                    //                 radius: cw(40).clamp(32.0, 56.0),
+                    //                 backgroundColor: AppColor.c252525,
+                    //                 backgroundImage: p.imageFile != null
+                    //                     ? (kIsWeb
+                    //                           ? NetworkImage(p.imageFile!.path)
+                    //                                 as ImageProvider
+                    //                           : FileImage(
+                    //                               File(p.imageFile!.path),
+                    //                             ))
+                    //                     : null,
+                    //                 child: p.imageFile == null
+                    //                     ? Icon(
+                    //                         Icons.camera_alt,
+                    //                         size: cw(24),
+                    //                         color: AppColor.c151515,
+                    //                       )
+                    //                     : null,
+                    //               ),
+                    //             ),
+                    //           ),
+                    //         ),
+                    //         SizedBox(height: ch(8)),
+                    //         Center(
+                    //           child: AppText(
+                    //             txt: 'Tap to upload profile picture',
+                    //             color: AppColor.themeGrey,
+                    //             fontSize: AppFontSize.f12,
+                    //           ),
+                    //         ),
+
+                    //         // ── Personal Details ─────────────────────────────
+                    //         // Text fields are pure input widgets; their internal
+                    //         // state is managed by TextEditingController (no
+                    //         // setState, no rebuilds needed for typing).
+                    //         _sectionTitle('Edit Personal Details'),
+                    //         Container(
+                    //           padding: EdgeInsets.all(cw(16)),
+                    //           decoration: BoxDecoration(
+                    //             color: AppColor.c252525,
+                    //             borderRadius: BorderRadius.circular(8),
+                    //           ),
+                    //           child: Column(
+                    //             crossAxisAlignment: CrossAxisAlignment.start,
+                    //             children: [
+                    //               _ResponsiveRow(
+                    //                 gap: cw(16),
+                    //                 children: [
+                    //                   primaryTextField(
+                    //                     hintText: "Full Name",
+
+                    //                     controller: p.nameCtrl,
+                    //                     prefixIcon: const Icon(
+                    //                       Icons.person_outline,
+                    //                     ),
+                    //                     validator: (value) {
+                    //                       if (value == null ||
+                    //                           value.trim().isEmpty) {
+                    //                         return "Full Name is required";
+                    //                       }
+                    //                       return null;
+                    //                     },
+                    //                   ),
+                    //                   // _labeledField(
+                    //                   //   label: 'Full Name',
+                    //                   //   controller: p.nameCtrl,
+                    //                   //   prefixIcon: const Icon(
+                    //                   //     Icons.person_outline,
+                    //                   //   ),
+                    //                   //   validator: (value) {
+                    //                   //     if (value == null ||
+                    //                   //         value.trim().isEmpty) {
+                    //                   //       return "Full Name is required";
+                    //                   //     }
+                    //                   //     return null;
+                    //                   //   },
+                    //                   // ),
+                    //                   primaryTextField(
+                    //                     hintText: "Email",
+                    //                     prefixIcon: Icon(Icons.mail_outline),
+                    //                     controller: p.emailCtrl,
+                    //                     keyboardType:
+                    //                         TextInputType.emailAddress,
+
+                    //                     validator: (value) {
+                    //                       if (value == null ||
+                    //                           value.trim().isEmpty) {
+                    //                         return "Email is required";
+                    //                       }
+
+                    //                       if (!RegExp(
+                    //                         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    //                       ).hasMatch(value)) {
+                    //                         return "Enter valid email";
+                    //                       }
+
+                    //                       return null;
+                    //                     },
+                    //                   ),
+
+                    //                   // _labeledField(
+                    //                   //   prefixIcon: Icon(Icons.mail_outline),
+                    //                   //   label: 'Email',
+                    //                   //   controller: p.emailCtrl,
+                    //                   //   type: TextInputType.emailAddress,
+
+                    //                   //   validator: (value) {
+                    //                   //     if (value == null ||
+                    //                   //         value.trim().isEmpty) {
+                    //                   //       return "Email is required";
+                    //                   //     }
+
+                    //                   //     if (!RegExp(
+                    //                   //       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    //                   //     ).hasMatch(value)) {
+                    //                   //       return "Enter valid email";
+                    //                   //     }
+
+                    //                   //     return null;
+                    //                   //   },
+                    //                   // ),
+                    //                   primaryTextField(
+                    //                     hintText: "Phone",
+                    //                     controller: p.phoneCtrl,
+                    //                     prefixIcon: Icon(Icons.phone_outlined),
+                    //                     inputFormatters: [
+                    //                       FilteringTextInputFormatter
+                    //                           .digitsOnly,
+                    //                     ],
+                    //                     keyboardType: TextInputType.phone,
+                    //                     maxLength: 11,
+                    //                     validator: (value) {
+                    //                       if (value == null ||
+                    //                           value.trim().isEmpty) {
+                    //                         return "Phone Number is required";
+                    //                       }
+
+                    //                       if (value.length < 11) {
+                    //                         return "Enter valid phone number";
+                    //                       }
+
+                    //                       return null;
+                    //                     },
+                    //                   ),
+                    //                   // _labeledField(
+                    //                   //   label: 'Phone Number',
+                    //                   //   controller: p.phoneCtrl,
+                    //                   //   prefixIcon: Icon(Icons.phone_outlined),
+                    //                   //   inputFormator: [
+                    //                   //     FilteringTextInputFormatter
+                    //                   //         .digitsOnly,
+                    //                   //   ],
+                    //                   //   type: TextInputType.phone,
+                    //                   //   maxLenth: 11,
+                    //                   //   validator: (value) {
+                    //                   //     if (value == null ||
+                    //                   //         value.trim().isEmpty) {
+                    //                   //       return "Phone Number is required";
+                    //                   //     }
+
+                    //                   //     if (value.length < 11) {
+                    //                   //       return "Enter valid phone number";
+                    //                   //     }
+
+                    //                   //     return null;
+                    //                   //   },
+                    //                   // ),
+                    //                 ],
+                    //               ),
+                    //               SizedBox(height: ch(16)),
+                    //               _ResponsiveRow(
+                    //                 gap: cw(16),
+                    //                 flexes: const [1, 2],
+                    //                 children: [
+                    //                   primaryTextField(
+                    //                     hintText: 'Cnic Number',
+                    //                     maxLength: 15,
+                    //                     controller: p.cnicCtrl,
+                    //                     inputFormatters: [
+                    //                       FilteringTextInputFormatter
+                    //                           .digitsOnly,
+                    //                       CnicSlashFormatter(),
+                    //                     ],
+                    //                     prefixIcon: Icon(Icons.badge_outlined),
+                    //                     keyboardType: TextInputType.phone,
+                    //                     validator: (value) {
+                    //                       if (value == null ||
+                    //                           value.trim().isEmpty) {
+                    //                         return "CNIC is required";
+                    //                       }
+                    //                       final digits = value.replaceAll(
+                    //                         '-',
+                    //                         '',
+                    //                       );
+
+                    //                       if (!RegExp(
+                    //                         r'^\d{13}$',
+                    //                       ).hasMatch(digits)) {
+                    //                         return "CNIC must be 13 digits";
+                    //                       }
+
+                    //                       return null;
+                    //                     },
+                    //                   ),
+                    //                   primaryTextField(
+                    //                     controller: p.addressCtrl,
+                    //                     prefixIcon: Icon(Icons.badge_outlined),
+
+                    //                     validator: (value) {
+                    //                       if (value == null ||
+                    //                           value.trim().isEmpty) {
+                    //                         return "Address is required";
+                    //                       }
+                    //                       return null;
+                    //                     },
+                    //                     hintText: 'Address',
+                    //                   ),
+                    //                   dateField(
+                    //                     context: context,
+                    //                     label: 'Date of Birth (optional)',
+                    //                     controller: p.dobCtrl,
+                    //                     // validator: (value) {
+                    //                     //   if (value == null ||
+                    //                     //       value.trim().isEmpty) {
+                    //                     //     return "DOB is required";
+                    //                     //   }
+                    //                     //   return null;
+                    //                     // },
+                    //                   ),
+
+                    //                   // _labeledField(
+                    //                   //   label: 'Emergency Contact Number',
+                    //                   //   controller: p.emergencyCtrl,
+                    //                   //   prefixIcon: Icon(CupertinoIcons.phone),
+                    //                   //   maxLenth: 11,
+                    //                   //   type: TextInputType.phone,
+                    //                   //   inputFormator: [
+                    //                   //     FilteringTextInputFormatter
+                    //                   //         .digitsOnly,
+                    //                   //   ],
+                    //                   //   validator: (value) {
+                    //                   //     if (value == null ||
+                    //                   //         value.trim().isEmpty) {
+                    //                   //       return "Emergency Contact is required";
+                    //                   //     }
+
+                    //                   //     if (value.length < 11) {
+                    //                   //       return "Enter valid contact number";
+                    //                   //     }
+
+                    //                   //     return null;
+                    //                   //   },
+                    //                   // ),
+
+                    //                   // _labeledField(
+                    //                   //   label: 'Cnic Number',
+                    //                   //   maxLenth: 13,
+                    //                   //   controller: p.cnicCtrl,
+                    //                   //   prefixIcon: Icon(Icons.badge_outlined),
+                    //                   //   type: TextInputType.phone,
+                    //                   //   validator: (value) {
+                    //                   //     if (value == null ||
+                    //                   //         value.trim().isEmpty) {
+                    //                   //       return "CNIC is required";
+                    //                   //     }
+
+                    //                   //     if (!RegExp(
+                    //                   //       r'^\d{13}$',
+                    //                   //     ).hasMatch(value)) {
+                    //                   //       return "CNIC must be 13 digits";
+                    //                   //     }
+
+                    //                   //     return null;
+                    //                   //   },
+                    //                   // ),
+                    //                 ],
+                    //               ),
+                    //               SizedBox(height: ch(16)),
+
+                    //               _ResponsiveRow(
+                    //                 gap: cw(16),
+                    //                 flexes: const [1, 1],
+                    //                 children: [
+                    //                   primaryTextField(
+                    //                     hintText:
+                    //                         'Emergency Contact Number (optional)',
+                    //                     controller: p.emergencyCtrl,
+                    //                     prefixIcon: Icon(CupertinoIcons.phone),
+                    //                     maxLength: 11,
+                    //                     keyboardType: TextInputType.phone,
+                    //                     inputFormatters: [
+                    //                       FilteringTextInputFormatter
+                    //                           .digitsOnly,
+                    //                     ],
+                    //                     // validator: (value) {
+                    //                     //   if (value == null ||
+                    //                     //       value.trim().isEmpty) {
+                    //                     //     return "Emergency Contact is required";
+                    //                     //   }
+
+                    //                     //   if (value.length < 11) {
+                    //                     //     return "Enter valid contact number";
+                    //                     //   }
+
+                    //                     //   return null;
+                    //                     // },
+                    //                   ),
+
+                    //                   // _labeledField(
+                    //                   // controller: p.addressCtrl,
+                    //                   //   prefixIcon: Icon(Icons.badge_outlined),
+
+                    //                   //   validator: (value) {
+                    //                   //     if (value == null ||
+                    //                   //         value.trim().isEmpty) {
+                    //                   //       return "Address is required";
+                    //                   //     }
+                    //                   //     return null;
+                    //                   //   },  label: 'Address',
+
+                    //                   // ),
+                    //                   primaryTextField(
+                    //                     hintText: 'Muscle Injury (Optional)',
+                    //                     controller: p.injuryCtrl,
+                    //                     prefixIcon: Icon(
+                    //                       Icons.personal_injury_outlined,
+                    //                     ),
+                    //                     keyboardType: TextInputType.phone,
+                    //                   ),
+                    //                   // _labeledField(
+                    //                   //   label: 'Muscle Injury (Optional)',
+                    //                   //   controller: p.injuryCtrl,
+                    //                   //   prefixIcon: Icon(
+                    //                   //     Icons.personal_injury_outlined,
+                    //                   //   ),
+                    //                   //   type: TextInputType.phone,
+                    //                   // ),
+                    //                 ],
+                    //               ),
+                    //             ],
+                    //           ),
+                    //         ),
+
+                    //         Consumer<EditMemberProvider>(
+                    //           builder: (_, p, __) => Column(
+                    //             crossAxisAlignment: CrossAxisAlignment.start,
+                    //             children: [
+                    //               Wrap(
+                    //                 spacing: 24,
+                    //                 runSpacing: 8,
+                    //                 children: EditMemberProvider.membershipPlans
+                    //                     .map(
+                    //                       (plan) => _radioOption<String>(
+                    //                         title: plan,
+                    //                         value: plan,
+                    //                         groupValue: p.membership,
+                    //                         onChanged: (v) =>
+                    //                             p.setMembership(v!),
+                    //                       ),
+                    //                     )
+                    //                     .toList(),
+                    //               ),
+
+                    //               if (p.membership == "Manually") ...[
+                    //                 const SizedBox(height: 16),
+
+                    //                 SizedBox(
+                    //                   width: cw(100),
+                    //                   child: primaryTextField(
+                    //                     prefixIcon: Icon(Icons.money),
+                    //                     hintText: "Enter Amount ...",
+                    //                     controller: p.manuallyAmountCtrl,
+                    //                     validator: (value) {
+                    //                       if (p.membership == "Manually") {
+                    //                         if (value == null ||
+                    //                             value.trim().isEmpty) {
+                    //                           return "Amount is required!!";
+                    //                         }
+                    //                       }
+
+                    //                       return null;
+                    //                     },
+                    //                   ),
+                    //                 ),
+                    //               ],
+                    //             ],
+                    //           ),
+                    //         ),
+                    //         // ── Payment Details ──────────────────────────────
+                    //         // Rebuilds when payment method / billing changes
+                    //         SizedBox(height: ch(16)),
+
+                    //         Consumer<EditMemberProvider>(
+                    //           builder: (_, p, __) => _ResponsiveRow(
+                    //             gap: cw(24),
+                    //             crossAxisAlignmentStart: true,
+                    //             children: [
+                    //               Column(
+                    //                 crossAxisAlignment:
+                    //                     CrossAxisAlignment.start,
+                    //                 children: [
+                    //                   AppText(
+                    //                     txt: 'Payment Method',
+                    //                     fontWeight: FontWeight.bold,
+                    //                     fontSize: AppFontSize.f15,
+                    //                   ),
+                    //                   SizedBox(height: ch(8)),
+                    //                   ...EditMemberProvider.paymentMethods.map(
+                    //                     (m) => _radioOption<String>(
+                    //                       title: m,
+                    //                       value: m,
+                    //                       groupValue: p.paymentMethod,
+                    //                       onChanged: (v) =>
+                    //                           p.setPaymentMethod(v!),
+                    //                     ),
+                    //                   ),
+                    //                 ],
+                    //               ),
+                    //               // Column(
+                    //               //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //               //   children: [
+                    //               //     AppText(
+                    //               //       txt: 'Billing Frequency',
+                    //               //       fontWeight: FontWeight.bold,
+                    //               //       fontSize: AppFontSize.f15,
+                    //               //     ),
+                    //               //     SizedBox(height: ch(8)),
+                    //               //     ...EditMemberProvider.billingFrequencies.map(
+                    //               //       (m) => _radioOption<String>(
+                    //               //         title: m,
+                    //               //         value: m,
+                    //               //         groupValue: p.billingFrequency,
+                    //               //         onChanged: (v) =>
+                    //               //             p.setBillingFrequency(v!),
+                    //               //       ),
+                    //               //     ),
+                    //               //   ],
+                    //               // ),
+                    //               // Column(
+                    //               //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //               //   children: [
+                    //               //     _dateField(
+                    //               //       context: context,
+                    //               //       label: 'Preferred Start Date',
+                    //               //       controller: p.startDateCtrl,
+                    //               //     ),
+                    //               //   ],
+                    //               // ),
+                    //             ],
+                    //           ),
+                    //         ),
+
+                    //         _sectionTitle('Terms & Conditions'),
+
+                    //         Container(
+                    //           padding: EdgeInsets.all(cw(16)),
+                    //           decoration: BoxDecoration(
+                    //             color: AppColor.c252525,
+                    //             borderRadius: BorderRadius.circular(8),
+                    //           ),
+                    //           child: ListView.separated(
+                    //             shrinkWrap: true,
+                    //             physics: const NeverScrollableScrollPhysics(),
+                    //             itemCount: p.gymTermsAndConditions.length,
+                    //             separatorBuilder: (context, index) =>
+                    //                 SizedBox(height: ch(12)),
+                    //             itemBuilder: (context, index) {
+                    //               final item = p.gymTermsAndConditions[index];
+
+                    //               return Container(
+                    //                 padding: EdgeInsets.all(16),
+                    //                 decoration: BoxDecoration(
+                    //                   color: AppColor.c151515,
+                    //                   borderRadius: BorderRadius.circular(12),
+                    //                   border: Border.all(
+                    //                     color: Colors.grey.shade300,
+                    //                   ),
+                    //                 ),
+                    //                 child: Column(
+                    //                   crossAxisAlignment:
+                    //                       CrossAxisAlignment.start,
+                    //                   children: [
+                    //                     Text(
+                    //                       item['title'],
+                    //                       style: TextStyle(
+                    //                         color: AppColor.cFFFFFF,
+                    //                         fontSize: AppFontSize.f14,
+                    //                         fontWeight: FontWeight.bold,
+                    //                       ),
+                    //                     ),
+
+                    //                     SizedBox(height: ch(12)),
+
+                    //                     ...List.generate(
+                    //                       (item['points'] as List).length,
+                    //                       (pointIndex) => Padding(
+                    //                         padding: EdgeInsets.only(
+                    //                           bottom: ch(12),
+                    //                         ),
+                    //                         child: Row(
+                    //                           crossAxisAlignment:
+                    //                               CrossAxisAlignment.start,
+                    //                           children: [
+                    //                             Text(
+                    //                               "• ",
+                    //                               style: TextStyle(
+                    //                                 color: AppColor.cFFFFFF,
+
+                    //                                 fontSize: AppFontSize.f16,
+                    //                                 fontWeight: FontWeight.bold,
+                    //                                 height: 1.1,
+                    //                               ),
+                    //                             ),
+                    //                             Expanded(
+                    //                               child: Text(
+                    //                                 item['points'][pointIndex],
+                    //                                 style: TextStyle(
+                    //                                   color: AppColor.cFFFFFF,
+
+                    //                                   fontSize: AppFontSize.f14,
+                    //                                 ),
+                    //                               ),
+                    //                             ),
+                    //                           ],
+                    //                         ),
+                    //                       ),
+                    //                     ),
+                    //                   ],
+                    //                 ),
+                    //               );
+                    //             },
+                    //           ),
+                    //         ),
+
+                    //         // TermsAndConditionsScreen(),
+
+                    //         // Container(
+                    //         //   padding: EdgeInsets.all(cw(16)),
+                    //         //   decoration: BoxDecoration(
+                    //         //     color: Colors.grey.shade100,
+                    //         //     borderRadius: BorderRadius.circular(8),
+                    //         //   ),
+                    //         //   child: TermsAndConditionsScreen(),
+                    //         // ),
+
+                    //         // ── Membership Plan ──────────────────────────────
+                    //         // Rebuilds when membership selection changes
+                    //         // _sectionTitle('Membership Plan'),
+                    //         // Consumer<EditMemberProvider>(
+                    //         //   builder: (_, p, __) => Wrap(
+                    //         //     spacing: cw(24),
+                    //         //     runSpacing: ch(4),
+                    //         //     children: EditMemberProvider.membershipPlans
+                    //         //         .map(
+                    //         //           (plan) => _radioOption<String>(
+                    //         //             title: plan,
+                    //         //             value: plan,
+                    //         //             groupValue: p.membership,
+                    //         //             onChanged: (v) => p.setMembership(v!),
+                    //         //           ),
+                    //         //         )
+                    //         //         .toList(),
+                    //         //   ),
+                    //         // ),
+
+                    //         // ── Fitness Goals & Add-Ons ──────────────────────
+                    //         // Rebuilds when checkboxes change
+                    //         // SizedBox(height: ch(8)),
+                    //         // Consumer<EditMemberProvider>(
+                    //         //   builder: (_, p, __) => _ResponsiveRow(
+                    //         //     gap: cw(32),
+                    //         //     crossAxisAlignmentStart: true,
+                    //         //     children: [
+                    //         //       Column(
+                    //         //         crossAxisAlignment: CrossAxisAlignment.start,
+                    //         //         children: [
+                    //         //           AppText(
+                    //         //             txt: 'Fitness Goals (optional)',
+                    //         //             fontWeight: FontWeight.bold,
+                    //         //             fontSize: AppFontSize.f15,
+                    //         //           ),
+                    //         //           SizedBox(height: ch(8)),
+                    //         //           ...EditMemberProvider.fitnessGoalOptions.map(
+                    //         //             (goal) => _circleCheckOption(
+                    //         //               title: goal,
+                    //         //               value: p.fitnessGoals.contains(goal),
+                    //         //               onChanged: (v) =>
+                    //         //                   p.toggleFitnessGoal(goal, v),
+                    //         //             ),
+                    //         //           ),
+                    //         //           Row(
+                    //         //             children: [
+                    //         //               Checkbox(
+                    //         //                 value: p.otherGoal != null,
+                    //         //                 shape: const CircleBorder(),
+                    //         //                 onChanged: (v) => p
+                    //         //                     .setOtherGoalCheckbox(v ?? false),
+                    //         //               ),
+                    //         //               AppText(txt: 'Other: '),
+                    //         //               Expanded(
+                    //         //                 child: TextField(
+                    //         //                   controller: p.otherGoalCtrl,
+                    //         //                   enabled: p.otherGoal != null,
+                    //         //                   onChanged: p.setOtherGoalText,
+                    //         //                   decoration: const InputDecoration(
+                    //         //                     isDense: true,
+                    //         //                     border: UnderlineInputBorder(),
+                    //         //                   ),
+                    //         //                 ),
+                    //         //               ),
+                    //         //             ],
+                    //         //           ),
+                    //         //         ],
+                    //         //       ),
+                    //         //       Column(
+                    //         //         crossAxisAlignment: CrossAxisAlignment.start,
+                    //         //         children: [
+                    //         //           AppText(
+                    //         //             txt: 'Add-On Services',
+                    //         //             fontWeight: FontWeight.bold,
+                    //         //             fontSize: AppFontSize.f15,
+                    //         //           ),
+                    //         //           SizedBox(height: ch(8)),
+                    //         //           ...EditMemberProvider.addOnOptions.map(
+                    //         //             (service) => _circleCheckOption(
+                    //         //               title: service,
+                    //         //               value: p.addOns.contains(service),
+                    //         //               onChanged: (v) =>
+                    //         //                   p.toggleAddOn(service, v),
+                    //         //             ),
+                    //         //           ),
+                    //         //         ],
+                    //         //       ),
+                    //         //     ],
+                    //         //   ),
+                    //         // ),
+
+                    //         // ── Payment Details ──────────────────────────────
+                    //         // Rebuilds when payment method / billing changes
+                    //         // SizedBox(height: ch(16)),
+                    //         // Consumer<EditMemberProvider>(
+                    //         //   builder: (_, p, __) => _ResponsiveRow(
+                    //         //     gap: cw(24),
+                    //         //     crossAxisAlignmentStart: true,
+                    //         //     children: [
+                    //         //       Column(
+                    //         //         crossAxisAlignment:
+                    //         //             CrossAxisAlignment.start,
+                    //         //         children: [
+                    //         //           AppText(
+                    //         //             txt: 'Payment Method',
+                    //         //             fontWeight: FontWeight.bold,
+                    //         //             fontSize: AppFontSize.f15,
+                    //         //           ),
+                    //         //           SizedBox(height: ch(8)),
+                    //         //           ...EditMemberProvider.paymentMethods.map(
+                    //         //             (m) => _radioOption<String>(
+                    //         //               title: m,
+                    //         //               value: m,
+                    //         //               groupValue: p.paymentMethod,
+                    //         //               onChanged: (v) =>
+                    //         //                   p.setPaymentMethod(v!),
+                    //         //             ),
+                    //         //           ),
+                    //         //         ],
+                    //         //       ),
+                    //         //       // Column(
+                    //         //       //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //         //       //   children: [
+                    //         //       //     AppText(
+                    //         //       //       txt: 'Billing Frequency',
+                    //         //       //       fontWeight: FontWeight.bold,
+                    //         //       //       fontSize: AppFontSize.f15,
+                    //         //       //     ),
+                    //         //       //     SizedBox(height: ch(8)),
+                    //         //       //     ...EditMemberProvider.billingFrequencies.map(
+                    //         //       //       (m) => _radioOption<String>(
+                    //         //       //         title: m,
+                    //         //       //         value: m,
+                    //         //       //         groupValue: p.billingFrequency,
+                    //         //       //         onChanged: (v) =>
+                    //         //       //             p.setBillingFrequency(v!),
+                    //         //       //       ),
+                    //         //       //     ),
+                    //         //       //   ],
+                    //         //       // ),
+                    //         //       // Column(
+                    //         //       //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //         //       //   children: [
+                    //         //       //     _dateField(
+                    //         //       //       context: context,
+                    //         //       //       label: 'Preferred Start Date',
+                    //         //       //       controller: p.startDateCtrl,
+                    //         //       //     ),
+                    //         //       //   ],
+                    //         //       // ),
+                    //         //     ],
+                    //         //   ),
+                    //         // ),
+                    //         SizedBox(height: ch(100)),
+                    //         // ── Terms & Signature ────────────────────────────
+                    //         // Static text + static input fields — no Consumer needed
+                    //         // SizedBox(height: ch(20)),
+                    //         // AppText(
+                    //         //   txt:
+                    //         //       'By signing this form, I confirm that all information provided is accurate. I agree to the membership terms, including payment obligations, and consent to receive gym notifications, updates, and offers via email or SMS.',
+                    //         //   fontSize: AppFontSize.f12,
+                    //         //   color: Colors.grey,
+                    //         // ),
+                    //         // SizedBox(height: ch(16)),
+                    //         // _ResponsiveRow(
+                    //         //   gap: cw(16),
+                    //         //   children: [
+                    //         //     _labeledField(
+                    //         //       label: 'Type Signature',
+                    //         //       controller: p.signatureCtrl,
+                    //         //     ),
+                    //         //     _dateField(
+                    //         //       context: context,
+                    //         //       label: 'Date Signed',
+                    //         //       controller: p.dateSignedCtrl,
+                    //         //     ),
+                    //         //   ],
+                    //         // ),
+                    //         // SizedBox(height: ch(24)),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
 
                     // // ── Submit button ────────────────────────────────────────
                     // // Only rebuilds when isLoading changes
@@ -994,10 +1690,14 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
         context: context,
         builder: (ctx) => Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Container(
             width: 320,
+            decoration: BoxDecoration(
+              gradient: AppGradients.redGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1009,29 +1709,46 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                 ),
                 SizedBox(height: ch(16)),
                 ListTile(
-                  leading: const Icon(
-                    Icons.photo_library_outlined,
-                    color: Colors.blue,
+                  title: Row(
+                    children: [
+                      const Icon(
+                        Icons.photo_library_outlined,
+                        color: Colors.blue,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          provider.pickImage(ImageSource.gallery, context);
+                        },
+                        child: AppText(
+                          txt: 'Upload from Gallery',
+                          fontSize: AppFontSize.f14,
+                        ),
+                      ),
+                    ],
                   ),
-                  title: AppText(
-                    txt: 'Upload from Gallery',
-                    fontSize: AppFontSize.f14,
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    provider.pickImage(ImageSource.gallery, context);
-                  },
                 ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: Colors.green,
+                  title: Row(
+                    children: [
+                      const Icon(
+                        Icons.camera_alt_outlined,
+                        color: Colors.green,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showWebCameraDialog(context, provider);
+                        },
+                        child: AppText(
+                          txt: 'Take a Photo',
+                          fontSize: AppFontSize.f14,
+                        ),
+                      ),
+                    ],
                   ),
-                  title: AppText(
-                    txt: 'Take a Photo',
-                    fontSize: AppFontSize.f14,
-                  ),
+
                   onTap: () {
                     Navigator.pop(ctx);
                     _showWebCameraDialog(context, provider);
@@ -1042,7 +1759,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Cancel'),
+                    child: AppText(txt: "Cancel"),
                   ),
                 ),
               ],
