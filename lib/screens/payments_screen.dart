@@ -10,6 +10,8 @@ import '../models/models.dart';
 import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'member/members_screen.dart';
 
 import 'package:app/service/export_service.dart'; // Add export service
 
@@ -547,11 +549,11 @@ class _DesktopPaymentTable extends StatelessWidget {
           label: AppText(txt: 'Action', fontSize: AppFontSize.f12),
         ),
       ],
-      rows: payments.map((p) => _buildPaymentRow(p)).toList(),
+      rows: payments.map((p) => _buildPaymentRow(context, p)).toList(),
     );
   }
 
-  static DataRow _buildPaymentRow(Payment p) {
+  static DataRow _buildPaymentRow(BuildContext context, Payment p) {
     // One ValueNotifier per row — shared between the dropdown cell and Save cell.
     // This is created once per row widget and not recreated on rebuild.
     final statusNotifier = ValueNotifier<String>(p.status);
@@ -607,9 +609,65 @@ class _DesktopPaymentTable extends StatelessWidget {
           _StatusDropdownCell(payment: p, statusNotifier: statusNotifier),
         ),
         // Save — reads from ValueNotifier and writes to Firestore.
-        DataCell(_SaveButtonCell(payment: p, statusNotifier: statusNotifier)),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _SaveButtonCell(payment: p, statusNotifier: statusNotifier),
+              if (p.status.toLowerCase() == 'pending' || p.status.toLowerCase() == 'overdue') ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
+                  tooltip: 'Pay Fees',
+                  onPressed: () => _handlePay(context, p),
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
+  }
+
+  static Future<void> _handlePay(BuildContext context, Payment p) async {
+    if (p.memberId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Member ID missing for this payment')),
+      );
+      return;
+    }
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+    );
+    
+    try {
+      final doc = await FirebaseFirestore.instance.collection('members').doc(p.memberId).get();
+      if (context.mounted) Navigator.pop(context); // close loading
+      
+      if (!doc.exists || doc.data() == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Member not found')),
+          );
+        }
+        return;
+      }
+      
+      final member = Member.fromFirestore(doc.data()!, doc.id);
+      if (context.mounted) {
+        MembersScreenHelper.showPaymentDialog(context, member);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching member: $e')),
+        );
+      }
+    }
   }
 }
 
@@ -987,6 +1045,14 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                 color: AppColor.green,
                 textColor: AppColor.cFFFFFF,
               ),
+              if (p.status.toLowerCase() == 'pending' || p.status.toLowerCase() == 'overdue') ...[
+                SizedBox(width: cw(8)),
+                IconButton(
+                  icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
+                  tooltip: 'Pay Fees',
+                  onPressed: () => _DesktopPaymentTable._handlePay(context, p),
+                ),
+              ],
               // _saving
               //     ? const SizedBox(
               //         width: 24,

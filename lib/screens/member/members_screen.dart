@@ -540,7 +540,7 @@ class MembersScreen extends StatelessWidget {
                                                               tooltip:
                                                                   'Collect Payment',
                                                               onPressed: () =>
-                                                                  _MembersScreenHelper.showPaymentDialog(
+                                                                  MembersScreenHelper.showPaymentDialog(
                                                                     context,
                                                                     m,
                                                                   ),
@@ -776,7 +776,7 @@ class _MobileList extends StatelessWidget {
                       constraints: const BoxConstraints(),
                       tooltip: 'Collect payment?',
                       onPressed: () =>
-                          _MembersScreenHelper.showPaymentDialog(context, m),
+                          MembersScreenHelper.showPaymentDialog(context, m),
                     ),
                     SizedBox(width: cw(2)),
                     IconButton(
@@ -812,7 +812,7 @@ class _MobileList extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       onPressed: () =>
-                          _MembersScreenHelper.confirmDelete(context, m),
+                          MembersScreenHelper.confirmDelete(context, m),
                     ),
                   ],
                 ),
@@ -892,7 +892,7 @@ class _MobileList extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helper for delete confirmation (used by both desktop + mobile)
 // ─────────────────────────────────────────────────────────────────────────────
-class _MembersScreenHelper {
+class MembersScreenHelper {
   static void showPaymentDialog(BuildContext context, Member member) {
     String selectedMethod = 'Cash';
     final amountController = TextEditingController();
@@ -1008,6 +1008,7 @@ class _MembersScreenHelper {
                           Navigator.pop(ctx);
                           ScaffoldMessenger.of(ctx).showSnackBar(
                             const SnackBar(
+                              
                               content: Text('Payment recorded successfully'),
                             ),
                           );
