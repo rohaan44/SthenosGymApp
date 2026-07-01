@@ -483,7 +483,6 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return StreamBuilder<List<Member>>(
       stream: FirestoreService.instance.membersStream(),
       builder: (context, memberSnapshot) {
@@ -529,21 +528,18 @@ class DashboardScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: ch(8.1)),
-                    Text(
-                      'Dashboard',
-                      style: TextStyle(
-                        fontSize: AppFontSize.f19,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF111827),
-                      ),
+                    AppText(
+                      txt: "Dashboard",
+                      fontSize: AppFontSize.f19,
+                      fontWeight: FontWeight.w600,
+                      // color: const Color(0xFF111827),
                     ),
                     SizedBox(height: ch(4.1)),
-                    Text(
-                      "Welcome back! Here's what's happening today.",
-                      style: TextStyle(
-                        fontSize: AppFontSize.f12,
-                        color: const Color(0xFF6B7280),
-                      ),
+                    AppText(
+                      txt: "Welcome back! Here's what's happening today.",
+                      fontSize: AppFontSize.f12,
+                      // color: const Color(0xFF6B7280),
+                      color: const Color(0xFF6B7280),
                     ),
                     SizedBox(height: ch(20.3)),
 

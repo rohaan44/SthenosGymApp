@@ -1,4 +1,4 @@
-import 'package:app/auth/auth_screens/sign_in/sign_in_screen.dart';
+import 'package:app/auth/auth_screens/admin_signin/admin_sign_in.dart';
 import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ class AuthGate extends StatelessWidget {
         if (snapshot.hasData && snapshot.data != null) {
           return const MainDashboardScreen();
         }
-        return const SignInScreen();
+        return const AdminSignIn();
       },
     );
   }

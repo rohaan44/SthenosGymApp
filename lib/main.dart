@@ -1,10 +1,10 @@
+import 'package:app/auth/auth_gate/auth_gate.dart';
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
-import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/routes/routes.dart';
 import 'package:camera/camera.dart';
@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+
 List<CameraDescription> cameras = [];
 
 Future<void> main() async {
@@ -83,7 +84,7 @@ class MyApp extends StatelessWidget {
 
           home:
               // AdminAuthDialog(),
-              const MainDashboardScreen(),
+              const AuthGate(),
           onGenerateRoute: AppRouter.generateRoute,
 
           theme: ThemeData(

@@ -1,16 +1,19 @@
-import 'package:app/auth/auth_screens/sign_in/sign_in_screen.dart';
 import 'package:app/ui/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   User? _user;
   User? get user => _user;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  bool _forgotisLoading = false;
+  bool get forgotIsLoading => _forgotisLoading;
 
   String? _error;
   String? get error => _error;
@@ -22,48 +25,48 @@ class AuthProvider extends ChangeNotifier {
   // =========================
   // SIGN UP
   // =========================
-  Future<bool> signUp(context, String email, String password) async {
-    try {
-      _setLoading(true);
-      _error = null;
+  // Future<bool> signUp(context, String email, String password) async {
+  //   try {
+  //     _setLoading(true);
+  //     _error = null;
 
-      debugPrint("🔥 SIGNUP START");
+  //     debugPrint("🔥 SIGNUP START");
 
-      final result = await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
+  //     final result = await _auth.createUserWithEmailAndPassword(
+  //       email: email.trim(),
+  //       password: password.trim(),
+  //     );
 
-      _user = result.user;
+  //     _user = result.user;
 
-      debugPrint("✅ SIGNUP SUCCESS: ${_user?.uid}");
+  //     debugPrint("✅ SIGNUP SUCCESS: ${_user?.uid}");
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => SignInScreen()),
-      );
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => SignInScreen()),
+  //     );
 
-      _setLoading(false);
-      notifyListeners();
-      return true;
-    } on FirebaseAuthException catch (e) {
-      _error = _handleError(e);
+  //     _setLoading(false);
+  //     notifyListeners();
+  //     return true;
+  //   } on FirebaseAuthException catch (e) {
+  //     _error = _handleError(e);
 
-      debugPrint("❌ SIGNUP ERROR: ${e.code} - ${e.message}");
+  //     debugPrint("❌ SIGNUP ERROR: ${e.code} - ${e.message}");
 
-      _setLoading(false);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _error = "Something went wrong";
+  //     _setLoading(false);
+  //     notifyListeners();
+  //     return false;
+  //   } catch (e) {
+  //     _error = "Something went wrong";
 
-      debugPrint("❌ UNKNOWN ERROR: $e");
+  //     debugPrint("❌ UNKNOWN ERROR: $e");
 
-      _setLoading(false);
-      notifyListeners();
-      return false;
-    }
-  }
+  //     _setLoading(false);
+  //     notifyListeners();
+  //     return false;
+  //   }
+  // }
 
   // =========================
   // SIGN IN
@@ -125,6 +128,51 @@ class AuthProvider extends ChangeNotifier {
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  void _setforgotLoading(bool value) {
+    _forgotisLoading = value;
+    notifyListeners();
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    try {
+      _setforgotLoading(true);
+      _error = null;
+
+      debugPrint("🔐 forgotpassword START");
+
+      await _auth.sendPasswordResetEmail(email: email.trim());
+
+      debugPrint("✅ forgotPassword Success");
+
+      _setforgotLoading(false);
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _error = _handleError(e);
+
+      debugPrint("❌forgotPassword ERROR: ${e.code} - ${e.message}");
+
+      _setforgotLoading(false);
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = "Something went wrong";
+
+      debugPrint("❌ UNKNOWN LOGIN ERROR: $e");
+
+      _setforgotLoading(false);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   // =========================
