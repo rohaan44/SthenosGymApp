@@ -35,4 +35,9 @@ class ClassesProvider extends ChangeNotifier {
     _classes.add(gymClass);
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

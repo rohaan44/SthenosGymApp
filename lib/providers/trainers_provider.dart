@@ -31,4 +31,9 @@ class TrainersProvider extends ChangeNotifier {
     _trainers.removeWhere((t) => t.id == id);
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

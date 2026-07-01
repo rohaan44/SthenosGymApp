@@ -348,78 +348,20 @@ class ClassesState extends ChangeNotifier {
     final matchCat = _filterCategory == 'all' || c.category == _filterCategory;
     return matchSearch && matchCat;
   }).toList();
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }
 
 class ClassesScreen extends StatelessWidget {
   const ClassesScreen({super.key});
 
   void _showAddDialog(BuildContext context) {
-    final provider = context.read<GymProvider>();
-    final nameCtrl = TextEditingController();
-    final trainerCtrl = TextEditingController();
-    final scheduleCtrl = TextEditingController();
-    final timeCtrl = TextEditingController();
-    final capacityCtrl = TextEditingController();
-    String category = 'Yoga';
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: const Text('Add New Class'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                customTf('Class Name', nameCtrl),
-                const SizedBox(height: 12),
-                customTf('Trainer', trainerCtrl),
-                const SizedBox(height: 12),
-                customTf('Schedule (e.g. Mon, Wed)', scheduleCtrl),
-                const SizedBox(height: 12),
-                customTf('Time (e.g. 7:00 AM)', timeCtrl),
-                const SizedBox(height: 12),
-                customTf('Capacity', capacityCtrl, type: TextInputType.number),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: category,
-                  decoration: customInputDecoration( label: 'Category'),
-                  items: ['Yoga', 'Cardio', 'Strength', 'Pilates', 'Boxing']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                  onChanged: (v) => setS(() => category = v!),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (nameCtrl.text.isEmpty) return;
-                provider.addClass(
-                  GymClass(
-                    id: provider.classes.length + 1,
-                    name: nameCtrl.text,
-                    trainer: trainerCtrl.text,
-                    schedule: scheduleCtrl.text,
-                    time: timeCtrl.text,
-                    capacity: int.tryParse(capacityCtrl.text) ?? 20,
-                    enrolled: 0,
-                    category: category,
-                    status: 'Active',
-                  ),
-                );
-                Navigator.pop(ctx);
-              },
-              child: const Text('Add Class'),
-            ),
-          ],
-        ),
-      ),
+      builder: (ctx) => const _AddClassDialog(),
     );
   }
 
@@ -759,4 +701,93 @@ class _ClassCard extends StatelessWidget {
       ),
     ],
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dialog widget that owns its 5 TextEditingControllers and disposes them
+// correctly when the dialog is dismissed.
+// ─────────────────────────────────────────────────────────────────────────────
+class _AddClassDialog extends StatefulWidget {
+  const _AddClassDialog();
+
+  @override
+  State<_AddClassDialog> createState() => _AddClassDialogState();
+}
+
+class _AddClassDialogState extends State<_AddClassDialog> {
+  final _nameCtrl = TextEditingController();
+  final _trainerCtrl = TextEditingController();
+  final _scheduleCtrl = TextEditingController();
+  final _timeCtrl = TextEditingController();
+  final _capacityCtrl = TextEditingController();
+  String _category = 'Yoga';
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _trainerCtrl.dispose();
+    _scheduleCtrl.dispose();
+    _timeCtrl.dispose();
+    _capacityCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<GymProvider>();
+    return AlertDialog(
+      title: const Text('Add New Class'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            customTf('Class Name', _nameCtrl),
+            const SizedBox(height: 12),
+            customTf('Trainer', _trainerCtrl),
+            const SizedBox(height: 12),
+            customTf('Schedule (e.g. Mon, Wed)', _scheduleCtrl),
+            const SizedBox(height: 12),
+            customTf('Time (e.g. 7:00 AM)', _timeCtrl),
+            const SizedBox(height: 12),
+            customTf('Capacity', _capacityCtrl, type: TextInputType.number),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _category,
+              decoration: customInputDecoration(label: 'Category'),
+              items: ['Yoga', 'Cardio', 'Strength', 'Pilates', 'Boxing']
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) => setState(() => _category = v!),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_nameCtrl.text.isEmpty) return;
+            provider.addClass(
+              GymClass(
+                id: provider.classes.length + 1,
+                name: _nameCtrl.text,
+                trainer: _trainerCtrl.text,
+                schedule: _scheduleCtrl.text,
+                time: _timeCtrl.text,
+                capacity: int.tryParse(_capacityCtrl.text) ?? 20,
+                enrolled: 0,
+                category: _category,
+                status: 'Active',
+              ),
+            );
+            Navigator.pop(context);
+          },
+          child: const Text('Add Class'),
+        ),
+      ],
+    );
+  }
 }

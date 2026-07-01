@@ -912,130 +912,15 @@ class _MobileList extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 class MembersScreenHelper {
   static void showPaymentDialog(
-    BuildContext context, 
+    BuildContext context,
     Member member, {
     String? paymentDocIdToUpdate,
   }) {
-    String selectedMethod = 'Cash';
-    final amountController = TextEditingController();
-    bool isProcessing = false;
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Collect Payment'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Member: ${member.name}'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
-                ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedMethod,
-                decoration: const InputDecoration(
-                  labelText: 'Payment Method',
-                  border: OutlineInputBorder(),
-                ),
-                items: ['Cash', 'Bank Transfer', 'Credit Card']
-                    .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                    .toList(),
-                onChanged: (v) => setState(() => selectedMethod = v!),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: isProcessing ? null : () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: isProcessing
-                  ? null
-                  : () async {
-                      final amountStr = amountController.text.trim();
-                      if (amountStr.isEmpty) return;
-                      final amount = double.tryParse(amountStr);
-                      if (amount == null || amount <= 0) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('Enter a valid amount')),
-                        );
-                        return;
-                      }
-
-                      setState(() => isProcessing = true);
-
-                      final error = await FirestoreService.instance
-                          .processPayment(
-                            member: member,
-                            method: selectedMethod,
-                            amount: amount,
-                            paymentDocIdToUpdate: paymentDocIdToUpdate,
-                          );
-
-                      if (error != null) {
-                        if (ctx.mounted) {
-                          Navigator.pop(ctx); // close dialog first
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(error),
-                              backgroundColor: const Color(0xFFDC2626),
-                              duration: const Duration(seconds: 5),
-                            ),
-                          );
-                        }
-                      } else {
-                        // Print receipt
-                        try {
-                          final memberData = {
-                            'name': member.name,
-                            'gymId': member.id,
-                            'membership': member.membership,
-                            'expiryDate': member.expiryDate,
-                          };
-                          await AppPrinter.printReceipt(
-                            memberData,
-                            amount,
-                            selectedMethod,
-                          );
-                        } catch (e) {
-                          debugPrint('Printing error: $e');
-                        }
-                        if (ctx.mounted) {
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(
-                              content: Text('Payment recorded successfully'),
-                            ),
-                          );
-                        }
-                      }
-                    },
-              child: isProcessing
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Confirm'),
-            ),
-          ],
-        ),
+      builder: (ctx) => _PaymentDialog(
+        member: member,
+        paymentDocIdToUpdate: paymentDocIdToUpdate,
       ),
     );
   }
@@ -1445,6 +1330,151 @@ class ReceiptPreviewDialog extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payment dialog that owns amountController and disposes it correctly
+// when the dialog is dismissed. All payment/printer logic is unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
+class _PaymentDialog extends StatefulWidget {
+  const _PaymentDialog({
+    required this.member,
+    this.paymentDocIdToUpdate,
+  });
+
+  final Member member;
+  final String? paymentDocIdToUpdate;
+
+  @override
+  State<_PaymentDialog> createState() => _PaymentDialogState();
+}
+
+class _PaymentDialogState extends State<_PaymentDialog> {
+  final _amountController = TextEditingController();
+  String _selectedMethod = 'Cash';
+  bool _isProcessing = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Collect Payment'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Member: ${widget.member.name}'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+            ),
+            decoration: const InputDecoration(
+              labelText: 'Amount',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.attach_money),
+            ),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedMethod,
+            decoration: const InputDecoration(
+              labelText: 'Payment Method',
+              border: OutlineInputBorder(),
+            ),
+            items: ['Cash', 'Bank Transfer', 'Credit Card']
+                .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                .toList(),
+            onChanged: (v) => setState(() => _selectedMethod = v!),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isProcessing ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _isProcessing
+              ? null
+              : () async {
+                  final amountStr = _amountController.text.trim();
+                  if (amountStr.isEmpty) return;
+                  final amount = double.tryParse(amountStr);
+                  if (amount == null || amount <= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Enter a valid amount')),
+                    );
+                    return;
+                  }
+
+                  setState(() => _isProcessing = true);
+
+                  final error = await FirestoreService.instance.processPayment(
+                    member: widget.member,
+                    method: _selectedMethod,
+                    amount: amount,
+                    paymentDocIdToUpdate: widget.paymentDocIdToUpdate,
+                  );
+
+                  if (error != null) {
+                    if (mounted) {
+                      Navigator.pop(context); // close dialog first
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(error),
+                          backgroundColor: const Color(0xFFDC2626),
+                          duration: const Duration(seconds: 5),
+                        ),
+                      );
+                    }
+                  } else {
+                    // Print receipt
+                    try {
+                      final memberData = {
+                        'name': widget.member.name,
+                        'gymId': widget.member.id,
+                        'membership': widget.member.membership,
+                        'expiryDate': widget.member.expiryDate,
+                      };
+                      await AppPrinter.printReceipt(
+                        memberData,
+                        amount,
+                        _selectedMethod,
+                      );
+                    } catch (e) {
+                      debugPrint('Printing error: $e');
+                    }
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Payment recorded successfully'),
+                        ),
+                      );
+                    }
+                  }
+                },
+          child: _isProcessing
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Confirm'),
+        ),
+      ],
     );
   }
 }

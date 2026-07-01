@@ -709,7 +709,11 @@ class EditMemberProvider extends ChangeNotifier {
     phoneCtrl.dispose();
     dobCtrl.dispose();
     addressCtrl.dispose();
+    emergencyCtrl.dispose();
+    cnicCtrl.dispose();
+    injuryCtrl.dispose();
     signatureCtrl.dispose();
+    manuallyAmountCtrl.dispose();
     dateSignedCtrl.dispose();
     startDateCtrl.dispose();
     otherGoalCtrl.dispose();

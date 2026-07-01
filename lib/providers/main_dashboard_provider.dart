@@ -12,4 +12,9 @@ class MainDashboardProvider extends ChangeNotifier {
     _selectedIndex = index;
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

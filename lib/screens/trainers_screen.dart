@@ -24,67 +24,20 @@ class TrainersState extends ChangeNotifier {
             t.specialization.toLowerCase().contains(_search.toLowerCase()),
       )
       .toList();
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }
 
 class TrainersScreen extends StatelessWidget {
   const TrainersScreen({super.key});
 
   void _showAddDialog(BuildContext context) {
-    final provider = context.read<GymProvider>();
-    final nameCtrl = TextEditingController();
-    final specCtrl = TextEditingController();
-    final emailCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: AppText(
-          txt: 'Add New Trainer',
-          fontSize: AppFontSize.f13,
-          fontWeight: FontWeight.w500,
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              customTf('Full Name', nameCtrl),
-              const SizedBox(height: 12),
-              customTf('Specialization', specCtrl),
-              const SizedBox(height: 12),
-              customTf('Email', emailCtrl),
-              const SizedBox(height: 12),
-              customTf('Phone', phoneCtrl),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (nameCtrl.text.isEmpty) return;
-              provider.addTrainer(
-                Trainer(
-                  id: provider.trainers.length + 1,
-                  name: nameCtrl.text,
-                  specialization: specCtrl.text,
-                  email: emailCtrl.text,
-                  phone: phoneCtrl.text,
-                  rating: 5.0,
-                  classes: 0,
-                  status: 'Active',
-                  joinDate: 'Jun 2026',
-                ),
-              );
-              Navigator.pop(ctx);
-            },
-            child: const Text('Add Trainer'),
-          ),
-        ],
-      ),
+      builder: (ctx) => const _AddTrainerDialog(),
     );
   }
 
@@ -390,4 +343,83 @@ class _TrainerCard extends StatelessWidget {
       ),
     ],
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dialog widget that owns its own TextEditingControllers and disposes them
+// correctly when the dialog is dismissed.
+// ─────────────────────────────────────────────────────────────────────────────
+class _AddTrainerDialog extends StatefulWidget {
+  const _AddTrainerDialog();
+
+  @override
+  State<_AddTrainerDialog> createState() => _AddTrainerDialogState();
+}
+
+class _AddTrainerDialogState extends State<_AddTrainerDialog> {
+  final _nameCtrl = TextEditingController();
+  final _specCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _specCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<GymProvider>();
+    return AlertDialog(
+      title: AppText(
+        txt: 'Add New Trainer',
+        fontSize: AppFontSize.f13,
+        fontWeight: FontWeight.w500,
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            customTf('Full Name', _nameCtrl),
+            const SizedBox(height: 12),
+            customTf('Specialization', _specCtrl),
+            const SizedBox(height: 12),
+            customTf('Email', _emailCtrl),
+            const SizedBox(height: 12),
+            customTf('Phone', _phoneCtrl),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_nameCtrl.text.isEmpty) return;
+            provider.addTrainer(
+              Trainer(
+                id: provider.trainers.length + 1,
+                name: _nameCtrl.text,
+                specialization: _specCtrl.text,
+                email: _emailCtrl.text,
+                phone: _phoneCtrl.text,
+                rating: 5.0,
+                classes: 0,
+                status: 'Active',
+                joinDate: 'Jun 2026',
+              ),
+            );
+            Navigator.pop(context);
+          },
+          child: const Text('Add Trainer'),
+        ),
+      ],
+    );
+  }
 }

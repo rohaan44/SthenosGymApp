@@ -2,7 +2,6 @@ import 'package:app/auth/auth_gate/auth_gate.dart';
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/gym_provider.dart';
-import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
 import 'package:app/ui/helpers/color_helper.dart';
@@ -59,10 +58,11 @@ class AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => GymProvider()),
+        ChangeNotifierProvider(
+          create: (_) => GymProvider(),
+        ),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MembersProvider()),
-        ChangeNotifierProvider(create: (_) => EditMemberProvider()),
         ChangeNotifierProvider(create: (_) => FirestoreTestProvider()),
         ChangeNotifierProvider(create: (_) => PaymentsProvider()),
       ],

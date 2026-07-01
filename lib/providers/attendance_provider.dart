@@ -31,4 +31,9 @@ class AttendanceProvider extends ChangeNotifier {
             r.status.toLowerCase() == _filterStatus.toLowerCase();
         return matchSearch && matchStatus;
       }).toList();
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

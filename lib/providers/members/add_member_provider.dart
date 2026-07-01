@@ -696,10 +696,14 @@ class AddMemberProvider extends ChangeNotifier {
     phoneCtrl.dispose();
     dobCtrl.dispose();
     addressCtrl.dispose();
+    emergencyCtrl.dispose();
+    cnicCtrl.dispose();
+    injuryCtrl.dispose();
     signatureCtrl.dispose();
     dateSignedCtrl.dispose();
     startDateCtrl.dispose();
     otherGoalCtrl.dispose();
+    manuallyAmountCtrl.dispose();
     cameraController?.dispose();
     super.dispose();
   }

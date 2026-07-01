@@ -32,4 +32,9 @@ class MembersProvider extends ChangeNotifier {
     _filterStatus = value;
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

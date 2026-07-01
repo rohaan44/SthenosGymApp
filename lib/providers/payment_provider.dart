@@ -38,4 +38,9 @@ class PaymentsProvider extends ChangeNotifier {
             p.status.toLowerCase() == _filterStatus.toLowerCase();
         return matchSearch && matchStatus;
       }).toList();
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }

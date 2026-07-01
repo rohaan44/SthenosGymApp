@@ -29,4 +29,9 @@ class FirestoreTestProvider extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 }
