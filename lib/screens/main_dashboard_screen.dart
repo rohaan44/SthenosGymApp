@@ -71,12 +71,11 @@ class MainDashboardScreen extends StatelessWidget {
             return Scaffold(
               body: Row(
                 children: [
-                  const _SidebarNav(
-                    navItems: _navItems,
-                  ),
+                  const _SidebarNav(navItems: _navItems),
                   Expanded(
                     child: Consumer<MainDashboardProvider>(
-                      builder: (context, navProvider, _) => _screens[navProvider.selectedIndex],
+                      builder: (context, navProvider, _) =>
+                          _screens[navProvider.selectedIndex],
                     ),
                   ),
                 ],
@@ -89,12 +88,11 @@ class MainDashboardScreen extends StatelessWidget {
             return Scaffold(
               body: Row(
                 children: [
-                  const _RailNav(
-                    navItems: _navItems,
-                  ),
+                  const _RailNav(navItems: _navItems),
                   Expanded(
                     child: Consumer<MainDashboardProvider>(
-                      builder: (context, navProvider, _) => _screens[navProvider.selectedIndex],
+                      builder: (context, navProvider, _) =>
+                          _screens[navProvider.selectedIndex],
                     ),
                   ),
                 ],
@@ -116,11 +114,10 @@ class MainDashboardScreen extends StatelessWidget {
                 SizedBox(width: cw(20)),
               ],
             ),
-            drawer: const _MobileDrawer(
-              navItems: _navItems,
-            ),
+            drawer: const _MobileDrawer(navItems: _navItems),
             body: Consumer<MainDashboardProvider>(
-              builder: (context, navProvider, _) => _screens[navProvider.selectedIndex],
+              builder: (context, navProvider, _) =>
+                  _screens[navProvider.selectedIndex],
             ),
           );
         },
@@ -200,9 +197,7 @@ class MainDashboardScreen extends StatelessWidget {
 // Full sidebar (desktop)
 // ─────────────────────────────────────────────────────────────────────────────
 class _SidebarNav extends StatelessWidget {
-  const _SidebarNav({
-    required this.navItems,
-  });
+  const _SidebarNav({required this.navItems});
 
   final List<_NavItem> navItems;
 
@@ -323,9 +318,7 @@ class _SidebarNav extends StatelessWidget {
 // Navigation Rail (tablet)
 // ─────────────────────────────────────────────────────────────────────────────
 class _RailNav extends StatelessWidget {
-  const _RailNav({
-    required this.navItems,
-  });
+  const _RailNav({required this.navItems});
 
   final List<_NavItem> navItems;
 
@@ -410,9 +403,7 @@ class _NavItem {
 }
 
 class _MobileDrawer extends StatelessWidget {
-  const _MobileDrawer({
-    required this.navItems,
-  });
+  const _MobileDrawer({required this.navItems});
 
   final List<_NavItem> navItems;
 

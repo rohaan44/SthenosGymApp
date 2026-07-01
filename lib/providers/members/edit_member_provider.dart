@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app/ui/helpers/web_cam_screen.dart';
+import 'package:app/ui/utils/app_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../../service/cloudinary_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditMemberProvider extends ChangeNotifier {
+  Member? originalMember;
   final formKey = GlobalKey<FormState>();
 
   final emergencyCtrl = TextEditingController();
@@ -54,6 +56,8 @@ class EditMemberProvider extends ChangeNotifier {
     'Quarterly',
     'One-time Full Payment',
   ];
+
+
 
   String membership = membershipPlans.first;
   final List<String> fitnessGoals = [];
@@ -103,16 +107,101 @@ class EditMemberProvider extends ChangeNotifier {
   }
 
   void loadMemberData(Member member) {
-    imageUrl = member.profileImageUrl!;
+    print("LOAD HASH => $hashCode");
+    originalMember = member;
+    imageFile = null; // <-- IMPORTANT
+
+    imageUrl = member.profileImageUrl ?? "";
     nameCtrl.text = member.name;
     emailCtrl.text = member.email;
     phoneCtrl.text = member.phone;
     emergencyCtrl.text = member.emergencyContact;
-    dobCtrl.text = member.dateOfBirth!;
-    addressCtrl.text = member.address!;
+    dobCtrl.text = member.dateOfBirth ?? "";
+    addressCtrl.text = member.address ?? "";
     cnicCtrl.text = member.cnic;
-    injuryCtrl.text = member.injury!;
+    injuryCtrl.text = member.injury ?? "";
+    startDateCtrl.text = member.joinDate;
+
+    // ❗ Missing tha
+    membership = member.membership;
+
+    notifyListeners();
   }
+
+  bool hasAnyChanges() {
+    if (originalMember == null) return false;
+    // print("imageFile => ${imageFile != null}");
+    // print(
+    //   "name: ${nameCtrl.text.trim()} != ${originalMember!.name} => ${nameCtrl.text.trim() != originalMember!.name}",
+    // );
+    // print(
+    //   "email: ${emailCtrl.text.trim()} != ${originalMember!.email} => ${emailCtrl.text.trim() != originalMember!.email}",
+    // );
+    // print(
+    //   "phone: ${phoneCtrl.text.trim()} != ${originalMember!.phone} => ${phoneCtrl.text.trim() != originalMember!.phone}",
+    // );
+    // print(
+    //   "address: '${addressCtrl.text.trim()}' != '${originalMember!.address}' => ${addressCtrl.text.trim() != (originalMember!.address ?? '')}",
+    // );
+    // print(
+    //   "dob: '${dobCtrl.text.trim()}' != '${originalMember!.dateOfBirth}' => ${dobCtrl.text.trim() != (originalMember!.dateOfBirth ?? '')}",
+    // );
+    // print(
+    //   "cnic: '${cnicCtrl.text.trim()}' != '${originalMember!.cnic}' => ${cnicCtrl.text.trim() != originalMember!.cnic}",
+    // );
+    // print(
+    //   "emergency: '${emergencyCtrl.text.trim()}' != '${originalMember!.emergencyContact}' => ${emergencyCtrl.text.trim() != originalMember!.emergencyContact}",
+    // );
+    // print(
+    //   "injury: '${injuryCtrl.text.trim()}' != '${originalMember!.injury}' => ${injuryCtrl.text.trim() != (originalMember!.injury ?? '')}",
+    // );
+    // print(
+    //   "membership: '$membership' != '${originalMember!.membership}' => ${membership != originalMember!.membership}",
+    // );
+    // print(
+    //   "joinDate: '${startDateCtrl.text.trim()}' != '${originalMember!.joinDate}' => ${startDateCtrl.text.trim() != originalMember!.joinDate}",
+    // );
+    // print(
+    //   "image: '$imageUrl' != '${originalMember!.profileImageUrl}' => ${imageUrl != (originalMember!.profileImageUrl ?? '')}",
+    // );
+
+    return nameCtrl.text.trim() != originalMember!.name.trim() ||
+        emailCtrl.text.trim() != originalMember!.email.trim() ||
+        phoneCtrl.text.trim() != originalMember!.phone.trim() ||
+        addressCtrl.text.trim() != (originalMember!.address ?? '').trim() ||
+        dobCtrl.text.trim() != (originalMember!.dateOfBirth ?? '').trim() ||
+        cnicCtrl.text.trim() != originalMember!.cnic.trim() ||
+        emergencyCtrl.text.trim() != originalMember!.emergencyContact.trim() ||
+        injuryCtrl.text.trim() != (originalMember!.injury ?? '').trim() ||
+        membership.trim() != originalMember!.membership.trim() ||
+        imageUrl != (originalMember!.profileImageUrl ?? '') ||
+        imageFile != null;
+  }
+
+  // bool hasAnyChanges() {
+  //   if (originalMember == null) return false;
+
+  //   final old = originalMember!;
+
+  //   final checks = <String, bool>{
+  //     "name": nameCtrl.text.trim() != old.name.trim(),
+  //     "email": emailCtrl.text.trim() != old.email.trim(),
+  //     "phone": phoneCtrl.text.trim() != old.phone.trim(),
+  //     "address": addressCtrl.text.trim() != (old.address ?? "").trim(),
+  //     "dob": dobCtrl.text.trim() != (old.dateOfBirth ?? "").trim(),
+  //     "cnic": cnicCtrl.text.trim() != old.cnic.trim(),
+  //     "emergency": emergencyCtrl.text.trim() != old.emergencyContact.trim(),
+  //     "injury": injuryCtrl.text.trim() != (old.injury ?? "").trim(),
+  //     "membership": membership.trim() != old.membership.trim(),
+  //     "imageFile": imageFile != null,
+  //   };
+
+  //   checks.forEach((key, value) {
+  //     print("$key => $value");
+  //   });
+
+  //   return checks.values.any((e) => e);
+  // }
 
   Future<void> disposeCamera() async {
     if (cameraController != null) {
@@ -193,7 +282,6 @@ class EditMemberProvider extends ChangeNotifier {
     }
   }
 
-
   // Future<void> pickImage(ImageSource source, BuildContext context) async {
   //   if (!kIsWeb && source == ImageSource.camera) {
   //     var status = await Permission.camera.status;
@@ -243,6 +331,10 @@ class EditMemberProvider extends ChangeNotifier {
   // }
 
   Future<void> submit(BuildContext context) async {
+    // print("SUBMIT HASH => $hashCode");
+    print(hasAnyChanges());
+    // print(nameCtrl.text);
+    // print(originalMember?.name);
     // Image Validation
     // if (imageFile == null && (imageUrl == null || imageUrl!.isEmpty)) {
     //   ScaffoldMessenger.of(context).showSnackBar(
@@ -260,18 +352,46 @@ class EditMemberProvider extends ChangeNotifier {
       return;
     }
 
+    final changed = hasAnyChanges();
+
+    // print("changed = $changed");
+
+    // if (!changed) {
+    //   print("NO CHANGES");
+    //   return;
+    // }
+
+    // print("BEFORE SAVE");
+
+    if (!changed) {
+      // print("NO CHANGES");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: AppText(
+            txt:
+                "No changes detected. Please update at least one field before saving.",
+          ),
+          backgroundColor: Color(0xffFF3A2F),
+        ),
+      );
+      return;
+    }
+
     try {
       isLoading = true;
       notifyListeners();
 
-      // ── Duplicate Phone Check ──────────────────────────
       final duplicate = await _firestore
           .collection('members')
           .where('phone', isEqualTo: phoneCtrl.text.trim())
-          .limit(1)
           .get();
 
-      if (duplicate.docs.isNotEmpty) {
+      final isDuplicate = duplicate.docs.any(
+        (doc) => doc.id != originalMember!.docId,
+      );
+
+      if (isDuplicate) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -288,10 +408,36 @@ class EditMemberProvider extends ChangeNotifier {
         return;
       }
 
+      // ── Duplicate Phone Check ──────────────────────────
+      // final duplicate = await _firestore
+      //     .collection('members')
+      //     .where('phone', isEqualTo: phoneCtrl.text.trim())
+      //     .limit(1)
+      //     .get();
+
+      // if (duplicate.docs.isNotEmpty) {
+      //   if (context.mounted) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(
+      //         content: Text(
+      //           'Member with phone ${phoneCtrl.text.trim()} already exists',
+      //         ),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //   }
+
+      // isLoading = false;
+      // notifyListeners();
+      // return;
+      // }
+
       // ── Upload Image ───────────────────────────────────
       if (imageFile != null) {
         imageUrl = await _cloudinaryService.uploadImage(imageFile!);
       }
+
+      // print("BEFORE SAVE");
 
       // ── Save Data ──────────────────────────────────────
       await saveData();
@@ -320,227 +466,6 @@ class EditMemberProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
-  }
-
-  // Future<void> submit(BuildContext context) async {
-  //   if (imageUrl == null || imageUrl == "") {
-  //     appTopToast();
-  //   } else if (!formKey.currentState!.validate()) {
-  //     return;
-  //   }
-
-  //   try {
-  //     isLoading = true;
-  //     notifyListeners();
-
-  //     // Duplicate Phone Check
-  //     final duplicate = await _firestore
-  //         .collection('members')
-  //         .where('phone', isEqualTo: phoneCtrl.text.trim())
-  //         .limit(1)
-  //         .get();
-
-  //     if (duplicate.docs.isNotEmpty) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(
-  //             'Member with phone ${phoneCtrl.text.trim()} already exists',
-  //           ),
-  //           backgroundColor: Colors.red,
-  //         ),
-  //       );
-
-  //       isLoading = false;
-  //       notifyListeners();
-  //       return;
-  //     }
-
-  //     // Upload Image
-  //     if (imageFile != null) {
-  //       imageUrl = await _cloudinaryService.uploadImage(imageFile!);
-  //     }
-
-  //     // Save Member
-  //     await saveData();
-
-  //     if (message.startsWith('✅')) {
-  //       reset();
-
-  //       if (context.mounted) {
-  //         Navigator.pop(context);
-  //       }
-  //     } else {
-  //       if (context.mounted) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(content: Text(message), backgroundColor: Colors.red),
-  //         );
-  //       }
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-  //     );
-  //   } finally {
-  //     isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
-
-  // Future<void> submit(BuildContext context) async {
-  //   // if (nameCtrl.text.isEmpty || emailCtrl.text.isEmpty) {
-  //   //   ScaffoldMessenger.of(context).showSnackBar(
-  //   //     const SnackBar(content: Text('Name and Email are required.')),
-  //   //   );
-  //   //   return;
-  //   // }
-
-  //   // if (phoneCtrl.text.isEmpty) {
-  //   //   ScaffoldMessenger.of(context).showSnackBar(
-  //   //     const SnackBar(content: Text('Phone number is required.')),
-  //   //   );
-  //   //   return;
-  //   // }
-
-  //   // isLoading = true;
-  //   // notifyListeners();
-
-  //   // ── 1. Duplicate phone check ──────────────────────────────────────────
-  //   final duplicate = await _firestore
-  //       .collection('members')
-  //       .where('phone', isEqualTo: phoneCtrl.text.trim())
-  //       .limit(1)
-  //       .get();
-
-  //   if (duplicate.docs.isNotEmpty) {
-  //     isLoading = false;
-  //     notifyListeners();
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(
-  //             'A member with phone "${phoneCtrl.text.trim()}" already exists.',
-  //           ),
-  //           backgroundColor: Colors.red.shade700,
-  //         ),
-  //       );
-  //     }
-  //     return;
-  //   }
-
-  //   // ── 2. Upload image ───────────────────────────────────────────────────
-  //   if (imageFile != null) {
-  //     imageUrl = await _cloudinaryService.uploadImage(imageFile!);
-  //   }
-
-  //   if (!context.mounted) return;
-
-  //   // ── 3. Add to local state ─────────────────────────────────────────────
-  //   final gym = context.read<GymProvider>();
-  //   final newId = gym.members.length + 1;
-
-  //   if (otherGoal != null && otherGoal!.isNotEmpty) {
-  //     fitnessGoals.add(otherGoal!);
-  //   }
-
-  //   DateTime parsedJoinDate;
-  //   try {
-  //     parsedJoinDate = DateTime.parse(startDateCtrl.text);
-  //   } catch (_) {
-  //     parsedJoinDate = DateTime.now();
-  //   }
-
-  //   DateTime expiryDateCalc;
-  //   if (membership.contains('3-Month')) {
-  //     expiryDateCalc = DateTime(
-  //       parsedJoinDate.year,
-  //       parsedJoinDate.month + 3,
-  //       parsedJoinDate.day,
-  //     );
-  //   } else if (membership.contains('6-Month')) {
-  //     expiryDateCalc = DateTime(
-  //       parsedJoinDate.year,
-  //       parsedJoinDate.month + 6,
-  //       parsedJoinDate.day,
-  //     );
-  //   } else if (membership.contains('Annual')) {
-  //     expiryDateCalc = DateTime(
-  //       parsedJoinDate.year + 1,
-  //       parsedJoinDate.month,
-  //       parsedJoinDate.day,
-  //     );
-  //   } else {
-  //     expiryDateCalc = DateTime(
-  //       parsedJoinDate.year,
-  //       parsedJoinDate.month + 1,
-  //       parsedJoinDate.day,
-  //     );
-  //   }
-
-  //   final newMember = Member(
-  //     id: newId,
-  //     name: nameCtrl.text,
-  //     email: emailCtrl.text,
-  //     phone: phoneCtrl.text,
-  //     membership: membership,
-  //     status: 'Active',
-  //     joinDate: parsedJoinDate.toIso8601String().split('T')[0],
-  //     expiryDate: expiryDateCalc.toIso8601String().split('T')[0],
-  //     profileImageUrl: imageUrl,
-  //     dateOfBirth: dobCtrl.text,
-  //     address: addressCtrl.text,
-  //     emergencyContact: emergencyCtrl.text,
-  //     cnic: cnicCtrl.text
-  //     // fitnessGoals: List.from(fitnessGoals),
-  //     // addOnServices: List.from(addOns),
-  //     // paymentMethod: paymentMethod,
-  //     // billingFrequency: billingFrequency,
-  //     // preferredStartDate: startDateCtrl.text,
-  //     // signature: signatureCtrl.text,
-  //     // dateSigned: dateSignedCtrl.text,
-  //   );
-
-  //   gym.EditMemberProvider(newMember);
-
-  //   // ── 4. Persist to Firestore ───────────────────────────────────────────
-  //   await saveData();
-
-  //   isLoading = false;
-  //   notifyListeners();
-
-  //   // ── 5. Clear form on success ──────────────────────────────────────────
-  //   if (message.startsWith('✅')) {
-  //     reset();
-  //     if (context.mounted) Navigator.pop(context);
-  //   } else {
-  //     // Firestore write failed — show error but stay on screen
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(message),
-  //           backgroundColor: Colors.red.shade700,
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
-
-  Future<int> _getNextMemberId() async {
-    final counterRef = _firestore.collection('counters').doc('members');
-
-    return _firestore.runTransaction<int>((transaction) async {
-      final snapshot = await transaction.get(counterRef);
-
-      int nextId;
-      if (!snapshot.exists) {
-        nextId = 1;
-        transaction.set(counterRef, {'count': nextId});
-      } else {
-        final currentCount = (snapshot.data()?['count'] ?? 0) as int;
-        nextId = currentCount + 1;
-        transaction.update(counterRef, {'count': nextId});
-      }
-      return nextId;
-    });
   }
 
   // bool isLoading = false;
@@ -606,6 +531,8 @@ class EditMemberProvider extends ChangeNotifier {
   /// Saves member data to Firestore.
   /// Call after [imageUrl] has been set (done automatically by [submit]).
   Future<void> saveData() async {
+    // print("🔥 saveData() called");
+
     DateTime parsedJoinDate;
     try {
       parsedJoinDate = DateTime.parse(startDateCtrl.text);
@@ -641,9 +568,10 @@ class EditMemberProvider extends ChangeNotifier {
     }
 
     try {
-      final newId = await _getNextMemberId();
-      await _firestore.collection('members').add({
-        'gymId': newId.toString(),
+      // final newId = await _getNextMemberId();
+
+      await _firestore.collection('members').doc(originalMember!.docId).update({
+        'gymId': originalMember!.id.toString(),
         'name': nameCtrl.text,
         'email': emailCtrl.text,
         'phone': phoneCtrl.text.trim(),
