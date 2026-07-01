@@ -7,7 +7,6 @@ import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/ui/routes/app_routes.dart';
-import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_primary_button.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
@@ -16,13 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Helper: navigate to payment history for a member
-void _openPaymentHistory(BuildContext context, Member member) {
-  Navigator.pushNamed(
-    context,
-    AppRoutes.memberPaymentHistory,
-    arguments: member,
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Members Screen — bound to a live Firestore snapshot stream.
@@ -912,7 +904,7 @@ class _MobileList extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 class MembersScreenHelper {
   static void showPaymentDialog(
-    BuildContext context, 
+    BuildContext context,
     Member member, {
     String? paymentDocIdToUpdate,
   }) {
@@ -1447,4 +1439,12 @@ class ReceiptPreviewDialog extends StatelessWidget {
       ),
     );
   }
+}
+
+void _openPaymentHistory(BuildContext context, Member member) {
+  Navigator.pushNamed(
+    context,
+    AppRoutes.memberPaymentHistory,
+    arguments: member,
+  );
 }

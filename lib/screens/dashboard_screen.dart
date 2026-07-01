@@ -462,7 +462,6 @@
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
-import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../shared_widgets.dart';
@@ -483,7 +482,6 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return StreamBuilder<List<Member>>(
       stream: FirestoreService.instance.membersStream(),
       builder: (context, memberSnapshot) {
@@ -614,12 +612,12 @@ class DashboardScreen extends StatelessWidget {
                                 iconBg: const Color(0xFFFFFBEB),
                               ),
                             ),
-                            Spacer(),
-                            Image.asset(
-                              AssetUtils.titleLogo1,
-                              width: cw(100),
-                              height: ch(100),
-                            ),
+                            // Spacer(),
+                            // Image.asset(
+                            //   AssetUtils.titleLogo1,
+                            //   width: cw(100),
+                            //   height: ch(100),
+                            // ),
                           ],
                         );
                       },
