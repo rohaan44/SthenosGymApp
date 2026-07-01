@@ -1,6 +1,6 @@
-import 'package:app/ui/routes/app_routes.dart';
-import 'package:flutter/material.dart';
+import 'package:app/auth/auth_screens/admin_signin/admin_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -18,55 +18,16 @@ class AuthProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  bool obscurePassword = true;
+
+  void togglePasswordVisibility() {
+    obscurePassword = !obscurePassword;
+    notifyListeners();
+  }
+
   authProvider() {
     _user = _auth.currentUser;
   }
-
-  // =========================
-  // SIGN UP
-  // =========================
-  // Future<bool> signUp(context, String email, String password) async {
-  //   try {
-  //     _setLoading(true);
-  //     _error = null;
-
-  //     debugPrint("🔥 SIGNUP START");
-
-  //     final result = await _auth.createUserWithEmailAndPassword(
-  //       email: email.trim(),
-  //       password: password.trim(),
-  //     );
-
-  //     _user = result.user;
-
-  //     debugPrint("✅ SIGNUP SUCCESS: ${_user?.uid}");
-
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(builder: (context) => SignInScreen()),
-  //     );
-
-  //     _setLoading(false);
-  //     notifyListeners();
-  //     return true;
-  //   } on FirebaseAuthException catch (e) {
-  //     _error = _handleError(e);
-
-  //     debugPrint("❌ SIGNUP ERROR: ${e.code} - ${e.message}");
-
-  //     _setLoading(false);
-  //     notifyListeners();
-  //     return false;
-  //   } catch (e) {
-  //     _error = "Something went wrong";
-
-  //     debugPrint("❌ UNKNOWN ERROR: $e");
-
-  //     _setLoading(false);
-  //     notifyListeners();
-  //     return false;
-  //   }
-  // }
 
   // =========================
   // SIGN IN
@@ -112,14 +73,20 @@ class AuthProvider extends ChangeNotifier {
   // =========================
   // LOGOUT
   // =========================
-  Future<void> logout(context) async {
+  // NOTE: This now uses direct widget navigation (MaterialPageRoute)
+  // instead of Navigator.pushNamed(), because AdminSignIn is not
+  // registered as a named route in this app (login uses
+  // MaterialPageRoute too, see AdminSignIn's Login button).
+  // This avoids the "Unknown route" error.
+  Future<void> logout(BuildContext context) async {
     await _auth.signOut();
     _user = null;
     notifyListeners();
 
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.loginView, (route) => false);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const AdminSignIn()),
+      (route) => false,
+    );
   }
 
   // =========================

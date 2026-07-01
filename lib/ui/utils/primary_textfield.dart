@@ -9,6 +9,7 @@ Widget primaryTextField({
   TextEditingController? controller,
   Widget? prefixIcon,
   Widget? suffixIcon,
+  VoidCallback? onSuffixTap,
   TextInputType? keyboardType,
   TextInputAction? textInputAction,
   List<TextInputFormatter>? inputFormatters,
@@ -30,12 +31,10 @@ Widget primaryTextField({
 
   return Container(
     constraints: BoxConstraints(minHeight: fieldHeight),
-    // height: isMultiline ? null : fieldHeight,
     child: TextFormField(
       controller: controller,
       focusNode: focusNode,
       readOnly: readOnly,
-
       autofocus: autoFocus,
       obscureText: obscureText,
       keyboardType: keyboardType,
@@ -51,14 +50,12 @@ Widget primaryTextField({
         fontWeight: FontWeight.w500,
         color: AppColor.cFFFFFF,
       ),
-
       decoration: InputDecoration(
         counterText: "",
-        hintText: "",
+        labelText: hintText,
         labelStyle:
             labelStyl ??
             TextStyle(fontSize: AppFontSize.f14, color: AppColor.themeGrey),
-        labelText: hintText,
         hintStyle: TextStyle(
           fontSize: AppFontSize.f14,
           color: Colors.grey.shade500,
@@ -67,23 +64,20 @@ Widget primaryTextField({
         fillColor: fillColor ?? AppColor.c151515,
 
         prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
 
-        prefixIconConstraints: BoxConstraints(
+        suffixIcon: suffixIcon != null
+            ? IconButton(onPressed: onSuffixTap, icon: suffixIcon)
+            : null,
+
+        prefixIconConstraints: const BoxConstraints(
           minWidth: 40,
-          // cw(40),
           minHeight: 40,
-          // ch(40),
         ),
 
-        suffixIconConstraints: BoxConstraints(
+        suffixIconConstraints: const BoxConstraints(
           minWidth: 40,
-          //  cw(40),
           minHeight: 40,
-          // ch(40),
         ),
-
-        isDense: false,
 
         contentPadding: EdgeInsets.symmetric(
           horizontal: cw(14),

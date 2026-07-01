@@ -98,10 +98,17 @@ class AdminSignIn extends StatelessWidget {
 
                                 primaryTextField(
                                   controller: auth.passwordController,
-                                  hintText: "password",
-                                  obscureText: true,
-                                  prefixIcon: Icon(Icons.password_outlined),
-                                  suffixIcon: Icon(Icons.visibility),
+                                  hintText: "Password",
+                                  obscureText: auth.obscurePassword,
+                                  prefixIcon: const Icon(
+                                    Icons.password_outlined,
+                                  ),
+                                  suffixIcon: Icon(
+                                    auth.obscurePassword
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                  ),
+                                  onSuffixTap: auth.togglePasswordVisibility,
                                 ),
                                 SizedBox(height: ch(12)),
                                 Row(
@@ -174,7 +181,7 @@ class AdminSignIn extends StatelessWidget {
                                   },
                                   text: "Login",
                                 ),
-                               
+
                                 SizedBox(height: ch(20)),
 
                                 Container(

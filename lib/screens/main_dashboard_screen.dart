@@ -1,3 +1,4 @@
+import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
@@ -11,6 +12,21 @@ import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/asset_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Common tap handler used by all nav widgets (sidebar, rail, drawer)
+// ─────────────────────────────────────────────────────────────────────────────
+void _handleNavTap(BuildContext context, int index, List<_NavItem> navItems) {
+  final item = navItems[index];
+
+  if (item.label == 'Log Out') {
+    // AuthProvider must be provided above this widget (e.g. in main.dart)
+    context.read<AuthProvider>().logout(context);
+    return;
+  }
+
+  context.read<MainDashboardProvider>().setSelectedIndex(index);
+}
 
 class MainDashboardScreen extends StatelessWidget {
   const MainDashboardScreen({super.key});
@@ -32,7 +48,11 @@ class MainDashboardScreen extends StatelessWidget {
       icon: Icons.credit_card_outlined,
       activeIcon: Icons.credit_card,
     ),
-    // _NavItem(
+    _NavItem(
+      label: 'Log Out',
+      icon: Icons.logout,
+      activeIcon: Icons.logout_outlined,
+    ), // _NavItem(
     //   label: 'Classes',
     //   icon: Icons.calendar_today_outlined,
     //   activeIcon: Icons.calendar_today,
@@ -74,8 +94,15 @@ class MainDashboardScreen extends StatelessWidget {
                   const _SidebarNav(navItems: _navItems),
                   Expanded(
                     child: Consumer<MainDashboardProvider>(
-                      builder: (context, navProvider, _) =>
-                          _screens[navProvider.selectedIndex],
+                      builder: (context, navProvider, _) {
+                        // Guard: selectedIndex could point at "Log Out" (index 3)
+                        // which has no matching screen, so clamp it.
+                        final index =
+                            navProvider.selectedIndex < _screens.length
+                            ? navProvider.selectedIndex
+                            : 0;
+                        return _screens[index];
+                      },
                     ),
                   ),
                 ],
@@ -91,8 +118,13 @@ class MainDashboardScreen extends StatelessWidget {
                   const _RailNav(navItems: _navItems),
                   Expanded(
                     child: Consumer<MainDashboardProvider>(
-                      builder: (context, navProvider, _) =>
-                          _screens[navProvider.selectedIndex],
+                      builder: (context, navProvider, _) {
+                        final index =
+                            navProvider.selectedIndex < _screens.length
+                            ? navProvider.selectedIndex
+                            : 0;
+                        return _screens[index];
+                      },
                     ),
                   ),
                 ],
@@ -116,15 +148,18 @@ class MainDashboardScreen extends StatelessWidget {
             ),
             drawer: const _MobileDrawer(navItems: _navItems),
             body: Consumer<MainDashboardProvider>(
-              builder: (context, navProvider, _) =>
-                  _screens[navProvider.selectedIndex],
+              builder: (context, navProvider, _) {
+                final index = navProvider.selectedIndex < _screens.length
+                    ? navProvider.selectedIndex
+                    : 0;
+                return _screens[index];
+              },
             ),
           );
         },
       ),
     );
   }
-
   // Widget build(BuildContext context) {
   //   return ChangeNotifierProvider(
   //     create: (_) => MainDashboardProvider(),
@@ -205,10 +240,9 @@ class _SidebarNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final navProvider = context.watch<MainDashboardProvider>();
     final selectedIndex = navProvider.selectedIndex;
-    final onTap = navProvider.setSelectedIndex;
+
     return SizedBox(
       width: cw(82.5).clamp(200.0, 260.0),
-      // color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -263,7 +297,7 @@ class _SidebarNav extends StatelessWidget {
               ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () => onTap(i),
+                onTap: () => _handleNavTap(context, i, navItems),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: cw(3.8),
@@ -271,9 +305,6 @@ class _SidebarNav extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     gradient: isActive ? AppGradients.redGradient : null,
-                    // color: isActive
-                    //     ?
-                    //     : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -326,7 +357,7 @@ class _RailNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final navProvider = context.watch<MainDashboardProvider>();
     final selectedIndex = navProvider.selectedIndex;
-    final onTap = navProvider.setSelectedIndex;
+
     return Container(
       color: Colors.red,
       child: Column(
@@ -351,8 +382,11 @@ class _RailNav extends StatelessWidget {
           Expanded(
             child: NavigationRail(
               backgroundColor: Colors.white,
-              selectedIndex: selectedIndex,
-              onDestinationSelected: onTap,
+              selectedIndex: selectedIndex < navItems.length
+                  ? selectedIndex
+                  : 0,
+              onDestinationSelected: (index) =>
+                  _handleNavTap(context, index, navItems),
               labelType: NavigationRailLabelType.selected,
               selectedIconTheme: const IconThemeData(
                 color: Color(0xFF2563EB),
@@ -395,13 +429,19 @@ class _NavItem {
   final String label;
   final IconData icon;
   final IconData activeIcon;
+  final VoidCallback? onTap;
+
   const _NavItem({
     required this.label,
     required this.icon,
     required this.activeIcon,
+    this.onTap,
   });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile drawer
+// ─────────────────────────────────────────────────────────────────────────────
 class _MobileDrawer extends StatelessWidget {
   const _MobileDrawer({required this.navItems});
 
@@ -411,12 +451,11 @@ class _MobileDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final navProvider = context.watch<MainDashboardProvider>();
     final selectedIndex = navProvider.selectedIndex;
-    final onTap = navProvider.setSelectedIndex;
+
     return Drawer(
       child: SafeArea(
         child: Container(
           color: AppColor.c151515,
-
           child: Column(
             children: [
               Container(
@@ -486,15 +525,15 @@ class _MobileDrawer extends StatelessWidget {
                         ),
                         selected: isSelected,
                         onTap: () {
-                          onTap(index);
+                          // Close the drawer first, then handle the action.
                           Navigator.pop(context);
+                          _handleNavTap(context, index, navItems);
                         },
                       ),
                     );
                   },
                 ),
               ),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
