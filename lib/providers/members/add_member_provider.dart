@@ -26,7 +26,7 @@ class AddMemberProvider extends ChangeNotifier {
   final startDateCtrl = TextEditingController();
   final otherGoalCtrl = TextEditingController();
 
-  static const membershipPlans = ['Monthly - Rs. 4000 / month', "Manually"];
+  static const membershipPlans = ['Monthly - Rs. 3000 / month', "Manually"];
 
   static const fitnessGoalOptions = [
     'General Fitness',
@@ -34,14 +34,6 @@ class AddMemberProvider extends ChangeNotifier {
     'Weight Loss',
     'Cardio / Endurance',
     'Flexibility / Mobility',
-  ];
-
-  static const addOnOptions = [
-    'Personal Training - \$25 / session',
-    'Group Classes - \$15 / month',
-    'Nutrition Coaching - \$30 / month',
-    'Locker Rental - \$10 / month',
-    'Towel Service - \$5 / month',
   ];
 
   static const paymentMethods = [

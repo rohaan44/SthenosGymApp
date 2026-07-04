@@ -21,9 +21,9 @@ class AdminSignIn extends StatelessWidget {
 
     return Consumer<AuthProvider>(
       builder: (context, auth, child) {
-        return Material(
-          color: Colors.transparent,
-          child: Stack(
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
             children: [
               // Full Screen Blur
               Positioned.fill(

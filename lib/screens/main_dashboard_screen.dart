@@ -3,6 +3,7 @@ import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
+import 'package:app/service/inactivity_service.dart';
 import 'package:app/ui/custom_gradient.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
@@ -80,83 +81,94 @@ class MainDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => MainDashboardProvider(),
-      child: Builder(
-        builder: (context) {
-          final width = screenWidth(context);
+    // ── Inactivity detection wrapper ─────────────────────────────────────────
+    // A single Listener at the authenticated root intercepts every pointer
+    // event (tap, scroll, drag, swipe) app-wide and resets the inactivity
+    // timer. HitTestBehavior.translucent ensures events reach child widgets
+    // normally — the Listener is purely observational.
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => InactivityService().resetTimer(),
+      onPointerMove: (_) => InactivityService().resetTimer(),
+      onPointerUp: (_) => InactivityService().resetTimer(),
+      child: ChangeNotifierProvider(
+        create: (_) => MainDashboardProvider(),
+        child: Builder(
+          builder: (context) {
+            final width = screenWidth(context);
 
-          // DESKTOP
-          if (width >= kDesktopBreak) {
-            return Scaffold(
-              body: Row(
-                children: [
-                  const _SidebarNav(navItems: _navItems),
-                  Expanded(
-                    child: Consumer<MainDashboardProvider>(
-                      builder: (context, navProvider, _) {
-                        // Guard: selectedIndex could point at "Log Out" (index 3)
-                        // which has no matching screen, so clamp it.
-                        final index =
-                            navProvider.selectedIndex < _screens.length
-                            ? navProvider.selectedIndex
-                            : 0;
-                        return _screens[index];
-                      },
+            // DESKTOP
+            if (width >= kDesktopBreak) {
+              return Scaffold(
+                body: Row(
+                  children: [
+                    const _SidebarNav(navItems: _navItems),
+                    Expanded(
+                      child: Consumer<MainDashboardProvider>(
+                        builder: (context, navProvider, _) {
+                          // Guard: selectedIndex could point at "Log Out" (index 3)
+                          // which has no matching screen, so clamp it.
+                          final index =
+                              navProvider.selectedIndex < _screens.length
+                              ? navProvider.selectedIndex
+                              : 0;
+                          return _screens[index];
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // TABLET
-          if (width >= kPhoneBreak) {
-            return Scaffold(
-              body: Row(
-                children: [
-                  const _RailNav(navItems: _navItems),
-                  Expanded(
-                    child: Consumer<MainDashboardProvider>(
-                      builder: (context, navProvider, _) {
-                        final index =
-                            navProvider.selectedIndex < _screens.length
-                            ? navProvider.selectedIndex
-                            : 0;
-                        return _screens[index];
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // MOBILE
-          return Scaffold(
-            appBar: AppBar(
-              actions: [
-                Image.asset(
-                  AssetUtils.reciptLogo,
-                  width: cw(50),
-                  color: AppColor.cFFFFFF,
-                  fit: BoxFit.contain,
+                  ],
                 ),
-                AppText(txt: "Sthenos Gym"),
-                SizedBox(width: cw(20)),
-              ],
-            ),
-            drawer: const _MobileDrawer(navItems: _navItems),
-            body: Consumer<MainDashboardProvider>(
-              builder: (context, navProvider, _) {
-                final index = navProvider.selectedIndex < _screens.length
-                    ? navProvider.selectedIndex
-                    : 0;
-                return _screens[index];
-              },
-            ),
-          );
-        },
+              );
+            }
+
+            // TABLET
+            if (width >= kPhoneBreak) {
+              return Scaffold(
+                body: Row(
+                  children: [
+                    const _RailNav(navItems: _navItems),
+                    Expanded(
+                      child: Consumer<MainDashboardProvider>(
+                        builder: (context, navProvider, _) {
+                          final index =
+                              navProvider.selectedIndex < _screens.length
+                              ? navProvider.selectedIndex
+                              : 0;
+                          return _screens[index];
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // MOBILE
+            return Scaffold(
+              appBar: AppBar(
+                actions: [
+                  Image.asset(
+                    AssetUtils.reciptLogo,
+                    width: cw(50),
+                    color: AppColor.cFFFFFF,
+                    fit: BoxFit.contain,
+                  ),
+                  AppText(txt: "Sthenos Gym"),
+                  SizedBox(width: cw(20)),
+                ],
+              ),
+              drawer: const _MobileDrawer(navItems: _navItems),
+              body: Consumer<MainDashboardProvider>(
+                builder: (context, navProvider, _) {
+                  final index = navProvider.selectedIndex < _screens.length
+                      ? navProvider.selectedIndex
+                      : 0;
+                  return _screens[index];
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -4,31 +4,61 @@ import 'package:app/auth/auth_providers/test_provider.dart';
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
+import 'package:app/service/connectivity_service.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/routes/routes.dart';
+import 'package:app/widgets/no_internet_overlay.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 List<CameraDescription> cameras = [];
 
+/// App-level navigator key used by [InactivityService] to navigate
+/// without a BuildContext (safe from timer callbacks).
+final GlobalKey<NavigatorState> appNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'app-nav-key');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  cameras = await availableCameras();
+  
+  try {
+    cameras = await availableCameras();
+  } catch (_) {
+    // Ignore camera init errors if offline
+  }
 
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyCUN89uPzff9NcJ6q1ypIVyPNWYpwycfL4",
-      authDomain: "sthenos-gym-8de40.firebaseapp.com",
-      projectId: "sthenos-gym-8de40",
-      storageBucket: "sthenos-gym-8de40.firebasestorage.app",
-      messagingSenderId: "589496774641",
-      appId: "1:589496774641:web:5710ba9722081f6368de50",
-    ),
-  );
+  // Web-only: pre-check internet before Firebase JS SDK dynamic import
+  if (kIsWeb) {
+    final hasNet = await _hasInternetBeforeInit();
+    if (!hasNet) {
+      runApp(const _NoInternetInitApp());
+      return;
+    }
+  }
+
+  try {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyCUN89uPzff9NcJ6q1ypIVyPNWYpwycfL4",
+        authDomain: "sthenos-gym-8de40.firebaseapp.com",
+        projectId: "sthenos-gym-8de40",
+        storageBucket: "sthenos-gym-8de40.firebasestorage.app",
+        messagingSenderId: "589496774641",
+        appId: "1:589496774641:web:5710ba9722081f6368de50",
+      ),
+    );
+
+    await ConnectivityService().initialize();
+  } catch (e) {
+    runApp(const _FirebaseInitFailureApp());
+    return;
+  }
 
   /// Status Bar
   SystemChrome.setSystemUIOverlayStyle(
@@ -81,6 +111,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: "Sthenos Gym",
+          navigatorKey: appNavigatorKey,
+          builder: (context, child) => NoInternetOverlay(child: child ?? const SizedBox()),
 
           home:
               // AdminAuthDialog(),
@@ -241,4 +273,132 @@ class MyApp extends StatelessWidget {
 //   }
 // }
 
-// // GlobalKey<NavigatorState> appLevelKey = GlobalKey(debugLabel: 'app-key');
+// (appNavigatorKey is now declared at the top of this file and used in MaterialApp)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRE-INIT ERROR HANDLING
+// ─────────────────────────────────────────────────────────────────────────────
+
+Future<bool> _hasInternetBeforeInit() async {
+  try {
+    final response = await http.get(
+      Uri.parse('https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js'),
+    ).timeout(const Duration(seconds: 3));
+    return response.statusCode == 200;
+  } catch (_) {
+    return false;
+  }
+}
+
+class _NoInternetInitApp extends StatelessWidget {
+  const _NoInternetInitApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _InitErrorScreen(
+      title: 'No Internet Connection',
+      message: 'Please connect to the internet to load Sthenos Gym.',
+      icon: Icons.wifi_off_rounded,
+    );
+  }
+}
+
+class _FirebaseInitFailureApp extends StatelessWidget {
+  const _FirebaseInitFailureApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _InitErrorScreen(
+      title: 'Initialization Failed',
+      message: 'Unable to connect to the server. Please check your connection and try again.',
+      icon: Icons.error_outline_rounded,
+    );
+  }
+}
+
+class _InitErrorScreen extends StatelessWidget {
+  final String title;
+  final String message;
+  final IconData icon;
+
+  const _InitErrorScreen({
+    required this.title,
+    required this.message,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF151515), // AppColor.c151515
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF252525), // AppColor.c252525
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 64,
+                  color: const Color(0xFFE53935), // AppColor.red
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontFamily: 'Lato',
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontFamily: 'Lato',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton.icon(
+                onPressed: () {
+                  // Re-run main to try again
+                  main();
+                },
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                label: const Text(
+                  'Retry',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE53935), // AppColor.red
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

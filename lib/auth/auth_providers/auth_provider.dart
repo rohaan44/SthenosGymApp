@@ -1,4 +1,5 @@
 import 'package:app/auth/auth_screens/admin_signin/admin_sign_in.dart';
+import 'package:app/service/connectivity_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,7 @@ class AuthProvider extends ChangeNotifier {
   // =========================
   // SIGN IN
   // =========================
+ 
   Future<bool> signIn(String email, String password) async {
     try {
       _setLoading(true);
@@ -39,34 +41,102 @@ class AuthProvider extends ChangeNotifier {
 
       debugPrint("🔐 LOGIN START");
 
-      final result = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
+      final trimmedEmail = email.trim();
+      final trimmedPassword = password.trim();
+
+      // =========================
+      // Local Validation
+      // =========================
+      if (trimmedEmail.isEmpty) {
+        _error = "Please enter your email address";
+        return false;
+      }
+
+      if (trimmedPassword.isEmpty) {
+        _error = "Please enter your password";
+        return false;
+      }
+
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+      if (!emailRegex.hasMatch(trimmedEmail)) {
+        _error = "Please enter a valid email address";
+        return false;
+      }
+
+      // =========================
+      // Firebase Login
+      // =========================
+      final UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: trimmedEmail,
+        password: trimmedPassword,
       );
 
       _user = result.user;
 
       debugPrint("✅ LOGIN SUCCESS: ${_user?.uid}");
 
-      _setLoading(false);
-      notifyListeners();
       return true;
     } on FirebaseAuthException catch (e) {
-      _error = _handleError(e);
-
       debugPrint("❌ LOGIN ERROR: ${e.code} - ${e.message}");
 
-      _setLoading(false);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _error = "Something went wrong";
+      switch (e.code) {
+        case 'invalid-email':
+          _error = "Invalid email format";
+          break;
 
+        case 'user-not-found':
+          _error = "No account found with this email";
+          break;
+
+        case 'wrong-password':
+          _error = "Incorrect password";
+          break;
+
+        // Firebase latest SDK commonly returns this
+        case 'invalid-credential':
+          _error = "Incorrect email or password";
+          break;
+
+        case 'user-disabled':
+          _error = "This account has been disabled";
+          break;
+
+        case 'too-many-requests':
+          _error = "Too many login attempts. Please try again later";
+          break;
+
+        case 'network-request-failed':
+          ConnectivityService().recheckNow();
+          _error = "Network error. Please check your internet connection";
+          break;
+
+        case 'operation-not-allowed':
+          _error = "Email/password login is not enabled";
+          break;
+
+        case 'internal-error':
+          _error = "Internal server error. Please try again";
+          break;
+
+        case 'invalid-api-key':
+          _error = "Application configuration error";
+          break;
+
+        default:
+          _error = e.message ?? "Authentication failed";
+      }
+
+      return false;
+    } catch (e, stackTrace) {
       debugPrint("❌ UNKNOWN LOGIN ERROR: $e");
+      debugPrint(stackTrace.toString());
 
+      _error = "Something went wrong";
+      return false;
+    } finally {
       _setLoading(false);
       notifyListeners();
-      return false;
     }
   }
 
@@ -85,6 +155,22 @@ class AuthProvider extends ChangeNotifier {
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const AdminSignIn()),
+      (route) => false,
+    );
+  }
+
+  // =========================
+  // LOGOUT (context-free — for InactivityService timer callbacks)
+  // =========================
+  // Uses GlobalKey<NavigatorState> so it can be called from async timer
+  // callbacks outside any widget tree, avoiding use_build_context_synchronously.
+  Future<void> logoutContextFree(GlobalKey<NavigatorState> navKey) async {
+    await _auth.signOut();
+    _user = null;
+    notifyListeners();
+
+    navKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AdminSignIn()),
       (route) => false,
     );
   }
@@ -146,6 +232,11 @@ class AuthProvider extends ChangeNotifier {
   // ERROR HANDLER
   // =========================
   String _handleError(FirebaseAuthException e) {
+    if (e.code == 'network-request-failed') {
+      ConnectivityService().recheckNow();
+      return "Network error. Please check your connection.";
+    }
+
     switch (e.code) {
       case 'email-already-in-use':
         return "Email already registered";

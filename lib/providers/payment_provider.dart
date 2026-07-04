@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../service/firestore_service.dart';
-
+import 'package:app/service/export_service.dart';
 /// Holds only UI state for the Payments screen (search text + status filter).
 /// All Firestore data arrives via [FirestoreService] snapshot streams.
 class PaymentsProvider extends ChangeNotifier {
   String _search = '';
   String _filterStatus = 'all';
-
+  bool _isExporting = false;
   String get search => _search;
   String get filterStatus => _filterStatus;
 
@@ -39,6 +39,24 @@ class PaymentsProvider extends ChangeNotifier {
         return matchSearch && matchStatus;
       }).toList();
 
+   Future<String?> handleExport() async {
+    if (_isExporting) return null; // guard against double taps
+
+    _isExporting = true;
+    notifyListeners();
+
+    String? error;
+    try {
+      error = await ExportService.exportPaymentsToExcel();
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      _isExporting = false;
+      notifyListeners();
+    }
+
+    return error;
+  }
   @override
   void dispose() {
     super.dispose();
