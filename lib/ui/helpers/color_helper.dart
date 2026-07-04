@@ -24,6 +24,7 @@ class AppColor {
   static const c151515 = Color(0xff151515);
   static const themeGrey = Color(0xFF6B7280);
   static const primary = Color(0xffFF3A2F);
+  static const success = Color(0xff449857);
 
   // Gray Scale Palette
   static const transparent = Colors.transparent;

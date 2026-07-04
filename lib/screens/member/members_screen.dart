@@ -1339,6 +1339,7 @@ import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 // Helper: navigate to payment history for a member
@@ -1448,6 +1449,7 @@ class MembersScreen extends StatelessWidget {
                       // ),
                     ],
                   ),
+
             SizedBox(height: ch(20)),
 
             // ── Search / filter bar — driven by MembersProvider UI state ────
@@ -1881,6 +1883,11 @@ class MembersScreen extends StatelessWidget {
                                                                     context,
                                                                     m,
                                                                   ),
+
+                                                              // showPaymentDialog(
+                                                              //   context,
+                                                              //   m,
+                                                              // ),
                                                             ),
                                                             IconButton(
                                                               tooltip:
@@ -2240,6 +2247,7 @@ class MembersScreenHelper {
     bool isProcessing = false;
 
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
@@ -2250,31 +2258,41 @@ class MembersScreenHelper {
             children: [
               Text('Member: ${member.name}'),
               const SizedBox(height: 16),
+
               TextField(
                 controller: amountController,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
+                maxLength: 5,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+
+                decoration: InputDecoration(
+                  counterText: "",
+
                   labelText: 'Amount',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
+                  prefix: Padding(
+                    padding: EdgeInsets.only(right: 5.0),
+                    child: Text("Rs"),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedMethod,
+                initialValue: selectedMethod,
                 decoration: const InputDecoration(
                   labelText: 'Payment Method',
                   border: OutlineInputBorder(),
                 ),
-                items: ['Cash', 'Bank Transfer', 'Credit Card']
+                items: ['Cash', 'Bank Transfer']
                     .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                     .toList(),
                 onChanged: (v) => setState(() => selectedMethod = v!),
               ),
             ],
           ),
+
           actions: [
             TextButton(
               onPressed: isProcessing ? null : () => Navigator.pop(ctx),
@@ -2285,7 +2303,11 @@ class MembersScreenHelper {
                   ? null
                   : () async {
                       final amountStr = amountController.text.trim();
-                      if (amountStr.isEmpty) return;
+                      if (amountStr.isEmpty) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(content: Text('Plz Enter Amount')),
+                        );
+                      }
                       final amount = double.tryParse(amountStr);
                       if (amount == null || amount <= 0) {
                         ScaffoldMessenger.of(ctx).showSnackBar(

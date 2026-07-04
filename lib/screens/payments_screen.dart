@@ -14,36 +14,14 @@ import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'member/members_screen.dart';
 
-import 'package:app/service/export_service.dart'; // Add export service
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Payments Screen — fully driven by a Firestore snapshot stream.
-// Any payment write (from any device, or directly in the Firestore console)
-// appears automatically. No manual refresh is ever needed.
+// Stateless: this widget itself holds no mutable state. All state lives
+// either in Firestore (via streams) or in the specific child widgets that
+// actually need local edit-state (dropdown cells, save buttons).
 // ─────────────────────────────────────────────────────────────────────────────
-class PaymentsScreen extends StatefulWidget {
+class PaymentsScreen extends StatelessWidget {
   const PaymentsScreen({super.key});
-
-  @override
-  State<PaymentsScreen> createState() => _PaymentsScreenState();
-}
-
-class _PaymentsScreenState extends State<PaymentsScreen> {
-  bool _isExporting = false;
-
-  Future<void> _handleExport() async {
-    if (_isExporting) return;
-    setState(() => _isExporting = true);
-    final error = await ExportService.exportPaymentsToExcel();
-    if (mounted) {
-      setState(() => _isExporting = false);
-      if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,131 +35,16 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           children: [
             SizedBox(height: ch(8.1)),
 
-            // ── Header ────────────────────────────────────────────────────────
-            phone
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        txt: 'Payments',
-                        fontSize: AppFontSize.f19,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      SizedBox(height: ch(4)),
-                      AppText(
-                        txt: 'Track membership fees and billing',
-                        fontSize: AppFontSize.f13,
-                        color: const Color(0xFF6B7280),
-                      ),
-                      SizedBox(height: ch(12.2)),
-                      AppButton(
-                        width: 100,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  Icon(Icons.av_timer, color: AppColor.cFFFFFF),
-                                  SizedBox(width: cw(5)),
-                                  AppText(txt: 'Coming Soon!'),
-                                ],
-                              ),
-                              backgroundColor: AppColor.blue2,
-                            ),
-                          );
-                        },
-                        isRow: true,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.download_outlined,
-                              size: 18,
-                              color: AppColor.cFFFFFF,
-                            ),
-                            SizedBox(width: 5),
-                            AppText(
-                              txt: 'Export',
-                              fontSize: AppFontSize.f12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AppText(
-                            txt: 'Payments',
-                            fontSize: AppFontSize.f19,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(height: ch(4)),
-                          AppText(
-                            txt: 'Track membership fees and billing',
-                            fontSize: AppFontSize.f13,
-                            color: AppColor.themeGrey,
-                          ),
-                        ],
-                      ),
-                      AppButton(
-                        width: 100,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  Icon(Icons.av_timer, color: AppColor.cFFFFFF),
-                                  SizedBox(width: cw(5)),
-                                  AppText(txt: 'Coming Soon!'),
-                                ],
-                              ),
-                              backgroundColor: AppColor.blue2,
-                            ),
-                          );
-                        },
-                        isRow: true,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.download_outlined,
-                              size: 18,
-                              color: AppColor.cFFFFFF,
-                            ),
-                            SizedBox(width: 5),
-                            AppText(
-                              txt: 'Export',
-                              fontSize: AppFontSize.f12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ],
-                        ),
-                      ),
-                      // OutlinedButton.icon(
-                      //   icon: const Icon(Icons.download_outlined, size: 18),
-                      //   label: AppText(
-                      //     txt: 'Export',
-                      //     fontSize: AppFontSize.f12,
-                      //   ),
-                      //   onPressed: () {},
-                      // ),
-                    ],
-                  ),
+            // Header sits above the StreamBuilder, so it never rebuilds on
+            // Firestore snapshot emissions — only StreamBuilder's own
+            // subtree rebuilds when the stream fires.
+            _PaymentsHeader(phone: phone),
 
             SizedBox(height: ch(20)),
 
-            // ── Everything below is inside one StreamBuilder ─────────────────
-            // The stream emits a new List<Payment> on every Firestore change.
             StreamBuilder<List<Payment>>(
               stream: FirestoreService.instance.paymentsStream(),
               builder: (context, snapshot) {
-                // Loading
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
                     child: Padding(
@@ -191,7 +54,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                   );
                 }
 
-                // Error
                 if (snapshot.hasError) {
                   return Center(
                     child: Padding(
@@ -216,257 +78,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                 }
 
                 final allPayments = snapshot.data ?? [];
-
-                // Live aggregates — computed from the stream data, not stored values.
-                final totalRevenue = allPayments
-                    .where((p) => p.status == 'Paid')
-                    .fold<double>(0, (s, p) => s + p.amount);
-                final pendingCount = allPayments
-                    .where((p) => p.status == 'Pending')
-                    .length;
-                final pendingTotal = allPayments
-                    .where((p) => p.status == 'Pending')
-                    .fold<double>(0, (s, p) => s + p.amount);
-                final overdueCount = allPayments
-                    .where((p) => p.status == 'Overdue')
-                    .length;
-                final overdueTotal = allPayments
-                    .where((p) => p.status == 'Overdue')
-                    .fold<double>(0, (s, p) => s + p.amount);
-                final now = DateTime.now();
-                final paidThisMonth = allPayments
-                    .where(
-                      (p) => p.status == 'Paid' && _isThisMonth(p.date, now),
-                    )
-                    .length;
-
-                return Column(
-                  children: [
-                    // ── Summary stat cards ────────────────────────────────────
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        double cardWidth;
-                        if (constraints.maxWidth > 900) {
-                          cardWidth = (constraints.maxWidth - 48) / 4;
-                        } else if (constraints.maxWidth > 600) {
-                          cardWidth = (constraints.maxWidth - 16) / 2;
-                        } else {
-                          cardWidth = constraints.maxWidth;
-                        }
-                        return Wrap(
-                          spacing: 16,
-                          runSpacing: 16,
-                          children: [
-                            SizedBox(
-                              width: cardWidth,
-                              child: _SummaryCard(
-                                title: 'Total Revenue',
-                                value: 'Rs. ${totalRevenue.toInt()}',
-                                sub:
-                                    '${allPayments.where((p) => p.status == 'Paid').length} payments',
-                                icon: Icons.attach_money,
-                                isRupeeIcon: true,
-                                iconColor: const Color(0xFF059669),
-                                iconBg: const Color(0xFFECFDF5),
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _SummaryCard(
-                                title: 'Pending',
-                                value: 'Rs. ${pendingTotal.toInt()}',
-                                sub: '$pendingCount invoices',
-                                icon: Icons.pending_outlined,
-                                iconColor: const Color(0xFFD97706),
-                                iconBg: const Color(0xFFFFFBEB),
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _SummaryCard(
-                                title: 'Overdue',
-                                value: 'Rs. ${overdueTotal.toInt()}',
-                                sub: '$overdueCount members',
-                                icon: Icons.warning_amber_outlined,
-                                iconColor: const Color(0xFFDC2626),
-                                iconBg: const Color(0xFFFEF2F2),
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _SummaryCard(
-                                title: 'Paid This Month',
-                                value: '$paidThisMonth',
-                                sub: 'of ${allPayments.length} total',
-                                icon: Icons.check_circle_outline,
-                                iconColor: const Color(0xFF2563EB),
-                                iconBg: const Color(0xFFEFF6FF),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: ch(16.2)),
-
-                    // ── Search/filter + payment list ───────────────────────────
-                    Consumer<PaymentsProvider>(
-                      builder: (context, paymentsState, _) {
-                        final filtered = paymentsState.filtered(allPayments);
-
-                        return Column(
-                          children: [
-                            // Filter card
-                            Card(
-                              child: Padding(
-                                padding: EdgeInsets.all(cw(11.2)),
-                                child: phone
-                                    ? Column(
-                                        children: [
-                                          _searchField(paymentsState),
-                                          SizedBox(height: ch(9.7)),
-                                          _statusDropdown(
-                                            paymentsState,
-                                            isExpanded: true,
-                                          ),
-                                        ],
-                                      )
-                                    : Row(
-                                        children: [
-                                          Expanded(
-                                            child: _searchField(paymentsState),
-                                          ),
-                                          SizedBox(width: cw(7.5)),
-                                          SizedBox(
-                                            width: 160,
-                                            child: _statusDropdown(
-                                              paymentsState,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              ),
-                            ),
-
-                            SizedBox(height: ch(12.2)),
-
-                            // Payment list card
-                            Card(
-                              child: Padding(
-                                padding: EdgeInsets.all(cw(11.2)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        AppText(
-                                          txt:
-                                              'Payment History (${filtered.length})',
-                                          fontSize: AppFontSize.f13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        if (filtered.isEmpty &&
-                                            (paymentsState.search.isNotEmpty ||
-                                                paymentsState.filterStatus !=
-                                                    'all'))
-                                          AppButton(
-                                            width: cw(35),
-                                            onPressed: () {
-                                              paymentsState.setSearch('');
-                                              paymentsState.setFilterStatus(
-                                                'all',
-                                              );
-                                            },
-                                            isRow: true,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                CircleAvatar(
-                                                  radius: cw(2),
-                                                  backgroundColor:
-                                                      AppColor.cFFFFFF,
-                                                  child: Icon(
-                                                    Icons.clear,
-                                                    size: 14,
-                                                    color: AppColor.primary,
-                                                  ),
-                                                ),
-                                                SizedBox(width: cw(2)),
-                                                AppText(
-                                                  txt: 'Clear filters',
-                                                  fontSize: AppFontSize.f11,
-                                                ),
-                                              ],
-                                            ),
-                                            text: "Clear filters",
-                                          ),
-                                        // TextButton.icon(
-                                        //   onPressed: () {
-                                        //     paymentsState.setSearch('');
-                                        //     paymentsState.setFilterStatus(
-                                        //       'all',
-                                        //     );
-                                        //   },
-                                        //   icon: const Icon(
-                                        //     Icons.clear,
-                                        //     size: 14,
-                                        //   ),
-                                        //   label: AppText(
-                                        //     txt: 'Clear filters',
-                                        //     fontSize: AppFontSize.f11,
-                                        //   ),
-                                        // ),
-                                      ],
-                                    ),
-                                    SizedBox(height: ch(12.2)),
-                                    phone
-                                        ? _MobilePaymentList(payments: filtered)
-                                        : filtered.isEmpty
-                                        ? Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: ch(30),
-                                            ),
-                                            child: Center(
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Icon(
-                                                    Icons.receipt_long_outlined,
-                                                    size: 48,
-                                                    color: Color(0xFFD1D5DB),
-                                                  ),
-                                                  SizedBox(height: ch(8)),
-                                                  AppText(
-                                                    txt: 'No payments found',
-                                                    fontSize: AppFontSize.f13,
-                                                    color: const Color(
-                                                      0xFF9CA3AF,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        : SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: _DesktopPaymentTable(
-                                              payments: filtered,
-                                            ),
-                                          ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                );
+                return _PaymentsBody(phone: phone, allPayments: allPayments);
               },
             ),
 
@@ -476,9 +88,83 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       ),
     );
   }
+}
 
-  /// Returns `true` if the payment date string "YYYY-MM-DD" falls in the same
-  /// calendar month as [reference].
+// ─────────────────────────────────────────────────────────────────────────────
+// Header — title + export button. Split out purely for clarity; it's cheap
+// and static enough that isolating it makes the rebuild boundary explicit.
+// ─────────────────────────────────────────────────────────────────────────────
+class _PaymentsHeader extends StatelessWidget {
+  const _PaymentsHeader({required this.phone});
+  final bool phone;
+
+  Widget _exportButton(BuildContext context) => AppButton(
+    width: 100,
+    onPressed: () => _onExportTap(context),
+    isRow: true,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.download_outlined, size: 18, color: AppColor.cFFFFFF),
+        const SizedBox(width: 5),
+        AppText(
+          txt: 'Export',
+          fontSize: AppFontSize.f12,
+          fontWeight: FontWeight.w600,
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          txt: 'Payments',
+          fontSize: AppFontSize.f19,
+          fontWeight: FontWeight.w600,
+        ),
+        SizedBox(height: ch(4)),
+        AppText(
+          txt: 'Track membership fees and billing',
+          fontSize: AppFontSize.f13,
+          color: phone ? const Color(0xFF6B7280) : AppColor.themeGrey,
+        ),
+      ],
+    );
+
+    if (phone) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          titleBlock,
+          SizedBox(height: ch(12.2)),
+          _exportButton(context),
+        ],
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [titleBlock, _exportButton(context)],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Body: summary cards + filter + list. Depends on allPayments, so it lives
+// inside the StreamBuilder scope — but is its own widget so the StreamBuilder
+// builder function stays thin, and so Provider's Consumer only wraps the
+// filter+list section rather than re-running the summary-card computation
+// widget tree unnecessarily.
+// ─────────────────────────────────────────────────────────────────────────────
+class _PaymentsBody extends StatelessWidget {
+  const _PaymentsBody({required this.phone, required this.allPayments});
+  final bool phone;
+  final List<Payment> allPayments;
+
   static bool _isThisMonth(String dateStr, DateTime reference) {
     if (dateStr.isEmpty) return false;
     try {
@@ -489,24 +175,225 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final totalRevenue = allPayments
+        .where((p) => p.status == 'Paid')
+        .fold<double>(0, (s, p) => s + p.amount);
+    final pendingCount = allPayments.where((p) => p.status == 'Pending').length;
+    final pendingTotal = allPayments
+        .where((p) => p.status == 'Pending')
+        .fold<double>(0, (s, p) => s + p.amount);
+    final overdueCount = allPayments.where((p) => p.status == 'Overdue').length;
+    final overdueTotal = allPayments
+        .where((p) => p.status == 'Overdue')
+        .fold<double>(0, (s, p) => s + p.amount);
+    final now = DateTime.now();
+    final paidThisMonth = allPayments
+        .where((p) => p.status == 'Paid' && _isThisMonth(p.date, now))
+        .length;
+
+    return Column(
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            double cardWidth;
+            if (constraints.maxWidth > 900) {
+              cardWidth = (constraints.maxWidth - 48) / 4;
+            } else if (constraints.maxWidth > 600) {
+              cardWidth = (constraints.maxWidth - 16) / 2;
+            } else {
+              cardWidth = constraints.maxWidth;
+            }
+            return Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                SizedBox(
+                  width: cardWidth,
+                  child: _SummaryCard(
+                    title: 'Total Revenue',
+                    value: 'Rs. ${totalRevenue.toInt()}',
+                    sub:
+                        '${allPayments.where((p) => p.status == 'Paid').length} payments',
+                    icon: Icons.attach_money,
+                    isRupeeIcon: true,
+                    iconColor: const Color(0xFF059669),
+                    iconBg: const Color(0xFFECFDF5),
+                  ),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: _SummaryCard(
+                    title: 'Pending',
+                    value: 'Rs. ${pendingTotal.toInt()}',
+                    sub: '$pendingCount invoices',
+                    icon: Icons.pending_outlined,
+                    iconColor: const Color(0xFFD97706),
+                    iconBg: const Color(0xFFFFFBEB),
+                  ),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: _SummaryCard(
+                    title: 'Overdue',
+                    value: 'Rs. ${overdueTotal.toInt()}',
+                    sub: '$overdueCount members',
+                    icon: Icons.warning_amber_outlined,
+                    iconColor: const Color(0xFFDC2626),
+                    iconBg: const Color(0xFFFEF2F2),
+                  ),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: _SummaryCard(
+                    title: 'Paid This Month',
+                    value: '$paidThisMonth',
+                    sub: 'of ${allPayments.length} total',
+                    icon: Icons.check_circle_outline,
+                    iconColor: const Color(0xFF2563EB),
+                    iconBg: const Color(0xFFEFF6FF),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        SizedBox(height: ch(16.2)),
+        Consumer<PaymentsProvider>(
+          builder: (context, paymentsState, _) {
+            final filtered = paymentsState.filtered(allPayments);
+            return Column(
+              children: [
+                Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(cw(11.2)),
+                    child: phone
+                        ? Column(
+                            children: [
+                              _searchField(paymentsState),
+                              SizedBox(height: ch(9.7)),
+                              _statusDropdown(paymentsState, isExpanded: true),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(child: _searchField(paymentsState)),
+                              SizedBox(width: cw(7.5)),
+                              SizedBox(
+                                width: 160,
+                                child: _statusDropdown(paymentsState),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                SizedBox(height: ch(12.2)),
+                Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(cw(11.2)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AppText(
+                              txt: 'Payment History (${filtered.length})',
+                              fontSize: AppFontSize.f13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            if (filtered.isEmpty &&
+                                (paymentsState.search.isNotEmpty ||
+                                    paymentsState.filterStatus != 'all'))
+                              InkWell(
+                                onTap: () {
+                                  paymentsState.searchTextFieldCntrl.clear();
+                                  paymentsState.setSearch('');
+                                  paymentsState.setFilterStatus('all');
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: ch(4),
+                                    horizontal: cw(4),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    gradient: AppGradients.redGradient,
+                                  ),
+
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColor.cFFFFFF,
+                                        ),
+                                        child: Icon(
+                                          Icons.clear,
+                                          size: 14,
+                                          color: AppColor.primary,
+                                        ),
+                                      ),
+                                      SizedBox(width: cw(2)),
+                                      AppText(
+                                        txt: 'Clear filters',
+                                        fontSize: AppFontSize.f11,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: ch(12.2)),
+                        phone
+                            ? _MobilePaymentList(payments: filtered)
+                            : filtered.isEmpty
+                            ? Padding(
+                                padding: EdgeInsets.symmetric(vertical: ch(30)),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.receipt_long_outlined,
+                                        size: 48,
+                                        color: Color(0xFFD1D5DB),
+                                      ),
+                                      SizedBox(height: ch(8)),
+                                      AppText(
+                                        txt: 'No payments found',
+                                        fontSize: AppFontSize.f13,
+                                        color: const Color(0xFF9CA3AF),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: _DesktopPaymentTable(payments: filtered),
+                              ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   static Widget _searchField(PaymentsProvider state) => primaryTextField(
     hintText: "Search member or invoice...",
-
+    controller: state.searchTextFieldCntrl,
     prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
-
     onChanged: state.setSearch,
   );
-  //  TextField(
-  //   decoration: customInputDecoration(label: 'Search member or invoice...')
-  //       .copyWith(
-  //         prefixIcon: const Icon(
-  //           Icons.search,
-  //           size: 18,
-  //           color: Color(0xFF9CA3AF),
-  //         ),
-  //       ),
-  //   onChanged: state.setSearch,
-  // );
 
   static Widget _statusDropdown(
     PaymentsProvider state, {
@@ -515,7 +402,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     initialValue: state.filterStatus,
     isExpanded: isExpanded,
     dropdownColor: AppColor.red,
-
     decoration: customInputDecoration(label: 'Status'),
     items: [
       DropdownMenuItem(
@@ -539,19 +425,69 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   );
 }
 
+Future<void> _onExportTap(BuildContext context) async {
+  final provider = context.read<PaymentsProvider>();
+  final error = await provider.handleExport();
+  if (!context.mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(error ?? 'Export successful!'),
+      backgroundColor: error != null ? Colors.red : null,
+    ),
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Desktop DataTable — each row has a status dropdown (local state) + Save button.
-// The Save button writes to Firestore; because the screen is stream-driven,
-// the change reflects everywhere with no manual reload.
+// Desktop DataTable — StatefulWidget so per-row ValueNotifiers survive
+// StreamBuilder rebuilds. Previously these were recreated on every Firestore
+// emission (a `final statusNotifier = ValueNotifier(...)` inside a static
+// build function), which silently discarded any unsaved status edit whenever
+// a new snapshot arrived — not just wasteful, an actual data-loss bug.
 // ─────────────────────────────────────────────────────────────────────────────
-class _DesktopPaymentTable extends StatelessWidget {
+class _DesktopPaymentTable extends StatefulWidget {
   const _DesktopPaymentTable({required this.payments});
   final List<Payment> payments;
 
   @override
+  State<_DesktopPaymentTable> createState() => _DesktopPaymentTableState();
+}
+
+class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
+  // docId -> local (unsaved) status selection, owned by State so it's stable
+  // across rebuilds instead of recreated per build.
+  final Map<String, ValueNotifier<String>> _statusNotifiers = {};
+
+  ValueNotifier<String> _notifierFor(Payment p) => _statusNotifiers.putIfAbsent(
+    p.docId,
+    () => ValueNotifier<String>(p.status),
+  );
+
+  @override
+  void didUpdateWidget(_DesktopPaymentTable old) {
+    super.didUpdateWidget(old);
+    // Drop notifiers for rows no longer present (filtered out / deleted) to
+    // avoid an unbounded memory leak across many stream emissions.
+    final currentIds = widget.payments.map((p) => p.docId).toSet();
+    _statusNotifiers.removeWhere((id, notifier) {
+      final stale = !currentIds.contains(id);
+      if (stale) notifier.dispose();
+      return stale;
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final n in _statusNotifiers.values) {
+      n.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return DataTable(
-      headingRowColor: WidgetStateProperty.all(Color(0xFF790600)),
+      headingRowColor: WidgetStateProperty.all(const Color(0xFF790600)),
       columns: [
         DataColumn(
           label: AppText(txt: 'Gym ID', fontSize: AppFontSize.f12),
@@ -581,16 +517,19 @@ class _DesktopPaymentTable extends StatelessWidget {
           label: AppText(txt: 'Action', fontSize: AppFontSize.f12),
         ),
       ],
-      rows: payments.map((p) => _buildPaymentRow(context, p)).toList(),
+      rows: widget.payments
+          .map((p) => _buildPaymentRow(context, p, _notifierFor(p)))
+          .toList(),
     );
   }
 
-  static DataRow _buildPaymentRow(BuildContext context, Payment p) {
-    // One ValueNotifier per row — shared between the dropdown cell and Save cell.
-    // This is created once per row widget and not recreated on rebuild.
-    final statusNotifier = ValueNotifier<String>(p.status);
-
+  static DataRow _buildPaymentRow(
+    BuildContext context,
+    Payment p,
+    ValueNotifier<String> statusNotifier,
+  ) {
     return DataRow(
+      key: ValueKey(p.docId),
       cells: [
         DataCell(
           AppText(
@@ -636,17 +575,16 @@ class _DesktopPaymentTable extends StatelessWidget {
             style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
         ),
-        // Dropdown — changes local ValueNotifier only, no Firestore write.
         DataCell(
           _StatusDropdownCell(payment: p, statusNotifier: statusNotifier),
         ),
-        // Save — reads from ValueNotifier and writes to Firestore.
         DataCell(
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               _SaveButtonCell(payment: p, statusNotifier: statusNotifier),
-              if (p.status.toLowerCase() == 'pending' || p.status.toLowerCase() == 'overdue') ...[
+              if (p.status.toLowerCase() == 'pending' ||
+                  p.status.toLowerCase() == 'overdue') ...[
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
@@ -668,48 +606,49 @@ class _DesktopPaymentTable extends StatelessWidget {
       );
       return;
     }
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+      builder: (ctx) =>
+          const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
-    
+
     try {
-      final doc = await FirebaseFirestore.instance.collection('members').doc(p.memberId).get();
-      if (context.mounted) Navigator.pop(context); // close loading
-      
+      final doc = await FirebaseFirestore.instance
+          .collection('members')
+          .doc(p.memberId)
+          .get();
+      if (context.mounted) Navigator.pop(context);
+
       if (!doc.exists || doc.data() == null) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Member not found')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Member not found')));
         }
         return;
       }
-      
+
       final member = Member.fromFirestore(doc.data()!, doc.id);
       if (context.mounted) {
         MembersScreenHelper.showPaymentDialog(
-          context, 
-          member, 
+          context,
+          member,
           paymentDocIdToUpdate: p.docId,
         );
       }
     } catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // close loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching member: $e')),
-        );
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error fetching member: $e')));
       }
     }
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Status dropdown cell — selection stored in the shared [statusNotifier].
-// No Firestore write happens here — the companion [_SaveButtonCell] writes.
 // ─────────────────────────────────────────────────────────────────────────────
 class _StatusDropdownCell extends StatefulWidget {
   const _StatusDropdownCell({
@@ -725,17 +664,10 @@ class _StatusDropdownCell extends StatefulWidget {
 
 class _StatusDropdownCellState extends State<_StatusDropdownCell> {
   @override
-  void initState() {
-    super.initState();
-    // Sync notifier with initial payment status.
-    widget.statusNotifier.value = widget.payment.status;
-  }
-
-  @override
   void didUpdateWidget(_StatusDropdownCell old) {
     super.didUpdateWidget(old);
-    // When the Firestore stream delivers an update and the user hasn't changed
-    // the selection locally, sync the notifier to the new stored value.
+    // If Firestore delivers a new status and the user hasn't made an unsaved
+    // local edit, keep the dropdown in sync with the stored value.
     if (old.payment.status != widget.payment.status &&
         widget.statusNotifier.value == old.payment.status) {
       widget.statusNotifier.value = widget.payment.status;
@@ -749,7 +681,6 @@ class _StatusDropdownCellState extends State<_StatusDropdownCell> {
       builder: (_, current, __) => DropdownButton<String>(
         value: current,
         dropdownColor: AppColor.red,
-
         underline: const SizedBox(),
         items: [
           DropdownMenuItem(
@@ -765,7 +696,6 @@ class _StatusDropdownCellState extends State<_StatusDropdownCell> {
             child: AppText(txt: 'Overdue'),
           ),
         ],
-        // Only updates the notifier — no Firestore write.
         onChanged: (v) {
           if (v != null) widget.statusNotifier.value = v;
         },
@@ -774,10 +704,6 @@ class _StatusDropdownCellState extends State<_StatusDropdownCell> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Save button — reads from [statusNotifier] and writes to Firestore.
-// Shows a CircularProgressIndicator while the write is in-flight.
-// Displays a success/error SnackBar on completion.
 // ─────────────────────────────────────────────────────────────────────────────
 class _SaveButtonCell extends StatefulWidget {
   const _SaveButtonCell({required this.payment, required this.statusNotifier});
@@ -799,8 +725,6 @@ class _SaveButtonCellState extends State<_SaveButtonCell> {
       paymentDocId: widget.payment.docId,
       newStatus: newStatus,
       paymentDate: widget.payment.date,
-      // member: omitted here — admin-correction member update can be wired
-      // as a follow-up enhancement with a member docId lookup.
     );
 
     if (!mounted) return;
@@ -828,27 +752,9 @@ class _SaveButtonCellState extends State<_SaveButtonCell> {
       buttonColor: AppColor.green,
       textColor: AppColor.cFFFFFF,
     );
-    //     _loading
-    //         ?  SizedBox(
-    //             width: 20,
-    //             height: 20,
-    //             child: CircularProgressIndicator(
-    //               strokeWidth: 2,
-    // color: AppColor.cFFFFFF,            ),
-    //           )
-    //         : TextButton(
-    //             onPressed: _save,
-    //             style: TextButton.styleFrom(
-    //               foregroundColor: const Color(0xFF2563EB),
-    //               padding: const EdgeInsets.symmetric(horizontal: 8),
-    //             ),
-    //             child: const Text('Save', style: TextStyle(fontSize: 12)),
-    //           );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Mobile payment card list — with inline status dropdown + Save button
 // ─────────────────────────────────────────────────────────────────────────────
 class _MobilePaymentList extends StatelessWidget {
   const _MobilePaymentList({required this.payments});
@@ -871,13 +777,18 @@ class _MobilePaymentList extends StatelessWidget {
       );
     }
     return Column(
-      children: payments.map((p) => _MobilePaymentCard(payment: p)).toList(),
+      children: payments
+          // Key by docId so state (selected status, saving flag) is
+          // correctly re-associated with the right card if the list order
+          // changes (sort/filter), instead of by position.
+          .map((p) => _MobilePaymentCard(key: ValueKey(p.docId), payment: p))
+          .toList(),
     );
   }
 }
 
 class _MobilePaymentCard extends StatefulWidget {
-  const _MobilePaymentCard({required this.payment});
+  const _MobilePaymentCard({super.key, required this.payment});
   final Payment payment;
 
   @override
@@ -897,7 +808,6 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
   @override
   void didUpdateWidget(_MobilePaymentCard old) {
     super.didUpdateWidget(old);
-    // Sync when the stream delivers a new snapshot (only if not mid-edit).
     if (old.payment.status != widget.payment.status &&
         _selectedStatus == old.payment.status) {
       _selectedStatus = widget.payment.status;
@@ -939,7 +849,6 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: Gym ID + Invoice + Status badge
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -968,8 +877,6 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
             ],
           ),
           SizedBox(height: ch(4.1)),
-
-          // Row 2: Member + Amount
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -992,8 +899,6 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
             ],
           ),
           SizedBox(height: ch(6.5)),
-
-          // Row 3: Plan + Method
           Row(
             children: [
               _PlanChip(plan: p.plan),
@@ -1018,8 +923,6 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
             ],
           ),
           SizedBox(height: ch(4.1)),
-
-          // Row 4: Date
           Row(
             children: [
               const Icon(
@@ -1038,9 +941,6 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
             ],
           ),
           SizedBox(height: ch(10)),
-
-          // Row 5: Status dropdown + Save button
-          // Dropdown changes are LOCAL only — Save button writes to Firestore.
           Row(
             children: [
               Expanded(
@@ -1082,34 +982,16 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                 color: AppColor.green,
                 textColor: AppColor.cFFFFFF,
               ),
-              if (p.status.toLowerCase() == 'pending' || p.status.toLowerCase() == 'overdue') ...[
+              if (p.status.toLowerCase() == 'pending' ||
+                  p.status.toLowerCase() == 'overdue') ...[
                 SizedBox(width: cw(8)),
                 IconButton(
                   icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
                   tooltip: 'Pay Fees',
-                  onPressed: () => _DesktopPaymentTable._handlePay(context, p),
+                  onPressed: () =>
+                      _DesktopPaymentTableState._handlePay(context, p),
                 ),
               ],
-              // _saving
-              //     ? const SizedBox(
-              //         width: 24,
-              //         height: 24,
-              //         child: CircularProgressIndicator(
-              //           strokeWidth: 2,
-              //           color: AppColor.cFFFFFF,
-              //         ),
-              //       )
-              //     : FilledButton(
-              //         onPressed: _save,
-              //         style: FilledButton.styleFrom(
-              //           backgroundColor: AppColor.green,
-              //           padding: const EdgeInsets.symmetric(
-              //             horizontal: 16,
-              //             vertical: 10,
-              //           ),
-              //         ),
-              //         child: const Text('Save', style: TextStyle(fontSize: 12)),
-              //       ),
             ],
           ),
         ],

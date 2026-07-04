@@ -112,13 +112,8 @@ class AdminSignIn extends StatelessWidget {
                                 ),
                                 SizedBox(height: ch(12)),
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    TextButton(
-                                      onPressed: () {},
-                                      child: AppText(txt: "Change Password?"),
-                                    ),
-                                    const Spacer(),
-
                                     TextButton(
                                       onPressed: () => _forgotPassword(
                                         context,

@@ -604,6 +604,7 @@ class DashboardScreen extends StatelessWidget {
                                 title: 'Revenue',
                                 value: 'Rs. ${totalRevenue.toInt()}',
                                 subtitle: 'this month',
+                                isRupeeIcon: true,
                                 icon: Icons.attach_money,
                                 iconColor: const Color(0xFFD97706),
                                 iconBg: const Color(0xFFFFFBEB),
@@ -673,11 +674,11 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.iconBg,
-    this.isRupeeIocn = false,
+    this.isRupeeIcon = false,
   });
   final String title, value, subtitle;
   final IconData icon;
-  final bool isRupeeIocn;
+  final bool isRupeeIcon;
   final Color iconColor, iconBg;
 
   @override
@@ -710,7 +711,7 @@ class _StatCard extends StatelessWidget {
                     gradient: AppGradients.redGradient,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: isRupeeIocn
+                  child: isRupeeIcon
                       ? AppText(txt: "Rs")
                       : Icon(
                           icon,

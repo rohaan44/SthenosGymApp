@@ -10,22 +10,47 @@ import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/asset_utils.dart';
+import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Common tap handler used by all nav widgets (sidebar, rail, drawer)
 // ─────────────────────────────────────────────────────────────────────────────
+// void _handleNavTap(BuildContext context, int index, List<_NavItem> navItems) {
+//   final item = navItems[index];
+
+//   if (item.label == 'Change Password') {
+//     // AuthProvider must be provided above this widget (e.g. in main.dart)
+//     showChangePasswordDialog(context);
+//     return;
+//   }
+//   if (item.label == 'Log Out') {
+//     // AuthProvider must be provided above this widget (e.g. in main.dart)
+//     // context.read<AuthProvider>().logout(context);
+
+//     showLogoutDialog(context);
+//     return;
+//   }
+
+//   context.read<MainDashboardProvider>().setSelectedIndex(index);
+// }
+
 void _handleNavTap(BuildContext context, int index, List<_NavItem> navItems) {
   final item = navItems[index];
 
-  if (item.label == 'Log Out') {
-    // AuthProvider must be provided above this widget (e.g. in main.dart)
-    context.read<AuthProvider>().logout(context);
-    return;
-  }
+  switch (item.label) {
+    case 'Change Password':
+      showChangePasswordDialog(context);
+      return;
 
-  context.read<MainDashboardProvider>().setSelectedIndex(index);
+    case 'Log Out':
+      showLogoutDialog(context);
+      return;
+
+    default:
+      context.read<MainDashboardProvider>().setSelectedIndex(index);
+  }
 }
 
 class MainDashboardScreen extends StatelessWidget {
@@ -49,10 +74,17 @@ class MainDashboardScreen extends StatelessWidget {
       activeIcon: Icons.credit_card,
     ),
     _NavItem(
+      label: 'Change Password',
+      icon: Icons.lock_outlined,
+      activeIcon: Icons.lock,
+    ),
+    _NavItem(
       label: 'Log Out',
       icon: Icons.logout,
       activeIcon: Icons.logout_outlined,
-    ), // _NavItem(
+    ),
+
+    // _NavItem(
     //   label: 'Classes',
     //   icon: Icons.calendar_today_outlined,
     //   activeIcon: Icons.calendar_today,
@@ -333,12 +365,13 @@ class _SidebarNav extends StatelessWidget {
               ),
             );
           }),
-          // Spacer(),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.center,
-          //   children: [],
-          // ),
-          // SizedBox(height: ch(12)),
+
+          Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Image.asset(AssetUtils.titleLogo1, width: cw(25))],
+          ),
+          SizedBox(height: ch(12)),
         ],
       ),
     );
@@ -538,9 +571,10 @@ class _MobileDrawer extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    AssetUtils.reciptLogo,
+                    AssetUtils.titleLogo1,
                     color: AppColor.cFFFFFF,
                     width: cw(100),
+                    
                   ),
                 ],
               ),
@@ -551,4 +585,426 @@ class _MobileDrawer extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> showChangePasswordDialog(BuildContext context) async {
+  final model = context.read<AuthProvider>();
+
+  model.currentPasswordCtrl.clear();
+  model.newPasswordCtrl.clear();
+  model.confirmPasswordCtrl.clear();
+
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+            decoration: BoxDecoration(
+              color: const Color(0xff151515),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: const Color(0xFFDB2016).withValues(alpha: .30),
+              ),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1C1C1C), Color(0xff151515)],
+              ),
+            ),
+            child: Consumer<AuthProvider>(
+              builder: (context, model, child) {
+                return SingleChildScrollView(
+                  child: Form(
+                    key: model.changePasswordFormKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          height: 65,
+                          width: 65,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFDB2016), Color(0xFF790600)],
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.lock_reset_rounded,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        const Text(
+                          "Change Password",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Text(
+                          "Enter your current password and create a new password.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: .60),
+                            fontSize: 13,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        primaryTextField(
+                          controller: model.currentPasswordCtrl,
+                          hintText: "Current Password",
+                          obscureText: model.hideCurrentPassword,
+                          fillColor: const Color(0xff151515),
+                          suffixIcon: IconButton(
+                            onPressed: model.toggleCurrentPassword,
+                            icon: Icon(
+                              model.hideCurrentPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.white70,
+                            ),
+                          ),
+
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: Colors.white70,
+                          ),
+                          textInputAction: TextInputAction.next,
+
+                          validator: model.currentPasswordValidator,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        primaryTextField(
+                          controller: model.newPasswordCtrl,
+                          hintText: "New Password",
+                          obscureText: model.hideNewPassword,
+                          fillColor: const Color(0xff151515),
+                          suffixIcon: IconButton(
+                            onPressed: model.toggleNewPassword,
+                            icon: Icon(
+                              model.hideNewPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: Colors.white70,
+                          ),
+                          textInputAction: TextInputAction.next,
+
+                          validator: model.newPasswordValidator,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        primaryTextField(
+                          controller: model.confirmPasswordCtrl,
+                          hintText: "Confirm Password",
+                          obscureText: model.hideConfirmPassword,
+                          fillColor: const Color(0xff151515),
+                          suffixIcon: IconButton(
+                            onPressed: model.toggleConfirmPassword,
+                            icon: Icon(
+                              model.hideConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: Colors.white70,
+                          ),
+                          textInputAction: TextInputAction.done,
+                          validator: model.confirmPasswordValidator,
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: Colors.white.withValues(alpha: .25),
+                                  ),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Cancel"),
+                              ),
+                            ),
+
+                            const SizedBox(width: 14),
+
+                            Expanded(
+                              child: AbsorbPointer(
+                                absorbing: model.loading,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(10),
+                                  onTap: () async {
+                                    FocusScope.of(context).unfocus();
+
+                                    if (!model
+                                        .changePasswordFormKey
+                                        .currentState!
+                                        .validate()) {
+                                      return;
+                                    }
+
+                                    final msg = await model.changePassword(
+                                      currentPassword: model
+                                          .currentPasswordCtrl
+                                          .text
+                                          .trim(),
+                                      newPassword: model.newPasswordCtrl.text
+                                          .trim(),
+                                    );
+
+                                    if (!context.mounted) return;
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(msg)),
+                                    );
+
+                                    if (msg ==
+                                        "Password changed successfully.") {
+                                      model.currentPasswordCtrl.clear();
+                                      model.newPasswordCtrl.clear();
+                                      model.confirmPasswordCtrl.clear();
+
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    alignment: Alignment.center,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFDB2016),
+                                          Color(0xFF790600),
+                                        ],
+                                      ),
+                                    ),
+                                    child: AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 250,
+                                      ),
+                                      child: model.loading
+                                          ? const SizedBox(
+                                              key: ValueKey("loading"),
+                                              height: 22,
+                                              width: 22,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
+                                              ),
+                                            )
+                                          : const Text(
+                                              "Change Password",
+                                              key: ValueKey("text"),
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> showLogoutDialog(BuildContext context) async {
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Container(
+        width: 420,
+        constraints: const BoxConstraints(maxWidth: 420),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xff151515),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: const Color(0xFFDB2016).withValues(alpha: 0.25),
+          ),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1C1C1C), Color(0xff151515)],
+          ),
+        ),
+        child: Consumer<AuthProvider>(
+          builder: (context, model, _) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 65,
+                  width: 65,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFDB2016), Color(0xFF790600)],
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                const Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  "Are you sure you want to logout from your account?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.65),
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Cancel"),
+                      ),
+                    ),
+
+                    const SizedBox(width: 15),
+
+                    Expanded(
+                      child: AbsorbPointer(
+                        absorbing: model.loading,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () async {
+                            await model.logout(context);
+                          },
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFDB2016), Color(0xFF790600)],
+                              ),
+                            ),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              child: model.loading
+                                  ? const SizedBox(
+                                      key: ValueKey("loading"),
+                                      height: 22,
+                                      width: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Logout",
+                                      key: ValueKey("logout"),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+  );
 }
