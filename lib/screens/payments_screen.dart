@@ -306,33 +306,44 @@ class _PaymentsBody extends StatelessWidget {
                             if (filtered.isEmpty &&
                                 (paymentsState.search.isNotEmpty ||
                                     paymentsState.filterStatus != 'all'))
-                              AppButton(
-                                width: cw(35),
-                                onPressed: () {
+                              InkWell(
+                                onTap: () {
+                                  paymentsState.searchTextFieldCntrl.clear();
                                   paymentsState.setSearch('');
                                   paymentsState.setFilterStatus('all');
                                 },
-                                isRow: true,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    CircleAvatar(
-                                      radius: cw(2),
-                                      backgroundColor: AppColor.cFFFFFF,
-                                      child: Icon(
-                                        Icons.clear,
-                                        size: 14,
-                                        color: AppColor.primary,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: ch(4),
+                                    horizontal: cw(4),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    gradient: AppGradients.redGradient,
+                                  ),
+
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColor.cFFFFFF,
+                                        ),
+                                        child: Icon(
+                                          Icons.clear,
+                                          size: 14,
+                                          color: AppColor.primary,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(width: cw(2)),
-                                    AppText(
-                                      txt: 'Clear filters',
-                                      fontSize: AppFontSize.f11,
-                                    ),
-                                  ],
+                                      SizedBox(width: cw(2)),
+                                      AppText(
+                                        txt: 'Clear filters',
+                                        fontSize: AppFontSize.f11,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                text: "Clear filters",
                               ),
                           ],
                         ),
@@ -379,6 +390,7 @@ class _PaymentsBody extends StatelessWidget {
 
   static Widget _searchField(PaymentsProvider state) => primaryTextField(
     hintText: "Search member or invoice...",
+    controller: state.searchTextFieldCntrl,
     prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF9CA3AF)),
     onChanged: state.setSearch,
   );
