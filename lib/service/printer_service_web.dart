@@ -29,7 +29,9 @@ class AppPrinter {
     }
 
     // 3. Extract membership plan name
-    final planRaw = memberData['membership']?.toString() ?? 'Monthly';
+    final planRaw =
+        //  memberData['membership']?.toString() ??
+        'Monthly';
     final planName = planRaw.split('-')[0].trim().toUpperCase();
     final itemLine = "MEMBERSHIP $planName";
 
@@ -127,7 +129,7 @@ class AppPrinter {
       <body>
         <img class="logo" src="assets/assets/images/receipt_logo.png" onerror="this.src='assets/images/receipt_logo.png'" alt="Gym Logo" />
         <div class="title">STHENOS GYM</div>
-        <div class="subtitle">(555) 444-LIFT</div>
+        <div class="subtitle">+92310-0006947</div>
         
         <div class="row">
           <span>DATE: $formattedDate</span>

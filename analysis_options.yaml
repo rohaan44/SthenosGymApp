@@ -10,6 +10,8 @@
 analyzer:
   errors:
     unused_element_parameter: ignore
+    deprecated_member_use: ignore
+    avoid_web_libraries_in_flutter: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

@@ -114,25 +114,71 @@ class AdminSignIn extends StatelessWidget {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
+                                    // TextButton(
+                                    //   onPressed: () => _forgotPassword(
+                                    //     context,
+                                    //     auth.emailController,
+                                    //     () async {
+                                    //       final success = await auth
+                                    //           .forgotPassword(
+                                    //             auth.emailController.text,
+                                    //           );
+                                    //       if (success) {
+                                    //         Navigator.pop(context);
+                                    //       } else {
+                                    //         ScaffoldMessenger.of(
+                                    //           context,
+                                    //         ).showSnackBar(
+                                    //           SnackBar(
+                                    //             content: Text(
+                                    //               auth.error ?? 'Login failed',
+                                    //             ),
+                                    //           ),
+                                    //         );
+                                    //       }
+                                    //     },
+                                    //   ),
+                                    //   child: AppText(
+                                    //     txt: "Forgot Password?",
+                                    //     color: AppColor.blue2,
+                                    //   ),
+                                    // ),
                                     TextButton(
                                       onPressed: () => _forgotPassword(
                                         context,
-                                        auth.emailController,
+                                        auth.forgotEmailController,
                                         () async {
                                           final success = await auth
                                               .forgotPassword(
-                                                auth.emailController.text,
+                                                auth.forgotEmailController.text
+                                                    .trim(),
                                               );
+
+                                          if (!context.mounted) return;
+
                                           if (success) {
                                             Navigator.pop(context);
+
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "Password reset link has been sent to your email.",
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
                                           } else {
                                             ScaffoldMessenger.of(
                                               context,
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  auth.error ?? 'Login failed',
+                                                  auth.error ??
+                                                      "Something went wrong",
                                                 ),
+                                                backgroundColor: Colors.red,
                                               ),
                                             );
                                           }
@@ -224,30 +270,66 @@ void _forgotPassword(
       return AlertDialog(
         backgroundColor: AppColor.c252525,
         title: AppText(txt: "Reset Password", fontSize: AppFontSize.f18),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppText(
-              txt:
-                  "Enter your registered email to receive a password reset link.",
-              fontSize: AppFontSize.f14,
-            ),
-            SizedBox(height: ch(25)),
-            primaryTextField(
-              controller: email,
-              hintText: "Email",
-              prefixIcon: Icon(Icons.mail_outline),
-            ),
-            // TextField(
-            //   controller: email,
-            //   decoration: const InputDecoration(
-            //     labelText: "Email Address",
-            //     border: OutlineInputBorder(),
-            //   ),
-            //   keyboardType: TextInputType.emailAddress,
-            // ),
-          ],
+        content: Form(
+          key: context.read<AuthProvider>().forgotPasswordFormKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText(
+                txt:
+                    "Enter your registered email to receive a password reset link.",
+                fontSize: AppFontSize.f14,
+              ),
+
+              SizedBox(height: ch(25)),
+
+              primaryTextField(
+                controller: email,
+                hintText: "Email",
+                prefixIcon: const Icon(Icons.mail_outline),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Email is required";
+                  }
+
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
+
+                  if (!emailRegex.hasMatch(value.trim())) {
+                    return "Enter a valid email";
+                  }
+
+                  return null;
+                },
+              ),
+            ],
+          ),
         ),
+        // Column(
+        //   mainAxisSize: MainAxisSize.min,
+        //   children: [
+        //     AppText(
+        //       txt:
+        //           "Enter your registered email to receive a password reset link.",
+        //       fontSize: AppFontSize.f14,
+        //     ),
+        //     SizedBox(height: ch(25)),
+        //     primaryTextField(
+        //       controller: email,
+        //       hintText: "Email",
+        //       prefixIcon: Icon(Icons.mail_outline),
+        //     ),
+        //     // TextField(
+        //     //   controller: email,
+        //     //   decoration: const InputDecoration(
+        //     //     labelText: "Email Address",
+        //     //     border: OutlineInputBorder(),
+        //     //   ),
+        //     //   keyboardType: TextInputType.emailAddress,
+        //     // ),
+        //   ],
+        // ),
         actions: [
           Row(
             children: [
@@ -261,7 +343,22 @@ void _forgotPassword(
                 ),
               ),
               Spacer(),
-              AppButton(width: cw(80), onPressed: onPressed, text: "Send Link"),
+
+              AppButton(
+                width: cw(80),
+                onPressed: () {
+                  final provider = context.read<AuthProvider>();
+
+                  if (!provider.forgotPasswordFormKey.currentState!
+                      .validate()) {
+                    return;
+                  }
+
+                  onPressed();
+                },
+                text: "Send Link",
+              ),
+              // AppButton(width: cw(80), onPressed: onPressed, text: "Send Link"),
             ],
           ),
         ],
