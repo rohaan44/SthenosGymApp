@@ -403,4 +403,13 @@ Future<String> changePassword({
         return e.message ?? "Authentication failed";
     }
   }
+
+    void reset() {
+      emailController.clear();
+      passwordController.clear();
+      currentPasswordCtrl.clear();
+      newPasswordCtrl.clear();
+      confirmPasswordCtrl.clear();
+      notifyListeners();
+    }
 }

@@ -155,6 +155,7 @@ class AdminSignIn extends StatelessWidget {
                                       auth.passwordController.text,
                                     );
                                     if (success) {
+                                      // auth.reset();
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -162,6 +163,7 @@ class AdminSignIn extends StatelessWidget {
                                               MainDashboardScreen(),
                                         ),
                                       );
+                                      auth.reset();
                                     } else {
                                       ScaffoldMessenger.of(
                                         context,

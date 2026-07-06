@@ -17,9 +17,13 @@ class AppRouter {
       // case AppRoutes.loginView:
       //   return MaterialPageRoute(builder: (_) => const SignInScreen  ());
       case AppRoutes.membersScreen:
-        return MaterialPageRoute(builder: (_) => const MembersScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const MembersScreen(),
+        );
       case AppRoutes.addMemberScreen:
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) => ChangeNotifierProvider(
             create: (_) => AddMemberProvider(),
             child: const AddMemberScreen(),
@@ -27,6 +31,7 @@ class AppRouter {
         );
       case AppRoutes.editMemberScreen:
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) => ChangeNotifierProvider(
             create: (_) => EditMemberProvider(),
             child: const EditMemberScreen(),
@@ -35,6 +40,7 @@ class AppRouter {
       case AppRoutes.memberPaymentHistory:
         final member = settings.arguments as Member;
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) => MemberPaymentHistoryScreen(member: member),
         );
       // case AppRoutes.splashScreen:
@@ -43,6 +49,7 @@ class AppRouter {
       //   );
       default:
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) =>
               const Scaffold(body: Center(child: Text('Error: Unknown route'))),
         );

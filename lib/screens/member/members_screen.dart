@@ -606,6 +606,19 @@
 //                                                                     m,
 //                                                                   ),
 //                                                             ),
+//                                                             // Print Receipt — only for Active (paid) members
+//                                                             if (!FirestoreService.isOverdueByDate(m) &&
+//                                                                 m.status.toLowerCase() == 'active')
+//                                                               IconButton(
+//                                                                 tooltip: 'Print Receipt',
+//                                                                 icon: const Icon(
+//                                                                   Icons.receipt_long_outlined,
+//                                                                   size: 18,
+//                                                                   color: Color(0xFF16A34A),
+//                                                                 ),
+//                                                                 onPressed: () =>
+//                                                                     _printLatestReceipt(context, m),
+//                                                               ),
 //                                                           ],
 //                                                         ),
 //                                                       ),
@@ -1337,6 +1350,7 @@ import 'package:app/ui/routes/app_routes.dart';
 import 'package:app/ui/utils/app_primary_button.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1436,18 +1450,7 @@ class MembersScreen extends StatelessWidget {
                         ),
                         text: "+ Add Members",
                       ),
-                      // FilledButton.icon(
-                      //   onPressed: () => Navigator.pushNamed(
-                      //     context,
-                      //     AppRoutes.addMemberScreen,
-                      //   ),
-                      //   icon: const Icon(Icons.add, size: 18),
-                      //   label: const Text('Add Members'),
-                      //   style: FilledButton.styleFrom(
-                      //     backgroundColor: const Color(0xFF2563EB),
-                      //   ),
-                      // ),
-                    ],
+                                         ],
                   ),
 
             SizedBox(height: ch(20)),
@@ -1468,19 +1471,6 @@ class MembersScreen extends StatelessWidget {
                                 onChanged: (v) => state.setSearch(v),
                               ),
 
-                              // TextField(
-                              //   decoration:
-                              //       customInputDecoration(
-                              //         'Search members...',
-                              //       ).copyWith(
-                              //         prefixIcon: const Icon(
-                              //           Icons.search,
-                              //           size: 18,
-                              //           color: Color(0xFF9CA3AF),
-                              //         ),
-                              //       ),
-                              //   onChanged: (v) => state.setSearch(v),
-                              // ),
                               SizedBox(height: ch(16)),
                               DropdownButtonFormField<String>(
                                 initialValue: state.filterStatus,
@@ -1520,19 +1510,7 @@ class MembersScreen extends StatelessWidget {
                                   // controller: state.nameController,
                                   onChanged: (v) => state.setSearch(v),
                                 ),
-                                // TextField(
-                                //   decoration:
-                                //       customInputDecoration(
-                                //         'Search members...',
-                                //       ).copyWith(
-                                //         prefixIcon: const Icon(
-                                //           Icons.search,
-                                //           size: 18,
-                                //           color: Color(0xFF9CA3AF),
-                                //         ),
-                                //       ),
-                                //   onChanged: (v) => state.setSearch(v),
-                                // ),
+                                
                               ),
                               SizedBox(width: cw(7.5)),
                               SizedBox(
@@ -1940,6 +1918,19 @@ class MembersScreen extends StatelessWidget {
                                                                     m,
                                                                   ),
                                                             ),
+                                                             // Print Receipt - only for Active (paid) members
+                                                             if (!FirestoreService.isOverdueByDate(m) &&
+                                                                 m.status.toLowerCase() == 'active')
+                                                               IconButton(
+                                                                 tooltip: 'Print Receipt',
+                                                                 icon: const Icon(
+                                                                   Icons.receipt_long_outlined,
+                                                                   size: 18,
+                                                                   color: Color(0xFF16A34A),
+                                                                 ),
+                                                                 onPressed: () =>
+                                                                     _printLatestReceipt(context, m),
+                                                               ),
                                                           ],
                                                         ),
                                                       ),
@@ -2796,4 +2787,82 @@ void _openPaymentHistory(BuildContext context, Member member) {
     AppRoutes.memberPaymentHistory,
     arguments: member,
   );
+}
+
+/// Fetches the latest paid payment for a member and shows the receipt dialog.
+Future<void> _printLatestReceipt(BuildContext context, Member member) async {
+  // Show loading spinner while fetching
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) =>
+        const Center(child: CircularProgressIndicator(color: Colors.white)),
+  );
+
+  try {
+    final snap = await FirebaseFirestore.instance
+        .collection('payments')
+        .where('memberId', isEqualTo: member.docId)
+        .where('status', isEqualTo: 'Paid')
+        .get();
+
+    if (context.mounted) Navigator.pop(context); // dismiss spinner
+
+    if (snap.docs.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No paid payment found for this member.')),
+        );
+      }
+      return;
+    }
+
+    // Pick the most recently paid payment (by timestamp or date)
+    final docs = snap.docs.map((d) => Payment.fromFirestore(d.data(), d.id)).toList();
+    docs.sort((a, b) {
+      final ta = a.timestamp;
+      final tb = b.timestamp;
+      if (ta == null && tb == null) return 0;
+      if (ta == null) return 1;
+      if (tb == null) return -1;
+      return tb.compareTo(ta);
+    });
+    final latestPayment = docs.first;
+
+    if (context.mounted) {
+      final printConfirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => ReceiptPreviewDialog(
+          member: member,
+          amount: latestPayment.amount,
+          selectedMethod: latestPayment.method,
+        ),
+      );
+
+      if (printConfirmed == true) {
+        try {
+          final memberData = {
+            'name': member.name,
+            'gymId': member.id,
+            'membership': member.membership,
+            'expiryDate': member.expiryDate,
+          };
+          await AppPrinter.printReceipt(
+            memberData,
+            latestPayment.amount,
+            latestPayment.method,
+          );
+        } catch (e) {
+          debugPrint('Printing error: $e');
+        }
+      }
+    }
+  } catch (e) {
+    if (context.mounted) Navigator.pop(context);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching receipt: $e')),
+      );
+    }
+  }
 }

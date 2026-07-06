@@ -12,6 +12,7 @@ import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../ui/routes/app_routes.dart';
 import 'member/members_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -529,6 +530,53 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
     ValueNotifier<String> statusNotifier,
   ) {
     return DataRow(
+      onSelectChanged: (selected) async {
+        if (selected == true) {
+          if (p.memberId.isEmpty) return;
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          );
+
+          try {
+            final doc = await FirebaseFirestore.instance
+                .collection('members')
+                .doc(p.memberId)
+                .get();
+
+            if (context.mounted) Navigator.pop(context);
+
+            if (!doc.exists || doc.data() == null) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Member not found')),
+                );
+              }
+              return;
+            }
+
+            final member = Member.fromFirestore(doc.data()!, doc.id);
+            if (context.mounted) {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.memberPaymentHistory,
+                arguments: member,
+              );
+            }
+          } catch (e) {
+            if (context.mounted) Navigator.pop(context);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error fetching member: $e')),
+              );
+            }
+          }
+        }
+      },
       key: ValueKey(p.docId),
       cells: [
         DataCell(
