@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final forgotPasswordFormKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
+  final forgotEmailController = TextEditingController();
   final passwordController = TextEditingController();
 
   final currentPasswordCtrl = TextEditingController();
@@ -59,7 +61,7 @@ class AuthProvider extends ChangeNotifier {
   // =========================
   // SIGN IN
   // =========================
- 
+
   Future<bool> signIn(String email, String password) async {
     try {
       _setLoading(true);
@@ -219,78 +221,105 @@ class AuthProvider extends ChangeNotifier {
       _setforgotLoading(true);
       _error = null;
 
-      debugPrint("🔐 forgotpassword START");
-
       await _auth.sendPasswordResetEmail(email: email.trim());
-
-      debugPrint("✅ forgotPassword Success");
 
       _setforgotLoading(false);
       notifyListeners();
+
       return true;
     } on FirebaseAuthException catch (e) {
       _error = _handleError(e);
 
-      debugPrint("❌forgotPassword ERROR: ${e.code} - ${e.message}");
-
       _setforgotLoading(false);
       notifyListeners();
+
       return false;
     } catch (e) {
       _error = "Something went wrong";
 
-      debugPrint("❌ UNKNOWN LOGIN ERROR: $e");
-
       _setforgotLoading(false);
       notifyListeners();
+
       return false;
     }
   }
 
+  // Future<bool> forgotPassword(String email) async {
+  //   try {
+  //     _setforgotLoading(true);
+  //     _error = null;
 
-Future<String> changePassword({
-  required String currentPassword,
-  required String newPassword,
-}) async {
-  loading = true;
-  notifyListeners();
+  //     debugPrint("🔐 forgotpassword START");
 
-  try {
-    final user = FirebaseAuth.instance.currentUser;
+  //     await _auth.sendPasswordResetEmail(email: email.trim());
 
-    if (user == null) {
-      return "User not logged in.";
-    }
+  //     debugPrint("✅ forgotPassword Success");
 
-    final credential = EmailAuthProvider.credential(
-      email: user.email!,
-      password: currentPassword,
-    );
+  //     _setforgotLoading(false);
+  //     notifyListeners();
+  //     return true;
+  //   } on FirebaseAuthException catch (e) {
+  //     _error = _handleError(e);
 
-    await user.reauthenticateWithCredential(credential);
-    await user.updatePassword(newPassword);
+  //     debugPrint("❌forgotPassword ERROR: ${e.code} - ${e.message}");
 
-    return "Password changed successfully.";
-  } on FirebaseAuthException catch (e) {
-    switch (e.code) {
-      case "wrong-password":
-      case "invalid-credential":
-        return "Current password is incorrect.";
+  //     _setforgotLoading(false);
+  //     notifyListeners();
+  //     return false;
+  //   } catch (e) {
+  //     _error = "Something went wrong";
 
-      case "weak-password":
-        return "Password must be at least 6 characters.";
+  //     debugPrint("❌ UNKNOWN LOGIN ERROR: $e");
 
-      case "requires-recent-login":
-        return "Please sign in again and try.";
+  //     _setforgotLoading(false);
+  //     notifyListeners();
+  //     return false;
+  //   }
+  // }
 
-      default:
-        return e.message ?? "Something went wrong.";
-    }
-  } finally {
-    loading = false;
+  Future<String> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    loading = true;
     notifyListeners();
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        return "User not logged in.";
+      }
+
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+
+      return "Password changed successfully.";
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "wrong-password":
+        case "invalid-credential":
+          return "Current password is incorrect.";
+
+        case "weak-password":
+          return "Password must be at least 6 characters.";
+
+        case "requires-recent-login":
+          return "Please sign in again and try.";
+
+        default:
+          return e.message ?? "Something went wrong.";
+      }
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
   }
-}
   // Future<String> changePassword({
   //   required String currentPassword,
   //   required String newPassword,
@@ -404,12 +433,13 @@ Future<String> changePassword({
     }
   }
 
-    void reset() {
-      emailController.clear();
-      passwordController.clear();
-      currentPasswordCtrl.clear();
-      newPasswordCtrl.clear();
-      confirmPasswordCtrl.clear();
-      notifyListeners();
-    }
+  void reset() {
+    emailController.clear();
+    passwordController.clear();
+    currentPasswordCtrl.clear();
+    newPasswordCtrl.clear();
+    confirmPasswordCtrl.clear();
+    forgotEmailController.clear();
+    notifyListeners();
+  }
 }

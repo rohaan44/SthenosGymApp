@@ -4,7 +4,11 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
 
 class AppPrinter {
-  static Future<void> printReceipt(Map<String, dynamic> memberData, double amount, String method) async {
+  static Future<void> printReceipt(
+    Map<String, dynamic> memberData,
+    double amount,
+    String method,
+  ) async {
     final printer = BlueThermalPrinter.instance;
     final isConnected = await printer.isConnected;
 
@@ -27,19 +31,26 @@ class AppPrinter {
     // 1. Load the logo image
     Uint8List? logoBytes;
     try {
-      final ByteData bytes = await rootBundle.load("assets/images/receipt_logo.png");
-      logoBytes = bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
+      final ByteData bytes = await rootBundle.load(
+        "assets/images/receipt_logo.png",
+      );
+      logoBytes = bytes.buffer.asUint8List(
+        bytes.offsetInBytes,
+        bytes.lengthInBytes,
+      );
     } catch (e) {
       debugPrint("Error loading receipt logo asset: $e");
     }
 
     // 2. Format current date & time
     final now = DateTime.now();
-    final formattedDate = "${now.month.toString().padLeft(2, '0')}/${now.day.toString().padLeft(2, '0')}/${now.year}";
+    final formattedDate =
+        "${now.month.toString().padLeft(2, '0')}/${now.day.toString().padLeft(2, '0')}/${now.year}";
     int displayHour = now.hour % 12;
     if (displayHour == 0) displayHour = 12;
     final period = now.hour >= 12 ? 'PM' : 'AM';
-    final formattedTime = "${displayHour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')} $period";
+    final formattedTime =
+        "${displayHour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')} $period";
 
     // 3. Format valid-thru date
     String expiryDate = memberData['expiryDate']?.toString() ?? '';
@@ -54,7 +65,9 @@ class AppPrinter {
     }
 
     // 4. Extract membership plan name
-    final planRaw = memberData['membership']?.toString() ?? 'Monthly';
+    final planRaw =
+        // memberData['membership']?.toString() ??
+        'Monthly';
     final planName = planRaw.split('-')[0].trim().toUpperCase();
     final itemLine = "MEMBERSHIP $planName";
 
@@ -67,47 +80,144 @@ class AppPrinter {
     }
 
     // 6. Print receipt
+    // printer.printNewLine();
+
+    // // Print Logo
+    // if (logoBytes != null) {
+    //   try {
+    //     await printer.printImageBytes(logoBytes);
+    //   } catch (e) {
+    //     debugPrint("Error printing image bytes: $e");
+    //   }
+    // }
+
+    // printer.printCustom("STHENOS GYM", 2, 1);
+    // printer.printCustom("+92310-0006947", 0, 1);
+    // printer.printNewLine();
+
+    // printer.printLeftRight("DATE: $formattedDate", "TIME: $formattedTime", 0);
+    // printer.printCustom("--------------------------------", 0, 1);
+
+    // printer.printCustom("MEMBER: ${memberData['name'] ?? ''}", 0, 1);
+    // printer.printCustom("MEMBER ID: ${memberData['gymId'] ?? ''}", 0, 1);
+    // printer.printCustom("MEMBERSHIP: ${memberData['membership'] ?? ''}", 0, 1);
+    // printer.printCustom("--------------------------------", 0, 1);
+
+    // printer.printLeftRight(itemLine, "Rs. ${amount.toStringAsFixed(2)}", 0);
+    // printer.printCustom("--------------------------------", 0, 1);
+
+    // printer.printLeftRight("TOTAL", "Rs. ${amount.toStringAsFixed(2)}", 1);
+
+    // printer.printLeftRight("PAYMENT", paymentType, 0);
+    // if (cardNum != null) {
+    //   printer.printLeftRight("CARD #", cardNum, 0);
+    // }
+    // printer.printLeftRight("AMOUNT", "Rs. ${amount.toStringAsFixed(2)}", 0);
+    // printer.printNewLine();
+
+    // printer.printCustom("MEMBERSHIP VALID THRU: $expiryDate", 0, 1);
+    // printer.printNewLine();
+
+    // printer.printCustom("KEEP PUSHING YOUR LIMITS!", 0, 1);
+    // printer.printNewLine();
+    // printer.printNewLine();
+    // printer.paperCut();
+    //================== PRINT RECEIPT ==================//
+
     printer.printNewLine();
 
-    // Print Logo
     if (logoBytes != null) {
       try {
         await printer.printImageBytes(logoBytes);
-      } catch (e) {
-        debugPrint("Error printing image bytes: $e");
-      }
+      } catch (_) {}
     }
 
-    printer.printCustom("STHENOS GYM", 2, 1);
-    printer.printCustom("(555) 444-LIFT", 0, 1);
-    printer.printNewLine();
+    printer.printCustom("STHENOS GYM", 3, 1);
+    printer.printCustom("+92 310 0006947", 1, 1);
 
-    printer.printLeftRight("DATE: $formattedDate", "TIME: $formattedTime", 0);
-    printer.printCustom("--------------------------------", 0, 1);
+    printer.printCustom(
+      "-----------------------------------------------",
+      0,
+      1,
+    );
 
-    printer.printCustom("MEMBER: ${memberData['name'] ?? ''}", 0, 1);
-    printer.printCustom("MEMBER ID: ${memberData['gymId'] ?? ''}", 0, 1);
-    printer.printCustom("MEMBERSHIP: ${memberData['membership'] ?? ''}", 0, 1);
-    printer.printCustom("--------------------------------", 0, 1);
+    printer.printLeftRight("DATE", formattedDate, 0);
 
-    printer.printLeftRight(itemLine, "Rs. ${amount.toStringAsFixed(2)}", 0);
-    printer.printCustom("--------------------------------", 0, 1);
+    printer.printLeftRight("TIME", formattedTime, 0);
 
-    printer.printLeftRight("TOTAL", "Rs. ${amount.toStringAsFixed(2)}", 1);
+    printer.printCustom(
+      "-----------------------------------------------",
+      0,
+      1,
+    );
+
+    printer.printCustom("MEMBER DETAILS", 1, 1);
+
+    printer.printCustom("Name : ${memberData["name"]}", 0, 0);
+
+    printer.printCustom("Gym ID : ${memberData["gymId"]}", 0, 0);
+
+    printer.printCustom("Plan : ${memberData["membership"]}", 0, 0);
+
+    printer.printCustom(
+      "-----------------------------------------------",
+      0,
+      1,
+    );
+
+    printer.printLeftRight("ITEM", "AMOUNT", 1);
+
+    printer.printLeftRight(planName, "Rs ${amount.toStringAsFixed(0)}", 0);
+
+    printer.printCustom(
+      "-----------------------------------------------",
+      0,
+      1,
+    );
+
+    printer.printLeftRight("TOTAL", "Rs ${amount.toStringAsFixed(0)}", 2);
+
+    printer.printCustom(
+      "-----------------------------------------------",
+      0,
+      1,
+    );
 
     printer.printLeftRight("PAYMENT", paymentType, 0);
+    
+
     if (cardNum != null) {
-      printer.printLeftRight("CARD #", cardNum, 0);
+      printer.printLeftRight("CARD", cardNum, 0);
     }
-    printer.printLeftRight("AMOUNT", "Rs. ${amount.toStringAsFixed(2)}", 0);
+
+    printer.printLeftRight(itemLine, "Rs ${amount.toStringAsFixed(0)}", 1);
+
+    printer.printCustom(
+      "-----------------------------------------------",
+      0,
+      1,
+    );
+
+    printer.printCustom("VALID THRU", 1, 1);
+
+    printer.printCustom(expiryDate, 0, 1);
+
+    printer.printCustom("", 0, 1);
+
+    printer.printCustom("KEEP PUSHING YOUR LIMITS!", 1, 1);
+
+    printer.printCustom("Near Ayesha Masjid", 0, 1);
+
+    printer.printCustom("Opposite Chaska", 0, 1);
+
+    printer.printCustom("Unit # 6 Latifabad Hyderabad", 0, 1);
+
+    printer.printCustom("Thank You", 1, 1);
+
+    printer.printNewLine();
+    printer.printNewLine();
     printer.printNewLine();
 
-    printer.printCustom("MEMBERSHIP VALID THRU: $expiryDate", 0, 1);
-    printer.printNewLine();
-
-    printer.printCustom("KEEP PUSHING YOUR LIMITS!", 0, 1);
-    printer.printNewLine();
-    printer.printNewLine();
     printer.paperCut();
   }
 }
