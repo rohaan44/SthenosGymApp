@@ -1450,7 +1450,7 @@ class MembersScreen extends StatelessWidget {
                         ),
                         text: "+ Add Members",
                       ),
-                                         ],
+                    ],
                   ),
 
             SizedBox(height: ch(20)),
@@ -1510,7 +1510,6 @@ class MembersScreen extends StatelessWidget {
                                   // controller: state.nameController,
                                   onChanged: (v) => state.setSearch(v),
                                 ),
-                                
                               ),
                               SizedBox(width: cw(7.5)),
                               SizedBox(
@@ -1703,11 +1702,11 @@ class MembersScreen extends StatelessWidget {
                                                 .map(
                                                   (m) => DataRow(
                                                     // Tap anywhere on the row → open payment history
-                                                    onSelectChanged: (_) =>
-                                                        _openPaymentHistory(
-                                                          context,
-                                                          m,
-                                                        ),
+                                                    // onSelectChanged: (_) =>
+                                                    //     _openPaymentHistory(
+                                                    //       context,
+                                                    //       m,
+                                                    //     ),
                                                     cells: [
                                                       DataCell(
                                                         AppText(
@@ -1918,19 +1917,29 @@ class MembersScreen extends StatelessWidget {
                                                                     m,
                                                                   ),
                                                             ),
-                                                             // Print Receipt - only for Active (paid) members
-                                                             if (!FirestoreService.isOverdueByDate(m) &&
-                                                                 m.status.toLowerCase() == 'active')
-                                                               IconButton(
-                                                                 tooltip: 'Print Receipt',
-                                                                 icon: const Icon(
-                                                                   Icons.receipt_long_outlined,
-                                                                   size: 18,
-                                                                   color: Color(0xFF16A34A),
-                                                                 ),
-                                                                 onPressed: () =>
-                                                                     _printLatestReceipt(context, m),
-                                                               ),
+                                                            // Print Receipt - only for Active (paid) members
+                                                            if (!FirestoreService.isOverdueByDate(
+                                                                  m,
+                                                                ) &&
+                                                                m.status.toLowerCase() ==
+                                                                    'active')
+                                                              IconButton(
+                                                                tooltip:
+                                                                    'Print Receipt',
+                                                                icon: const Icon(
+                                                                  Icons
+                                                                      .receipt_long_outlined,
+                                                                  size: 18,
+                                                                  color: Color(
+                                                                    0xFF16A34A,
+                                                                  ),
+                                                                ),
+                                                                onPressed: () =>
+                                                                    _printLatestReceipt(
+                                                                      context,
+                                                                      m,
+                                                                    ),
+                                                              ),
                                                           ],
                                                         ),
                                                       ),
@@ -2041,7 +2050,7 @@ class _MobileList extends StatelessWidget {
 
         return GestureDetector(
           // Tap anywhere on the card → open payment history
-          onTap: () => _openPaymentHistory(context, m),
+          // onTap: () => _openPaymentHistory(context, m),
           child: Container(
             margin: EdgeInsets.only(bottom: ch(9.7)),
             padding: EdgeInsets.all(cw(11.2)),
@@ -2149,6 +2158,19 @@ class _MobileList extends StatelessWidget {
                       onPressed: () =>
                           MembersScreenHelper.confirmDelete(context, m),
                     ),
+
+                    // Print Receipt - only for Active (paid) members
+                    if (!FirestoreService.isOverdueByDate(m) &&
+                        m.status.toLowerCase() == 'active')
+                      IconButton(
+                        tooltip: 'Print Receipt',
+                        icon: const Icon(
+                          Icons.receipt_long_outlined,
+                          size: 18,
+                          color: Color(0xFF16A34A),
+                        ),
+                        onPressed: () => _printLatestReceipt(context, m),
+                      ),
                   ],
                 ),
                 SizedBox(height: ch(8.1)),
@@ -2522,43 +2544,46 @@ class ReceiptPreviewDialog extends StatelessWidget {
                 children: [
                   Image.asset(
                     'assets/images/receipt_logo.png',
-                    height: 80,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
+                    height: ch(80),
+                    errorBuilder: (context, error, stackTrace) => Icon(
                       Icons.fitness_center,
-                      size: 80,
+                      size: ch(80),
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: ch(12)),
+                  Text(
                     'STHENOS GYM',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: AppFontSize.f16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  const Text(
-                    '(555) 444-LIFT',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  Text(
+                    '+92310-0006947',
+                    style: TextStyle(
+                      fontSize: AppFontSize.f12,
+                      color: Colors.black,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: ch(16)),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'DATE: $formattedDate',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
                       ),
                       Text(
                         'TIME: $formattedTime',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
@@ -2570,24 +2595,24 @@ class ReceiptPreviewDialog extends StatelessWidget {
 
                   Text(
                     'MEMBER: ${member.name}',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: AppFontSize.f12,
                       color: Colors.black,
                       fontFamily: 'Courier',
                     ),
                   ),
                   Text(
                     'MEMBER ID: ${member.id}',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: AppFontSize.f12,
                       color: Colors.black,
                       fontFamily: 'Courier',
                     ),
                   ),
                   Text(
                     'MEMBERSHIP: ${member.membership}',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: AppFontSize.f12,
                       color: Colors.black,
                       fontFamily: 'Courier',
                     ),
@@ -2600,16 +2625,16 @@ class ReceiptPreviewDialog extends StatelessWidget {
                     children: [
                       Text(
                         itemLine,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
                       ),
                       Text(
                         'Rs ${amount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
@@ -2629,10 +2654,10 @@ class ReceiptPreviewDialog extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'TOTAL',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: AppFontSize.f16,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                           fontFamily: 'Courier',
@@ -2640,8 +2665,8 @@ class ReceiptPreviewDialog extends StatelessWidget {
                       ),
                       Text(
                         'Rs ${amount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f16,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                           fontFamily: 'Courier',
@@ -2653,18 +2678,18 @@ class ReceiptPreviewDialog extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'PAYMENT',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
                       ),
                       Text(
                         paymentType,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
@@ -2675,18 +2700,18 @@ class ReceiptPreviewDialog extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'CARD #',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: AppFontSize.f12,
                             color: Colors.black,
                             fontFamily: 'Courier',
                           ),
                         ),
                         Text(
                           cardRow,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: TextStyle(
+                            fontSize: AppFontSize.f12,
                             color: Colors.black,
                             fontFamily: 'Courier',
                           ),
@@ -2696,18 +2721,18 @@ class ReceiptPreviewDialog extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'AMOUNT',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
                       ),
                       Text(
                         'Rs: ${amount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: AppFontSize.f12,
                           color: Colors.black,
                           fontFamily: 'Courier',
                         ),
@@ -2715,16 +2740,16 @@ class ReceiptPreviewDialog extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: ch(16)),
                   Text(
                     'MEMBERSHIP VALID THRU: $expiryDate',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: AppFontSize.f12,
                       color: Colors.black,
                       fontFamily: 'Courier',
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: ch(16)),
                   const Text(
                     'KEEP PUSHING YOUR LIMITS!',
                     style: TextStyle(
@@ -2743,37 +2768,29 @@ class ReceiptPreviewDialog extends StatelessWidget {
             ),
 
             // Actions
-            Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color(0xFF4B5563)),
+                  ),
                 ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Color(0xFF4B5563)),
-                    ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
                   ),
-                  const SizedBox(width: 12),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                    ),
-                    onPressed: () => Navigator.pop(context, true),
-                    icon: const Icon(Icons.print, size: 18),
-                    label: const Text('Print & Save'),
-                  ),
-                ],
-              ),
+                  onPressed: () => Navigator.pop(context, true),
+                  icon: const Icon(Icons.print, size: 18),
+                  label: const Text('Print & Save'),
+                ),
+              ],
             ),
+
+            SizedBox(height: ch(16)),
           ],
         ),
       ),
@@ -2781,13 +2798,13 @@ class ReceiptPreviewDialog extends StatelessWidget {
   }
 }
 
-void _openPaymentHistory(BuildContext context, Member member) {
-  Navigator.pushNamed(
-    context,
-    AppRoutes.memberPaymentHistory,
-    arguments: member,
-  );
-}
+// void _openPaymentHistory(BuildContext context, Member member) {
+//   Navigator.pushNamed(
+//     context,
+//     AppRoutes.memberPaymentHistory,
+//     arguments: member,
+//   );
+// }
 
 /// Fetches the latest paid payment for a member and shows the receipt dialog.
 Future<void> _printLatestReceipt(BuildContext context, Member member) async {
@@ -2811,14 +2828,18 @@ Future<void> _printLatestReceipt(BuildContext context, Member member) async {
     if (snap.docs.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No paid payment found for this member.')),
+          const SnackBar(
+            content: Text('No paid payment found for this member.'),
+          ),
         );
       }
       return;
     }
 
     // Pick the most recently paid payment (by timestamp or date)
-    final docs = snap.docs.map((d) => Payment.fromFirestore(d.data(), d.id)).toList();
+    final docs = snap.docs
+        .map((d) => Payment.fromFirestore(d.data(), d.id))
+        .toList();
     docs.sort((a, b) {
       final ta = a.timestamp;
       final tb = b.timestamp;
@@ -2860,9 +2881,9 @@ Future<void> _printLatestReceipt(BuildContext context, Member member) async {
   } catch (e) {
     if (context.mounted) Navigator.pop(context);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching receipt: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching receipt: $e')));
     }
   }
 }

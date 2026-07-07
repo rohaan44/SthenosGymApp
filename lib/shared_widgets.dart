@@ -1,6 +1,5 @@
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
-import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
 import '../ui/helpers/app_layout_helper.dart';
@@ -74,64 +73,150 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, (Gradient, Color)> gradients = {
-      // Success
-      "Active": (AppGradients.redGradient, AppColor.cFFFFFF),
-      "Paid": (AppGradients.redGradient, AppColor.cFFFFFF),
-      "Present": (AppGradients.redGradient, AppColor.cFFFFFF),
+    final Map<String, (Color border, Color bg, Color text)> styles = {
+      "Active": (
+        const Color(0xFF22C55E),
+        const Color(0xFF22C55E).withValues(alpha: .12),
+        const Color(0xFF22C55E),
+      ),
 
-      // Warning
+      "Paid": (
+        const Color(0xFF22C55E),
+        const Color(0xFF22C55E).withValues(alpha: .12),
+        const Color(0xFF22C55E),
+      ),
+
+      "Present": (
+        const Color(0xFFDB2016),
+        const Color(0xFFDB2016).withValues(alpha: .12),
+        const Color(0xFFDB2016),
+      ),
+
       "Pending": (
-        const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFFBBF24)]),
-        Colors.white,
+        const Color(0xFFF59E0B),
+        const Color(0xFFF59E0B).withValues(alpha: .12),
+        const Color(0xFFFBBF24),
       ),
 
       "Late": (
-        const LinearGradient(colors: [Color(0xFFFF8A00), Color(0xFFFFC107)]),
-        Colors.white,
+        const Color(0xFFFF8A00),
+        const Color(0xFFFF8A00).withValues(alpha: .12),
+        const Color(0xFFFFB300),
       ),
 
-      // Error
       "Expired": (
-        const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFFF43F5E)]),
-        Colors.white,
+        const Color(0xFFEF4444),
+        const Color(0xFFEF4444).withValues(alpha: .12),
+        const Color(0xFFEF4444),
       ),
 
       "Overdue": (
-        const LinearGradient(colors: [Color(0xFF991B1B), Color(0xFFEF4444)]),
-        Colors.white,
+        const Color(0xFFDC2626),
+        const Color(0xFFDC2626).withValues(alpha: .12),
+        const Color(0xFFDC2626),
       ),
 
       "Absent": (
-        const LinearGradient(colors: [Color(0xFFB91C1C), Color(0xFFFB7185)]),
-        Colors.white,
+        const Color(0xFFB91C1C),
+        const Color(0xFFB91C1C).withValues(alpha: .12),
+        const Color(0xFFB91C1C),
       ),
 
-      // Neutral
       "Full": (
-        const LinearGradient(colors: [Color(0xFF475569), Color(0xFF64748B)]),
-        Colors.white,
+        const Color(0xFF64748B),
+        const Color(0xFF64748B).withValues(alpha: .12),
+        const Color(0xFF94A3B8),
       ),
     };
 
-    final data = gradients[status];
+    final style = styles[status];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
+        color: style?.$2 ?? Colors.white.withValues(alpha: .06),
         borderRadius: BorderRadius.circular(30),
-        gradient: data?.$1,
-        color: data == null ? const Color(0xFFF3F4F6) : null,
+        border: Border.all(color: style?.$1 ?? Colors.grey, width: 1.2),
       ),
       child: AppText(
         txt: status,
         fontWeight: FontWeight.w600,
         fontSize: AppFontSize.f12,
-        color: data?.$2 ?? const Color(0xFF6B7280),
+        color: style?.$3 ?? Colors.white70,
       ),
     );
   }
 }
+// yeh wala hum chala rahy thy
+// class StatusBadge extends StatelessWidget {
+//   const StatusBadge({super.key, required this.status});
+
+//   final String status;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final Map<String, (Gradient, Color)> gradients = {
+//       // Success
+//       "Active": (
+//         const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFFBBF24)]),
+//         AppColor.cFFFFFF,
+//       ),
+//       "Paid": (AppGradients.redGradient, AppColor.cFFFFFF),
+//       "Present": (AppGradients.redGradient, AppColor.cFFFFFF),
+
+//       // Warning
+//       "Pending": (
+//         const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFFBBF24)]),
+//         Colors.white,
+//       ),
+
+//       "Late": (
+//         const LinearGradient(colors: [Color(0xFFFF8A00), Color(0xFFFFC107)]),
+//         Colors.white,
+//       ),
+
+//       // Error
+//       "Expired": (
+//         const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFFF43F5E)]),
+//         Colors.white,
+//       ),
+
+//       "Overdue": (
+//         const LinearGradient(colors: [Color(0xFF991B1B), Color(0xFFEF4444)]),
+//         Colors.white,
+//       ),
+
+//       "Absent": (
+//         const LinearGradient(colors: [Color(0xFFB91C1C), Color(0xFFFB7185)]),
+//         Colors.white,
+//       ),
+
+//       // Neutral
+//       "Full": (
+//         const LinearGradient(colors: [Color(0xFF475569), Color(0xFF64748B)]),
+//         Colors.white,
+//       ),
+//     };
+
+//     final data = gradients[status];
+
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(30),
+//         gradient: data?.$1,
+//         color: data == null ? const Color(0xFFF3F4F6) : null,
+//       ),
+//       child: AppText(
+//         txt: status,
+//         fontWeight: FontWeight.w600,
+//         fontSize: AppFontSize.f12,
+//         color: data?.$2 ?? const Color(0xFF6B7280),
+//       ),
+//     );
+//   }
+// }
+
 // class StatusBadge extends StatelessWidget {
 //   const StatusBadge({super.key, required this.status});
 

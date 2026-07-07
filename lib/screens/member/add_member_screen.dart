@@ -33,8 +33,7 @@ class AddMemberScreen extends StatelessWidget {
             SafeArea(
               child: Padding(
                 padding: pagePadding(context),
-                child:
-                 Column(
+                child: Column(
                   children: [
                     Expanded(
                       child: SingleChildScrollView(

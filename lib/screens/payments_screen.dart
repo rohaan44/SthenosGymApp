@@ -488,6 +488,8 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
   @override
   Widget build(BuildContext context) {
     return DataTable(
+      showCheckboxColumn: false,
+
       headingRowColor: WidgetStateProperty.all(const Color(0xFF790600)),
       columns: [
         DataColumn(
