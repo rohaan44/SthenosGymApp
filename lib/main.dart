@@ -1,6 +1,9 @@
 import 'package:app/auth/auth_gate/auth_gate.dart';
 import 'package:app/auth/auth_providers/auth_provider.dart';
 import 'package:app/auth/auth_providers/test_provider.dart';
+import 'package:app/config/app_config.dart';
+import 'package:app/firebase_options_dev.dart' as dev;
+import 'package:app/firebase_options_prod.dart' as prod;
 import 'package:app/providers/gym_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
@@ -44,14 +47,9 @@ Future<void> main() async {
 
   try {
     await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: "AIzaSyCUN89uPzff9NcJ6q1ypIVyPNWYpwycfL4",
-        authDomain: "sthenos-gym-8de40.firebaseapp.com",
-        projectId: "sthenos-gym-8de40",
-        storageBucket: "sthenos-gym-8de40.firebasestorage.app",
-        messagingSenderId: "589496774641",
-        appId: "1:589496774641:web:5710ba9722081f6368de50",
-      ),
+      options: AppConfig.isProd
+          ? prod.DefaultFirebaseOptions.currentPlatform
+          : dev.DefaultFirebaseOptions.currentPlatform,
     );
 
     await ConnectivityService().initialize();
