@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1031135608534",
+    "project_id": "sthenos-gym-ce563",
+    "storage_bucket": "sthenos-gym-ce563.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1031135608534:android:efc84de6b561c509c51377",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBO2LNcmHXYjsD_MSJRSwbrK0h6XLgb_-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
