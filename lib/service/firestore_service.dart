@@ -79,7 +79,7 @@ class FirestoreService {
             final ta = a.timestamp;
             final tb = b.timestamp;
             if (ta == null && tb == null) return 0;
-            if (ta == null) return 1;  // nulls go to end
+            if (ta == null) return 1; // nulls go to end
             if (tb == null) return -1;
             return tb.compareTo(ta); // descending
           });
@@ -169,18 +169,23 @@ class FirestoreService {
       } else if (isQuarterly) {
         // Same calendar quarter (Jan-Mar, Apr-Jun, Jul-Sep, Oct-Dec)
         final sameYear = payDate.year == now.year;
-        final sameQuarter = ((payDate.month - 1) ~/ 3) == ((now.month - 1) ~/ 3);
+        final sameQuarter =
+            ((payDate.month - 1) ~/ 3) == ((now.month - 1) ~/ 3);
         if (sameYear && sameQuarter) return false;
       } else {
         // Monthly (default): same year + same month
-        if (payDate.year == now.year && payDate.month == now.month) return false;
+        if (payDate.year == now.year && payDate.month == now.month)
+          return false;
       }
     }
 
     // ── Layer 2: Cycle-window guard (fallback) ────────────────────────────────
     if (member.expiryDate.isEmpty) return true;
 
-    final window = currentCycleWindow(member.expiryDate, member.billingFrequency);
+    final window = currentCycleWindow(
+      member.expiryDate,
+      member.billingFrequency,
+    );
 
     for (final p in payments) {
       if (p.status != 'Paid') continue;
@@ -292,15 +297,28 @@ class FirestoreService {
       if (!canPayThisCycle(member, latestPayments)) {
         final now = DateTime.now();
         final monthName = [
-          '', 'January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'
+          '',
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
         ][now.month];
         return 'Payment already collected for $monthName ${now.year}. Next due: ${member.expiryDate}';
       }
 
       final now = DateTime.now();
-      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      final invoiceId = 'INV-${now.millisecondsSinceEpoch.toString().substring(5)}';
+      final dateStr =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final invoiceId =
+          'INV-${now.millisecondsSinceEpoch.toString().substring(5)}';
 
       final batch = _db.batch();
 
@@ -310,7 +328,9 @@ class FirestoreService {
         // If not explicitly provided, look for an existing Overdue or Pending payment to update
         // (sort so we overwrite the most recent unpaid one first)
         final sortedPayments = List<Payment>.from(latestPayments);
-        sortedPayments.sort((a, b) => b.timestamp?.compareTo(a.timestamp ?? DateTime(0)) ?? 0);
+        sortedPayments.sort(
+          (a, b) => b.timestamp?.compareTo(a.timestamp ?? DateTime(0)) ?? 0,
+        );
         for (final p in sortedPayments) {
           if (p.status == 'Overdue' || p.status == 'Pending') {
             targetDocId = p.docId;
@@ -338,6 +358,7 @@ class FirestoreService {
           'plan': member.membership,
           'amount': amount,
           'method': method,
+          "phone": member.phone,
           'status': 'Paid',
           'date': dateStr,
           'invoiceId': invoiceId,
@@ -346,7 +367,10 @@ class FirestoreService {
       }
 
       // 4. Compute new expiryDate = current cycleEnd + 1 period.
-      final newExpiry = _nextExpiryDate(member.expiryDate, member.billingFrequency);
+      final newExpiry = _nextExpiryDate(
+        member.expiryDate,
+        member.billingFrequency,
+      );
 
       // 5. Update member doc.
       final memberRef = _db.collection('members').doc(member.docId);
@@ -382,9 +406,7 @@ class FirestoreService {
       final batch = _db.batch();
       final paymentRef = _db.collection('payments').doc(paymentDocId);
 
-      batch.update(paymentRef, {
-        'status': newStatus,
-      });
+      batch.update(paymentRef, {'status': newStatus});
 
       // If admin corrects a payment to "Paid", recompute the member's cycle.
       if (newStatus == 'Paid' && member != null) {
@@ -425,7 +447,10 @@ class FirestoreService {
   ///   Fallback  → +1 month
   ///
   /// Returns "YYYY-MM-DD" string.
-  static String _nextExpiryDate(String currentExpiry, String? billingFrequency) {
+  static String _nextExpiryDate(
+    String currentExpiry,
+    String? billingFrequency,
+  ) {
     final current = _parseDate(currentExpiry);
     final freq = (billingFrequency ?? '').toLowerCase();
 

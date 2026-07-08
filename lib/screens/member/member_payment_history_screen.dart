@@ -34,7 +34,7 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
           // ── Loading ──────────────────────────────────────────────────────
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color:AppColor.cFFFFFF),
+              child: CircularProgressIndicator(color: AppColor.cFFFFFF),
             );
           }
 
@@ -155,6 +155,7 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
+      
       automaticallyImplyLeading: false,
       backgroundColor: AppColor.c252525,
       elevation: 0,
@@ -170,7 +171,7 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
         children: [
           // Avatar
           CircleAvatar(
-            radius: 18,
+            radius: 20,
             backgroundColor: const Color(0xFFEFF6FF),
             backgroundImage:
                 (member.profileImageUrl != null &&

@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element_parameter
 
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:app/models/models.dart';
@@ -45,6 +46,7 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
           context.read<MembersProvider>().memberData["members"] as Member;
 
       p.loadMemberData(member);
+      // log(member.profileImageUrl.toString());
     });
   }
 
@@ -100,8 +102,15 @@ class _EditMemberScreenState extends State<EditMemberScreen> {
                                               : FileImage(
                                                   File(p.imageFile!.path),
                                                 ))
-                                        : null,
-                                    child: p.imageFile == null
+                                        : (p.imageUrl != null &&
+                                                  p.imageUrl!.isNotEmpty
+                                              ? NetworkImage(p.imageUrl!)
+                                                    as ImageProvider
+                                              : null),
+                                    child:
+                                        (p.imageFile == null &&
+                                            (p.imageUrl == null ||
+                                                p.imageUrl!.isEmpty))
                                         ? Icon(
                                             Icons.camera_alt,
                                             size: cw(15),

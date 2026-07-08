@@ -9,4 +9,5 @@ class AssetUtils {
   static const String titleLogo1 = "${png}title_logo1.png";
   static const String reciptLogo1 = "${png}recipt_logo1.png";
   static const String ctSuccessToast = "${svg}ct_success_toast.png";
+  static const String tabletLogo = "${png}tablet_logo.png";
 }

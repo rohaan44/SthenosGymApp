@@ -6,6 +6,7 @@ import 'package:app/ui/utils/app_primary_button.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../shared_widgets.dart';
@@ -127,10 +128,10 @@ class _PaymentsHeader extends StatelessWidget {
           fontSize: AppFontSize.f19,
           fontWeight: FontWeight.w600,
         ),
-        SizedBox(height: ch(4)),
+        SizedBox(height: ch(8)),
         AppText(
           txt: 'Track membership fees and billing',
-          fontSize: AppFontSize.f13,
+          fontSize: AppFontSize.f15,
           color: phone ? const Color(0xFF6B7280) : AppColor.themeGrey,
         ),
       ],
@@ -349,7 +350,7 @@ class _PaymentsBody extends StatelessWidget {
                           ],
                         ),
                         SizedBox(height: ch(12.2)),
-                        phone
+                        (phone || screenWidth(context) < 950)
                             ? _MobilePaymentList(payments: filtered)
                             : filtered.isEmpty
                             ? Padding(
@@ -533,49 +534,75 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
   ) {
     return DataRow(
       onSelectChanged: (selected) async {
-        if (selected == true) {
-          if (p.memberId.isEmpty) return;
+        if (selected != true) return;
+        if (p.memberId.isEmpty) return;
 
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (ctx) => const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-          );
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+        );
 
-          try {
-            final doc = await FirebaseFirestore.instance
-                .collection('members')
-                .doc(p.memberId)
+        try {
+          // 1. Try to find the member in the members collection first.
+          final memberDoc = await FirebaseFirestore.instance
+              .collection('members')
+              .doc(p.memberId)
+              .get();
+
+          Member? member;
+
+          if (memberDoc.exists && memberDoc.data() != null) {
+            member = Member.fromFirestore(memberDoc.data()!, memberDoc.id);
+          } else {
+            // 2. Member record is gone — check if payment history still exists
+            //    for this memberId in the payments collection.
+            final paymentsQuery = await FirebaseFirestore.instance
+                .collection('payments')
+                .where('memberId', isEqualTo: p.memberId)
+                .limit(1)
                 .get();
 
-            if (context.mounted) Navigator.pop(context);
-
-            if (!doc.exists || doc.data() == null) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Member not found')),
-                );
-              }
-              return;
+            if (paymentsQuery.docs.isNotEmpty) {
+              // Build a minimal fallback Member from the payment's own data,
+              // just enough for the payment-history screen to query by memberId.
+              member = Member.fromFirestore({
+                'name': p.member,
+                'gymId': p.gymId,
+                // add any other fields your Member.fromFirestore requires
+                // as sensible defaults/empty strings here
+              }, p.memberId);
             }
+          }
 
-            final member = Member.fromFirestore(doc.data()!, doc.id);
-            if (context.mounted) {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.memberPaymentHistory,
-                arguments: member,
-              );
-            }
-          } catch (e) {
-            if (context.mounted) Navigator.pop(context);
+          if (context.mounted) Navigator.pop(context); // close loading dialog
+
+          if (member == null) {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error fetching member: $e')),
+                const SnackBar(
+                  content: Text('No member or payment record found'),
+                ),
               );
             }
+            return;
+          }
+
+          if (context.mounted) {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.memberPaymentHistory,
+              arguments: member,
+            );
+          }
+        } catch (e) {
+          if (context.mounted) Navigator.pop(context);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error fetching member: $e')),
+            );
           }
         }
       },
@@ -666,7 +693,7 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
 
     try {
       final doc = await FirebaseFirestore.instance
-          .collection('members')
+          .collection('payments')
           .doc(p.memberId)
           .get();
       if (context.mounted) Navigator.pop(context);
@@ -675,7 +702,7 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
         if (context.mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Member not found')));
+          ).showSnackBar(const SnackBar(content: Text('Payment not found')));
         }
         return;
       }
@@ -993,7 +1020,8 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
           SizedBox(height: ch(10)),
           Row(
             children: [
-              Expanded(
+              SizedBox(
+                width: cw(200),
                 child: DropdownButtonFormField<String>(
                   initialValue: _selectedStatus,
                   dropdownColor: AppColor.red,
@@ -1022,15 +1050,19 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                   },
                 ),
               ),
-              SizedBox(width: cw(8)),
-              AppButton(
-                progressSize: 5,
-                isLoading: _saving,
-                width: cw(35),
-                onPressed: _save,
-                text: "Save",
-                color: AppColor.green,
-                textColor: AppColor.cFFFFFF,
+              Spacer(),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 100, minWidth: 50),
+                child: AppButton(
+                  progressSize: 5,
+                  isLoading: _saving,
+                  width: cw(30),
+                  onPressed: _save,
+                  text: "Save",
+                  fontSize: AppFontSize.f12,
+                  color: AppColor.green,
+                  textColor: AppColor.cFFFFFF,
+                ),
               ),
               if (p.status.toLowerCase() == 'pending' ||
                   p.status.toLowerCase() == 'overdue') ...[
@@ -1077,12 +1109,15 @@ class _SummaryCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: AppFontSize.f11,
-                    color: AppColor.cFFFFFF,
-                  ),
+                child: AppText(
+                  txt: title,
+                  // style: TextStyle(
+                  fontSize: AppFontSize.f15,
+                  color: AppColor.cFFFFFF,
+                  // ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  // ),
                 ),
               ),
               Container(
@@ -1102,19 +1137,16 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: ch(8.1)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppFontSize.f16,
-              fontWeight: FontWeight.w700,
-              color: AppColor.cFFFFFF,
-            ),
+          AppText(
+            txt: value,
+            // style: TextStyle(
+            fontSize: AppFontSize.f16,
+            fontWeight: FontWeight.w700,
+            color: AppColor.cFFFFFF,
+            // ),
           ),
-          SizedBox(height: ch(2.4)),
-          Text(
-            sub,
-            style: TextStyle(fontSize: AppFontSize.f9, color: iconColor),
-          ),
+          SizedBox(height: ch(5)),
+          AppText(txt: sub, fontSize: AppFontSize.f14, color: iconColor),
         ],
       ),
     ),

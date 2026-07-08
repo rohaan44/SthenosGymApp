@@ -24,12 +24,13 @@ List<CameraDescription> cameras = [];
 
 /// App-level navigator key used by [InactivityService] to navigate
 /// without a BuildContext (safe from timer callbacks).
-final GlobalKey<NavigatorState> appNavigatorKey =
-    GlobalKey<NavigatorState>(debugLabel: 'app-nav-key');
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'app-nav-key',
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     cameras = await availableCameras();
   } catch (_) {
@@ -47,7 +48,7 @@ Future<void> main() async {
 
   try {
     await Firebase.initializeApp(
-      options: AppConfig.isProd
+      options: AppConfig.isDev
           ? prod.DefaultFirebaseOptions.currentPlatform
           : dev.DefaultFirebaseOptions.currentPlatform,
     );
@@ -86,9 +87,7 @@ class AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => GymProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => GymProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MembersProvider()),
         ChangeNotifierProvider(create: (_) => FirestoreTestProvider()),
@@ -110,7 +109,8 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: "Sthenos Gym",
           navigatorKey: appNavigatorKey,
-          builder: (context, child) => NoInternetOverlay(child: child ?? const SizedBox()),
+          builder: (context, child) =>
+              NoInternetOverlay(child: child ?? const SizedBox()),
 
           home:
               // AdminAuthDialog(),
@@ -279,9 +279,13 @@ class MyApp extends StatelessWidget {
 
 Future<bool> _hasInternetBeforeInit() async {
   try {
-    final response = await http.get(
-      Uri.parse('https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js'),
-    ).timeout(const Duration(seconds: 3));
+    final response = await http
+        .get(
+          Uri.parse(
+            'https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js',
+          ),
+        )
+        .timeout(const Duration(seconds: 3));
     return response.statusCode == 200;
   } catch (_) {
     return false;
@@ -308,7 +312,8 @@ class _FirebaseInitFailureApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _InitErrorScreen(
       title: 'Initialization Failed',
-      message: 'Unable to connect to the server. Please check your connection and try again.',
+      message:
+          'Unable to connect to the server. Please check your connection and try again.',
       icon: Icons.error_outline_rounded,
     );
   }
@@ -387,7 +392,10 @@ class _InitErrorScreen extends StatelessWidget {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFE53935), // AppColor.red
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

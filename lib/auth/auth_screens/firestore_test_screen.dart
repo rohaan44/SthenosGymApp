@@ -19,7 +19,7 @@ class FirestoreTestScreen extends StatelessWidget {
                   onPressed: provider.isLoading
                       ? null
                       : () {
-                          provider.saveDummyData();
+                          // provider.saveDummyData();
                         },
                   child: provider.isLoading
                       ? const CircularProgressIndicator()

@@ -404,29 +404,25 @@ class _RailNav extends StatelessWidget {
     final selectedIndex = navProvider.selectedIndex;
 
     return Container(
-      color: Colors.red,
+      color: AppColor.c151515,
       child: Column(
         children: [
           SizedBox(height: ch(12.2)),
           // Mini logo
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColor.cFFFFFF,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.fitness_center,
-              color: Colors.white,
-              size: 22,
-            ),
+          Image.asset(
+            AssetUtils.tabletLogo,
+            // color: AppColor.cFFFFFF,
+            width: cw(60),
+            height: ch(60),
+            fit: BoxFit.contain,
           ),
           SizedBox(height: ch(8.1)),
-          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const Divider(height: 1, color: Color(0xFF2E2E2E)),
           SizedBox(height: ch(4.1)),
           Expanded(
             child: NavigationRail(
-              backgroundColor: Colors.white,
+              backgroundColor: AppColor.c151515,
+              indicatorColor: const Color(0xFFDB2016).withValues(alpha: 0.15),
               selectedIndex: selectedIndex < navItems.length
                   ? selectedIndex
                   : 0,
@@ -434,21 +430,21 @@ class _RailNav extends StatelessWidget {
                   _handleNavTap(context, index, navItems),
               labelType: NavigationRailLabelType.selected,
               selectedIconTheme: const IconThemeData(
-                color: Color(0xFF2563EB),
-                size: 22,
+                color: Color(0xFFDB2016),
+                size: 24,
               ),
-              unselectedIconTheme: const IconThemeData(
-                color: Color(0xFF6B7280),
+              unselectedIconTheme: IconThemeData(
+                color: AppColor.cFFFFFF.withValues(alpha: 0.5),
                 size: 22,
               ),
               selectedLabelTextStyle: TextStyle(
                 color: AppColor.cFFFFFF,
-                fontSize: AppFontSize.f12,
+                fontSize: AppFontSize.f11,
                 fontWeight: FontWeight.w600,
               ),
               unselectedLabelTextStyle: TextStyle(
-                color: const Color(0xFF6B7280),
-                fontSize: AppFontSize.f12,
+                color: AppColor.cFFFFFF.withValues(alpha: 0.5),
+                fontSize: AppFontSize.f11,
               ),
               destinations: navItems
                   .map(
@@ -586,7 +582,6 @@ class _MobileDrawer extends StatelessWidget {
                     AssetUtils.titleLogo1,
                     color: AppColor.cFFFFFF,
                     width: cw(100),
-                    
                   ),
                 ],
               ),

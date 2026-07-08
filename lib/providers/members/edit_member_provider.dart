@@ -12,7 +12,6 @@ import 'package:image_picker/image_picker.dart';
 class EditMemberProvider extends ChangeNotifier {
   Member? originalMember;
   final formKey = GlobalKey<FormState>();
-
   final emergencyCtrl = TextEditingController();
   final cnicCtrl = TextEditingController();
   final injuryCtrl = TextEditingController();
@@ -57,8 +56,6 @@ class EditMemberProvider extends ChangeNotifier {
     'One-time Full Payment',
   ];
 
-
-
   String membership = membershipPlans.first;
   final List<String> fitnessGoals = [];
   String? otherGoal;
@@ -68,7 +65,7 @@ class EditMemberProvider extends ChangeNotifier {
   String billingFrequency = billingFrequencies.first;
 
   XFile? imageFile;
-  String? imageUrl; // class-level so saveData() can access it
+  String? imageUrl; // clas
   bool isLoading = false;
 
   CameraController? cameraController;
