@@ -33,16 +33,34 @@ class PaymentsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Applies the current search + status filter to a list of payments.
-  List<Payment> filtered(List<Payment> payments) => payments.where((p) {
-    final matchSearch =
-        p.member.toLowerCase().contains(_search.toLowerCase()) ||
-        p.invoiceId.toLowerCase().contains(_search.toLowerCase());
-    final matchStatus =
-        _filterStatus == 'all' ||
-        p.status.toLowerCase() == _filterStatus.toLowerCase();
-    return matchSearch && matchStatus;
-  }).toList();
+  /// Applies the current search + status filter to a list of payments,
+  /// keeping only the latest invoice for each member.
+  List<Payment> filtered(List<Payment> payments) {
+    // 1. First apply search and status filters
+    final filteredList = payments.where((p) {
+      final matchSearch =
+          p.member.toLowerCase().contains(_search.toLowerCase()) ||
+          p.invoiceId.toLowerCase().contains(_search.toLowerCase());
+      final matchStatus =
+          _filterStatus == 'all' ||
+          p.status.toLowerCase() == _filterStatus.toLowerCase();
+      return matchSearch && matchStatus;
+    }).toList();
+
+    // 2. Since payments is sorted descending by timestamp, the first payment
+    // seen for each member is the latest. Filter the list to keep only that one.
+    final seenMembers = <String>{};
+    final uniquePayments = <Payment>[];
+    for (final p in filteredList) {
+      final key = p.memberId.isNotEmpty ? p.memberId : p.member;
+      if (!seenMembers.contains(key)) {
+        seenMembers.add(key);
+        uniquePayments.add(p);
+      }
+    }
+
+    return uniquePayments;
+  }
 
   Future<String?> handleExport() async {
     if (_isExporting) return null; // guard against double taps
