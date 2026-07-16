@@ -1,8 +1,4 @@
-// ignore_for_file: unused_element_parameter
-
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:app/models/models.dart';
 import 'package:app/providers/members/edit_member_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
@@ -23,10 +19,6 @@ import '../../ui/utils/app_text.dart';
 import '../../ui/helpers/font_size_helper.dart';
 import '../../ui/helpers/app_layout_helper.dart';
 
-// / All mutable state lives exclusively in [EditMemberProvider].
-/// This widget contains zero setState / StatefulWidget usage.
-/// It is split into targeted Consumer sections so only the widgets
-/// that actually depend on changing state are rebuilt.
 class EditMemberScreen extends StatefulWidget {
   const EditMemberScreen({super.key});
 
