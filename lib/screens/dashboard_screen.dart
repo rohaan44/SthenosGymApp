@@ -2,6 +2,7 @@ import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
@@ -18,6 +19,16 @@ import '../service/firestore_service.dart';
 /// the dashboard metrics and cards to update in real-time without manual refreshes.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
+
+  static bool _isThisMonth(String dateStr, DateTime reference) {
+    if (dateStr.isEmpty) return false;
+    try {
+      final d = DateTime.parse(dateStr);
+      return d.year == reference.year && d.month == reference.month;
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +69,12 @@ class DashboardScreen extends StatelessWidget {
                 .where((p) => p.status == 'Paid')
                 .fold(0.0, (s, p) => s + p.amount);
 
+            // Compute monthly revenue from Paid payments in the current month and year
+            final now = DateTime.now();
+            final monthlyRevenue = payments
+                .where((p) => p.status == 'Paid' && _isThisMonth(p.date, now))
+                .fold(0.0, (s, p) => s + p.amount);
+
             // (Attendance is now fetched locally where it is built to prevent broad rebuilds)
 
             return Scaffold(
@@ -84,14 +101,14 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     SizedBox(height: ch(20.3)),
 
-                    // ── Stat cards (1 Row mein 4 Containers fixed for Web/Desktop) ──
+                    // ── Stat cards (1 Row mein 3 Containers fixed for Web/Desktop) ──
                     LayoutBuilder(
                       builder: (context, constraints) {
                         double cardWidth;
 
-                        // Desktop / Web View (> 900px) -> 4 Cards in 1 Row
+                        // Desktop / Web View (> 900px) -> 3 Cards in 1 Row
                         if (constraints.maxWidth > 900) {
-                          cardWidth = (constraints.maxWidth - 48) / 4;
+                          cardWidth = (constraints.maxWidth - 32) / 3;
                         }
                         // Tablet View (600px se 900px) -> 2 Cards in 1 Row
                         else if (constraints.maxWidth > 600) {
@@ -101,6 +118,8 @@ class DashboardScreen extends StatelessWidget {
                         else {
                           cardWidth = constraints.maxWidth;
                         }
+
+                        final monthName = DateFormat.MMMM().format(now);
 
                         return Wrap(
                           spacing: 16.0, // Horizontal space
@@ -121,9 +140,22 @@ class DashboardScreen extends StatelessWidget {
                             SizedBox(
                               width: cardWidth,
                               child: _StatCard(
-                                title: 'Revenue',
+                                title: '$monthName Revenue',
+                                value: 'Rs. ${monthlyRevenue.toInt()}',
+                                subtitle: 'This month',
+                                isRupeeIcon: true,
+                                icon: Icons.calendar_month,
+                                iconColor: const Color(0xFF10B981),
+                                iconBg: const Color(0xFFECFDF5),
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StatCard(
+                                title: 'Total Revenue',
                                 value: 'Rs. ${totalRevenue.toInt()}',
-                                subtitle: 'this month',
+                                subtitle: 'All-time',
                                 isRupeeIcon: true,
                                 icon: Icons.attach_money,
                                 iconColor: const Color(0xFFD97706),
