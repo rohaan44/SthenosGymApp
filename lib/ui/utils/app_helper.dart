@@ -114,3 +114,10 @@ String commaAmountFormatter(amount, {bool twoDecimal = false}) {
   );
   return formattedAmount;
 }
+
+
+// FirebaseMessaging.onMessageOpenedApp.listen((message) {
+
+//   debugPrint(message.data.toString());
+
+// });

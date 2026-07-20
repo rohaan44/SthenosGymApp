@@ -1,4 +1,5 @@
 import 'package:app/auth/auth_providers/auth_provider.dart';
+import 'package:app/main.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
@@ -965,7 +966,7 @@ Future<void> showLogoutDialog(BuildContext context) async {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(10),
                           onTap: () async {
-                            await model.logout(context);
+                            await model.logoutContextFree(appNavigatorKey);
                           },
                           child: Container(
                             height: 48,

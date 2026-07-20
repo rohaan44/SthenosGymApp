@@ -8,6 +8,7 @@ import 'package:app/providers/gym_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
 import 'package:app/service/connectivity_service.dart';
+import 'package:app/service/fcm_services/fcm_services.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/routes/routes.dart';
 import 'package:app/widgets/no_internet_overlay.dart';
@@ -53,11 +54,15 @@ Future<void> main() async {
           : dev.DefaultFirebaseOptions.currentPlatform,
     );
 
+    await FCMService.instance.initialize();
+
     await ConnectivityService().initialize();
   } catch (e) {
     runApp(const _FirebaseInitFailureApp());
     return;
   }
+
+
 
   /// Status Bar
   SystemChrome.setSystemUIOverlayStyle(
