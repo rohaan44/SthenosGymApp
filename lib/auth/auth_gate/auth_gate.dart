@@ -3,6 +3,7 @@ import 'package:app/auth/auth_screens/admin_signin/admin_sign_in.dart';
 import 'package:app/main.dart';
 import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/service/inactivity_service.dart';
+import 'package:app/service/fcm_services/notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -61,8 +62,9 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          // User is authenticated — ensure the inactivity service is running.
+          // User is authenticated — ensure the inactivity service and FCM token storage are active.
           _startInactivityService(authProvider);
+          NotificationService.instance.initializeFCM();
           return const MainDashboardScreen();
         }
 

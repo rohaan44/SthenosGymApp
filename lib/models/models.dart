@@ -1,3 +1,5 @@
+import '../utils/payment_status_calculator.dart';
+
 class Member {
   /// Firestore document ID — scopes payment queries and write updates.
   final String docId;
@@ -181,6 +183,9 @@ class Payment {
   /// Server-side timestamp — used for ordering and display.
   final DateTime? timestamp;
 
+  /// Tracks the last status for which a push notification was sent ("Pending" / "Overdue").
+  final String? notifiedStatus;
+
   Payment({
     this.docId = '',
     required this.id,
@@ -195,12 +200,19 @@ class Payment {
     this.gymId = '',
     this.memberId = '',
     this.timestamp,
+    this.notifiedStatus,
   });
 
   factory Payment.fromFirestore(Map<String, dynamic> data, String docId) {
     final rawGymId = data['gymId']?.toString() ?? '';
     final rawMemberId = data['memberId']?.toString() ?? '';
     final gymIdVal = rawGymId.isNotEmpty ? rawGymId : rawMemberId;
+
+    final dateStr = data['date']?.toString() ?? '';
+    final planStr = data['plan']?.toString() ?? '';
+
+    // Dynamic runtime payment status calculation (Option A - pure in-memory read)
+    final computedStatus = calculatePaymentStatus(dateStr, planStr);
 
     // Safely parse Firestore Timestamp → DateTime
     DateTime? ts;
@@ -219,15 +231,16 @@ class Payment {
       id: 0,
       member: data['member'] ?? '',
       amount: (data['amount'] ?? 0).toDouble(),
-      plan: data['plan'] ?? '',
+      plan: planStr,
       method: data['method'] ?? '',
-      status: data['status'] ?? 'Pending',
-      date: data['date'] ?? '',
-      dueDate: data['date'] ?? '',
+      status: computedStatus,
+      date: dateStr,
+      dueDate: dateStr,
       invoiceId: data['invoiceId'] ?? docId,
       gymId: gymIdVal,
       memberId: rawMemberId,
       timestamp: ts,
+      notifiedStatus: data['notifiedStatus']?.toString(),
     );
   }
 
@@ -243,6 +256,7 @@ class Payment {
     'invoiceId': invoiceId,
     'gymId': gymId,
     'memberId': memberId,
+    'notifiedStatus': notifiedStatus,
   };
 }
 
