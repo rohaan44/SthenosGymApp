@@ -1,6 +1,5 @@
 // ignore_for_file: unused_element_parameter
 
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:app/models/models.dart';

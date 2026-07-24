@@ -1,3 +1,5 @@
+import 'package:app/providers/main_dashboard_provider.dart';
+import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
@@ -68,19 +70,40 @@ class DashboardScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: ch(8.1)),
-                    AppText(
-                      txt: "Dashboard",
-                      fontSize: AppFontSize.f19,
-                      fontWeight: FontWeight.w600,
-                      // color: const Color(0xFF111827),
-                    ),
-                    SizedBox(height: ch(8)),
-                    AppText(
-                      txt: "Welcome back! Here's what's happening today.",
-                      fontSize: AppFontSize.f15,
-                      fontWeight: FontWeight.w500,
-                      // color: const Color(0xFF6B7280),
-                      color: const Color(0xFF6B7280),
+                    Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText(
+                              txt: "Dashboard",
+                              fontSize: AppFontSize.f19,
+                              fontWeight: FontWeight.w600,
+                              // color: const Color(0xFF111827),
+                            ),
+                            SizedBox(height: ch(8)),
+                            AppText(
+                              txt:
+                                  "Welcome back! Here's what's happening today.",
+                              fontSize: AppFontSize.f15,
+                              fontWeight: FontWeight.w500,
+                              // color: const Color(0xFF6B7280),
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 20),
+
+                        if (isPhone(context))
+                          SizedBox.shrink()
+                        else ...[
+                          notificationButton(
+                            isWeb: true,
+                            context: context,
+                            model: MainDashboardProvider(),
+                          ),
+                        ],
+                      ],
                     ),
                     SizedBox(height: ch(20.3)),
 

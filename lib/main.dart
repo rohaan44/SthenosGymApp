@@ -5,6 +5,7 @@ import 'package:app/config/app_config.dart';
 import 'package:app/firebase_options_dev.dart' as dev;
 import 'package:app/firebase_options_prod.dart' as prod;
 import 'package:app/providers/gym_provider.dart';
+import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
 import 'package:app/providers/payment_provider.dart';
 import 'package:app/service/connectivity_service.dart';
@@ -62,8 +63,6 @@ Future<void> main() async {
     return;
   }
 
-
-
   /// Status Bar
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -93,6 +92,7 @@ class AppRoot extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => GymProvider()),
+        ChangeNotifierProvider(create: (_) => MainDashboardProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MembersProvider()),
         ChangeNotifierProvider(create: (_) => FirestoreTestProvider()),

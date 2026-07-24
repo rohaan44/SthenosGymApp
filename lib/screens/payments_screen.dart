@@ -1,4 +1,6 @@
+import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/providers/payment_provider.dart';
+import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/service/firestore_service.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
@@ -6,7 +8,6 @@ import 'package:app/ui/utils/app_primary_button.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../shared_widgets.dart';
@@ -150,7 +151,27 @@ class _PaymentsHeader extends StatelessWidget {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [titleBlock, _exportButton(context)],
+      children: [
+        Row(
+          children: [
+            titleBlock,
+
+            SizedBox(width: 20),
+
+            if (isPhone(context))
+              SizedBox.shrink()
+            else ...[
+              notificationButton(
+                isWeb: true,
+                context: context,
+                model: MainDashboardProvider(),
+              ),
+            ],
+          ],
+        ),
+
+        _exportButton(context),
+      ],
     );
   }
 }
