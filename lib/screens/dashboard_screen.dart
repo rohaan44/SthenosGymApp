@@ -4,6 +4,7 @@ import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
@@ -95,14 +96,17 @@ class DashboardScreen extends StatelessWidget {
                         SizedBox(width: 20),
 
                         if (isPhone(context))
-                          SizedBox.shrink()
-                        else ...[
-                          notificationButton(
-                            isWeb: true,
-                            context: context,
-                            model: MainDashboardProvider(),
+                          const SizedBox.shrink()
+                        else
+                          Consumer<MainDashboardProvider>(
+                            builder: (context, dashboardModel, _) {
+                              return notificationButton(
+                                isWeb: true,
+                                context: context,
+                                model: dashboardModel,
+                              );
+                            },
                           ),
-                        ],
                       ],
                     ),
                     SizedBox(height: ch(20.3)),

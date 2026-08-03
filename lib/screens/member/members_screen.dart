@@ -94,14 +94,17 @@ class MembersScreen extends StatelessWidget {
                           SizedBox(width: 20),
 
                           if (isPhone(context))
-                            SizedBox.shrink()
-                          else ...[
-                            notificationButton(
-                              isWeb: true,
-                              context: context,
-                              model: MainDashboardProvider(),
+                            const SizedBox.shrink()
+                          else
+                            Consumer<MainDashboardProvider>(
+                              builder: (context, dashboardModel, _) {
+                                return notificationButton(
+                                  isWeb: true,
+                                  context: context,
+                                  model: dashboardModel,
+                                );
+                              },
                             ),
-                          ],
                         ],
                       ),
 

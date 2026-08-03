@@ -5,6 +5,7 @@ import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
 import 'package:app/screens/payments_screen.dart';
 import 'package:app/service/inactivity_service.dart';
+import 'package:app/ui/app_primary_button.dart';
 import 'package:app/ui/custom_gradient.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
@@ -13,9 +14,11 @@ import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/asset_utils.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:universal_html/html.dart' as html;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Common tap handler used by all nav widgets (sidebar, rail, drawer)
@@ -115,8 +118,6 @@ class MainDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = context.read<MainDashboardProvider>();
-
     // ── Inactivity detection wrapper ─────────────────────────────────────────
     // A single Listener at the authenticated root intercepts every pointer
     // event (tap, scroll, drag, swipe) app-wide and resets the inactivity
@@ -192,10 +193,14 @@ class MainDashboardScreen extends StatelessWidget {
                   AppText(txt: "Sthenos Gym"),
                   SizedBox(width: cw(8)),
 
-                  notificationButton(
-                    context: context,
-                    model: model,
-                    isWeb: false,
+                  Consumer<MainDashboardProvider>(
+                    builder: (context, dashboardModel, _) {
+                      return notificationButton(
+                        context: context,
+                        model: dashboardModel,
+                        isWeb: false,
+                      );
+                    },
                   ),
                   SizedBox(width: cw(20)),
                 ],
@@ -290,11 +295,12 @@ OverlayEntry buildNotificationOverlay(
 
           Positioned(
             top: position.dy + 48,
-            right: 20,
+            left: position.dx - 80,
+            // right: 150,
             child: Material(
               color: Colors.transparent,
               child: Container(
-                width: cw(245),
+                width: cw(135),
                 constraints: const BoxConstraints(maxHeight: 420),
                 decoration: BoxDecoration(
                   color: AppColor.c252525,
@@ -326,14 +332,11 @@ OverlayEntry buildNotificationOverlay(
 
                           const SizedBox(width: 8),
 
-                          const Expanded(
-                            child: Text(
-                              "Notifications",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                          Expanded(
+                            child: AppText(
+                              txt: "Notifications",
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
 
@@ -368,6 +371,23 @@ OverlayEntry buildNotificationOverlay(
                             return Column(
                               children: [
                                 NotificationTile(
+                                  onNotificationTap: () {},
+                                  sendReminder: () {
+                                    final rawPhone =
+                                        item["phone"]?.toString() ?? "";
+                                    final phone = rawPhone.replaceAll(
+                                      RegExp(r'\D'),
+                                      '',
+                                    );
+                                    if (phone.isNotEmpty) {
+                                      final message = Uri.encodeComponent(
+                                        "your fees monthly has beeen expired kindly pay the fees",
+                                      );
+                                      final url =
+                                          "https://wa.me/$phone?text=$message";
+                                      html.window.open(url, '_blank');
+                                    }
+                                  },
                                   color: item["color"],
                                   icon: item["icon"],
                                   title: item["title"],
@@ -453,6 +473,8 @@ class NotificationTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final String time;
+  final VoidCallback onNotificationTap;
+  final VoidCallback sendReminder;
 
   const NotificationTile({
     super.key,
@@ -461,52 +483,57 @@ class NotificationTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.time,
+    required this.sendReminder,
+    required this.onNotificationTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        // Open Member Detail
-      },
+      onTap: onNotificationTap,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
               radius: 18,
               backgroundColor: color.withOpacity(.15),
               child: Icon(icon, color: color, size: 20),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  AppText(
+                    txt: title,
+                    fontSize: AppFontSize.f15 - 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.cFFFFFF,
                   ),
-
                   const SizedBox(height: 4),
-
-                  Text(
-                    subtitle,
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                  AppText(
+                    txt: "$subtitle • $time",
+                    color: Colors.grey.shade400,
+                    fontSize: AppFontSize.f14,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-
-            Text(
-              time,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            const SizedBox(width: 8),
+            AppButton(
+              width: 95,
+              height: 28,
+              borderRadius: 6,
+              fontSize: 10,
+              buttonColor: AppColor.primary,
+              textColor: AppColor.cFFFFFF,
+              text: "Send Reminder",
+              onPressed: sendReminder,
             ),
           ],
         ),
@@ -604,15 +631,13 @@ class _SidebarNav extends StatelessWidget {
                             : const Color(0xFF6B7280),
                       ),
                       SizedBox(width: cw(3.8)),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: AppFontSize.f12,
-                          fontWeight: FontWeight.w500,
-                          color: isActive
-                              ? AppColor.cFFFFFF
-                              : const Color(0xFF374151),
-                        ),
+                      AppText(
+                        txt: item.label,
+                        fontSize: AppFontSize.f12,
+                        fontWeight: FontWeight.w500,
+                        color: isActive
+                            ? AppColor.cFFFFFF
+                            : const Color(0xFF374151),
                       ),
                     ],
                   ),
@@ -1377,15 +1402,13 @@ Widget notificationButton({
               border: Border.all(color: AppColor.cFFFFFF, width: 1),
             ),
             child: Center(
-              child: Text(
-                model.notifications.length > 99
+              child: AppText(
+                txt: model.notifications.length > 99
                     ? "99+"
                     : model.notifications.length.toString(),
-                style: TextStyle(
-                  fontSize: badgeFont,
-                  fontWeight: FontWeight.bold,
-                  color: AppColor.cFFFFFF,
-                ),
+                fontSize: badgeFont,
+                fontWeight: FontWeight.bold,
+                color: AppColor.cFFFFFF,
               ),
             ),
           ),
