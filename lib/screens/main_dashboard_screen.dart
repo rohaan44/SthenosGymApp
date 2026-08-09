@@ -3,6 +3,7 @@ import 'package:app/main.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
+import 'package:app/screens/mobile_notification_screen/mobile_notification_screen.dart';
 import 'package:app/screens/payments_screen.dart';
 import 'package:app/service/inactivity_service.dart';
 import 'package:app/ui/app_primary_button.dart';
@@ -14,7 +15,6 @@ import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/asset_utils.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -1364,13 +1364,32 @@ Widget notificationButton({
       GestureDetector(
         key: notificationKey,
         onTap: () {
-          if (notificationOverlay == null) {
-            notificationOverlay = buildNotificationOverlay(context, model);
-            Overlay.of(context).insert(notificationOverlay!);
+          if (isPhone(context) || isTablet(context)) {
+            {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MobileNotificationScreen(),
+                ),
+              );
+            }
           } else {
-            notificationOverlay!.remove();
-            notificationOverlay = null;
+            if (notificationOverlay == null) {
+              notificationOverlay = buildNotificationOverlay(context, model);
+              Overlay.of(context).insert(notificationOverlay!);
+            } else {
+              notificationOverlay!.remove();
+              notificationOverlay = null;
+            }
           }
+
+          // if (notificationOverlay == null) {
+          //   notificationOverlay = buildNotificationOverlay(context, model);
+          //   Overlay.of(context).insert(notificationOverlay!);
+          // } else {
+          //   notificationOverlay!.remove();
+          //   notificationOverlay = null;
+          // }
         },
         child: Container(
           width: buttonSize,
