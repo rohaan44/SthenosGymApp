@@ -326,7 +326,7 @@ class _PaymentsBody extends StatelessWidget {
                           children: [
                             AppText(
                               txt: 'Payment History (${filtered.length})',
-                              fontSize: AppFontSize.f13,
+                              fontSize: AppFontSize.f16,
                               fontWeight: FontWeight.w600,
                             ),
                             if (filtered.isEmpty &&
@@ -391,7 +391,7 @@ class _PaymentsBody extends StatelessWidget {
                                       SizedBox(height: ch(8)),
                                       AppText(
                                         txt: 'No payments found',
-                                        fontSize: AppFontSize.f13,
+                                        fontSize: AppFontSize.f15,
                                         color: const Color(0xFF9CA3AF),
                                       ),
                                     ],
@@ -871,7 +871,7 @@ class _MobilePaymentList extends StatelessWidget {
             'No payments found',
             style: TextStyle(
               color: const Color(0xFF9CA3AF),
-              fontSize: AppFontSize.f12,
+              fontSize: AppFontSize.f15,
             ),
           ),
         ),
@@ -955,75 +955,75 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
             children: [
               Row(
                 children: [
-                  Text(
-                    'Gym ID: ${p.gymId}',
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColor.cFFFFFF,
-                    ),
+                  AppText(
+                    txt: 'Gym ID: ${p.gymId}',
+                    // style: TextStyle(
+                    fontSize: AppFontSize.f11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.cFFFFFF,
                   ),
-                  SizedBox(width: cw(8.0)),
-                  Text(
-                    p.invoiceId,
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      fontFamily: 'monospace',
-                      color: const Color(0xFF9CA3AF),
-                    ),
+                  // ),
+                  SizedBox(width: cw(5.0)),
+                  AppText(
+                    txt: p.invoiceId,
+                    // style: TextStyle(
+                    fontSize: AppFontSize.f11,
+                    // fontFamily: 'monospace',
+                    color: const Color(0xFF9CA3AF),
+                    // ),
                   ),
                 ],
               ),
               StatusBadge(status: p.status),
             ],
           ),
-          SizedBox(height: ch(4.1)),
+          SizedBox(height: ch(5)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                p.member,
-                style: TextStyle(
-                  fontSize: AppFontSize.f14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColor.cFFFFFF,
-                ),
+              AppText(
+                txt: p.member,
+                // style: TextStyle(
+                fontSize: AppFontSize.f15,
+                fontWeight: FontWeight.w600,
+                color: AppColor.cFFFFFF,
+                // ),
               ),
-              Text(
-                'Rs. ${p.amount.toInt()}',
-                style: TextStyle(
-                  fontSize: AppFontSize.f14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColor.cFFFFFF,
-                ),
+              AppText(
+                txt: 'Rs. ${p.amount.toInt()}',
+                // style: TextStyle(
+                fontSize: AppFontSize.f14,
+                fontWeight: FontWeight.w700,
+                color: AppColor.cFFFFFF,
               ),
+              // ),
             ],
           ),
-          SizedBox(height: ch(6.5)),
+          SizedBox(height: ch(6)),
           Row(
             children: [
               _PlanChip(plan: p.plan),
               SizedBox(width: cw(7.5)),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.credit_card_outlined,
-                    size: 12,
+                    size: cw(20),
                     color: Color(0xFF9CA3AF),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    p.method,
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      color: const Color(0xFF6B7280),
-                    ),
+                  SizedBox(width: cw(4)),
+                  AppText(
+                    txt: p.method,
+                    // style: TextStyle(
+                    fontSize: AppFontSize.f12,
+                    color: const Color(0xFF6B7280),
+                    // ),
                   ),
                 ],
               ),
             ],
           ),
-          SizedBox(height: ch(4.1)),
+          SizedBox(height: ch(8)),
           Row(
             children: [
               const Icon(
@@ -1031,13 +1031,13 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                 size: 12,
                 color: AppColor.cFFFFFF,
               ),
-              const SizedBox(width: 4),
-              Text(
-                'Paid: ${p.date}',
-                style: TextStyle(
-                  fontSize: AppFontSize.f10,
-                  color: AppColor.cFFFFFF,
-                ),
+              SizedBox(width: cw(4)),
+              AppText(
+                txt: 'Paid: ${p.date}',
+                // style: TextStyle(
+                fontSize: AppFontSize.f10,
+                color: AppColor.cFFFFFF,
+                // ),
               ),
             ],
           ),
@@ -1045,8 +1045,12 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
           Row(
             children: [
               SizedBox(
-                width: cw(200),
+                width: cw(170),
                 child: DropdownButtonFormField<String>(
+                  style: TextStyle(
+                    fontSize: AppFontSize.f15,
+                    color: AppColor.cFFFFFF,
+                  ),
                   initialValue: _selectedStatus,
                   dropdownColor: AppColor.red,
                   decoration: customInputDecoration(label: 'Status').copyWith(
@@ -1058,15 +1062,15 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                   items: [
                     DropdownMenuItem(
                       value: 'Paid',
-                      child: AppText(txt: 'Paid'),
+                      child: AppText(txt: 'Paid', fontSize: AppFontSize.f14),
                     ),
                     DropdownMenuItem(
                       value: 'Pending',
-                      child: AppText(txt: 'Pending'),
+                      child: AppText(txt: 'Pending', fontSize: AppFontSize.f14),
                     ),
                     DropdownMenuItem(
                       value: 'Overdue',
-                      child: AppText(txt: 'Overdue'),
+                      child: AppText(txt: 'Overdue', fontSize: AppFontSize.f14),
                     ),
                   ],
                   onChanged: (v) {
@@ -1083,14 +1087,14 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                   width: cw(30),
                   onPressed: _save,
                   text: "Save",
-                  fontSize: AppFontSize.f12,
+                  fontSize: AppFontSize.f11,
                   color: AppColor.green,
                   textColor: AppColor.cFFFFFF,
                 ),
               ),
               if (p.status.toLowerCase() == 'pending' ||
                   p.status.toLowerCase() == 'overdue') ...[
-                SizedBox(width: cw(8)),
+                SizedBox(width: cw(10)),
                 IconButton(
                   icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
                   tooltip: 'Pay Fees',

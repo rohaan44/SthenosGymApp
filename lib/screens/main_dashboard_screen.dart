@@ -787,13 +787,10 @@ class _MobileDrawer extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 12),
-                    Text(
-                      "Sthenos Gym",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    AppText(
+                      txt: "Sthenos Gym",
+                      fontSize: AppFontSize.f18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ],
                 ),
@@ -821,16 +818,15 @@ class _MobileDrawer extends StatelessWidget {
                               ? AppColor.cFFFFFF
                               : AppColor.cFFFFFF.withValues(alpha: 0.5),
                         ),
-                        title: Text(
-                          item.label,
-                          style: TextStyle(
-                            color: isSelected
-                                ? AppColor.cFFFFFF
-                                : AppColor.cFFFFFF.withValues(alpha: 0.5),
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
+                        title: AppText(
+                          txt: item.label,
+                          fontSize: AppFontSize.f16,
+                          color: isSelected
+                              ? AppColor.cFFFFFF
+                              : AppColor.cFFFFFF.withValues(alpha: 0.5),
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                         selected: isSelected,
                         onTap: () {

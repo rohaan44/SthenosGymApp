@@ -305,7 +305,7 @@ class _RecentMembersCard extends StatelessWidget {
             AppText(
               txt: 'Recent Members',
               // style: TextStyle(
-              fontSize: AppFontSize.f15,
+              fontSize: AppFontSize.f16,
               color: AppColor.cFFFFFF,
               // ),
               maxLines: 1,
@@ -337,7 +337,7 @@ class _RecentMembersCard extends StatelessWidget {
                                       : 'M',
                                   color: AppColor.blue2,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: AppFontSize.f12,
+                                  fontSize: AppFontSize.f15,
                                 )
                               : null,
                         ),
@@ -349,7 +349,7 @@ class _RecentMembersCard extends StatelessWidget {
                               AppText(
                                 txt: capitalizeFirstLetter(m.name),
                                 // style: TextStyle(
-                                fontSize: AppFontSize.f15,
+                                fontSize: AppFontSize.f16,
                                 fontWeight: FontWeight.w600,
                                 color: AppColor.cFFFFFF,
                                 // ),
@@ -360,7 +360,7 @@ class _RecentMembersCard extends StatelessWidget {
                               AppText(
                                 txt: m.membership,
                                 // style: TextStyle(
-                                fontSize: AppFontSize.f12,
+                                fontSize: AppFontSize.f14,
                                 fontWeight: FontWeight.w500,
                                 color: const Color(0xFF6B7280),
                                 // ),

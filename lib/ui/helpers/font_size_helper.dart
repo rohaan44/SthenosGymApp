@@ -32,15 +32,15 @@ class AppFontSize {
   static double get f20 => _getResponsiveSize(20.0, 17.5);
   static double get f19 => _getResponsiveSize(19.0, 16.0);
   static double get f18 => _getResponsiveSize(18.0, 14.5);
-  static double get f17 => _getResponsiveSize(17.0, 11.3);
+  static double get f17 => _getResponsiveSize(17.0, 16.0);
 
-  static double get f16 => _getResponsiveSize(16.0, 12.5);
-  static double get f15 => _getResponsiveSize(15.0, 14.0);
-  static double get f14 => _getResponsiveSize(14.0, 11.0);
-  static double get f13 => _getResponsiveSize(13.0, 10.2);
-  static double get f12 => _getResponsiveSize(12.0, 9.0);
-  static double get f11 => _getResponsiveSize(11.0, 8.5);
-  static double get f10 => _getResponsiveSize(10.0, 8.0);
-  static double get f9 => _getResponsiveSize(9.0, 7.5);
-  static double get f8 => _getResponsiveSize(8.0, 5.0);
+  static double get f16 => _getResponsiveSize(16.0, 15.5);
+  static double get f15 => _getResponsiveSize(15.0, 15.0);
+  static double get f14 => _getResponsiveSize(14.0, 14);
+  static double get f13 => _getResponsiveSize(13.0, 14.0);
+  static double get f12 => _getResponsiveSize(12.0, 14.5);
+  static double get f11 => _getResponsiveSize(11.0, 14);
+  static double get f10 => _getResponsiveSize(10.0, 14.0);
+  static double get f9 => _getResponsiveSize(9.0, 8.0);
+  static double get f8 => _getResponsiveSize(8.0, 7.0);
 }
