@@ -111,7 +111,7 @@ class EditMemberProvider extends ChangeNotifier {
     imageUrl = member.profileImageUrl ?? "";
     nameCtrl.text = member.name;
     emailCtrl.text = member.email;
-    phoneCtrl.text = member.phone;
+    phoneCtrl.text = formatPhoneForDisplay(member.phone);
     emergencyCtrl.text = member.emergencyContact;
     dobCtrl.text = member.dateOfBirth ?? "";
     addressCtrl.text = member.address ?? "";
@@ -164,7 +164,7 @@ class EditMemberProvider extends ChangeNotifier {
 
     return nameCtrl.text.trim() != originalMember!.name.trim() ||
         emailCtrl.text.trim() != originalMember!.email.trim() ||
-        phoneCtrl.text.trim() != originalMember!.phone.trim() ||
+        formatPhoneNumber(phoneCtrl.text) != formatPhoneNumber(originalMember!.phone) ||
         addressCtrl.text.trim() != (originalMember!.address ?? '').trim() ||
         dobCtrl.text.trim() != (originalMember!.dateOfBirth ?? '').trim() ||
         cnicCtrl.text.trim() != originalMember!.cnic.trim() ||
@@ -379,9 +379,10 @@ class EditMemberProvider extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
+      final formattedPhone = formatPhoneNumber(phoneCtrl.text);
       final duplicate = await _firestore
           .collection('members')
-          .where('phone', isEqualTo: phoneCtrl.text.trim())
+          .where('phone', isEqualTo: formattedPhone)
           .get();
 
       final isDuplicate = duplicate.docs.any(
@@ -393,7 +394,7 @@ class EditMemberProvider extends ChangeNotifier {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Member with phone ${phoneCtrl.text.trim()} already exists',
+                'Member with phone $formattedPhone already exists',
               ),
               backgroundColor: Colors.red,
             ),
@@ -571,7 +572,7 @@ class EditMemberProvider extends ChangeNotifier {
         'gymId': originalMember!.id.toString(),
         'name': nameCtrl.text,
         'email': emailCtrl.text,
-        'phone': phoneCtrl.text.trim(),
+        'phone': formatPhoneNumber(phoneCtrl.text),
         'membership': membership == "Manually"
             ? manuallyAmountCtrl.text
             : membership,
@@ -644,5 +645,25 @@ class EditMemberProvider extends ChangeNotifier {
     otherGoalCtrl.dispose();
     cameraController?.dispose();
     super.dispose();
+  }
+
+  String formatPhoneNumber(String phone) {
+    String digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('0092')) {
+      digits = digits.substring(4);
+    } else if (digits.startsWith('92') && digits.length == 12) {
+      digits = digits.substring(2);
+    } else if (digits.startsWith('0') && digits.length == 11) {
+      digits = digits.substring(1);
+    }
+    return '+92$digits';
+  }
+
+  String formatPhoneForDisplay(String phone) {
+    String digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('92') && digits.length == 12) {
+      return '0' + digits.substring(2);
+    }
+    return phone;
   }
 }

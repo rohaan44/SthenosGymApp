@@ -110,7 +110,7 @@ class AdminSignIn extends StatelessWidget {
                                   ),
                                   onSuffixTap: auth.togglePasswordVisibility,
                                 ),
-                                SizedBox(height: ch(12)),
+                                SizedBox(height: ch(5)),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
@@ -187,6 +187,7 @@ class AdminSignIn extends StatelessWidget {
                                       child: AppText(
                                         txt: "Forgot Password?",
                                         color: AppColor.blue2,
+                                        fontSize: AppFontSize.f15,
                                       ),
                                     ),
                                   ],
