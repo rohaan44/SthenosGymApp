@@ -26,6 +26,8 @@ class Member {
   final String membership;
   final String? billingFrequency;
 
+  String get gymId => id.toString();
+
   Member({
     this.docId = '',
     required this.id,

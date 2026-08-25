@@ -557,78 +557,9 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
     ValueNotifier<String> statusNotifier,
   ) {
     return DataRow(
-      onSelectChanged: (selected) async {
+      onSelectChanged: (selected) {
         if (selected != true) return;
-        if (p.memberId.isEmpty) return;
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          ),
-        );
-
-        try {
-          // 1. Try to find the member in the members collection first.
-          final memberDoc = await FirebaseFirestore.instance
-              .collection('members')
-              .doc(p.memberId)
-              .get();
-
-          Member? member;
-
-          if (memberDoc.exists && memberDoc.data() != null) {
-            member = Member.fromFirestore(memberDoc.data()!, memberDoc.id);
-          } else {
-            // 2. Member record is gone — check if payment history still exists
-            //    for this memberId in the payments collection.
-            final paymentsQuery = await FirebaseFirestore.instance
-                .collection('payments')
-                .where('memberId', isEqualTo: p.memberId)
-                .limit(1)
-                .get();
-
-            if (paymentsQuery.docs.isNotEmpty) {
-              // Build a minimal fallback Member from the payment's own data,
-              // just enough for the payment-history screen to query by memberId.
-              member = Member.fromFirestore({
-                'name': p.member,
-                'gymId': p.gymId,
-                // add any other fields your Member.fromFirestore requires
-                // as sensible defaults/empty strings here
-              }, p.memberId);
-            }
-          }
-
-          if (context.mounted) Navigator.pop(context); // close loading dialog
-
-          if (member == null) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('No member or payment record found'),
-                ),
-              );
-            }
-            return;
-          }
-
-          if (context.mounted) {
-            Navigator.pushNamed(
-              context,
-              AppRoutes.memberPaymentHistory,
-              arguments: member,
-            );
-          }
-        } catch (e) {
-          if (context.mounted) Navigator.pop(context);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error fetching member: $e')),
-            );
-          }
-        }
+        _navigateToMemberPaymentHistory(context, p);
       },
       key: ValueKey(p.docId),
       cells: [
@@ -698,6 +629,80 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
         ),
       ],
     );
+  }
+
+  static Future<void> _navigateToMemberPaymentHistory(
+    BuildContext context,
+    Payment p,
+  ) async {
+    if (p.memberId.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      ),
+    );
+
+    try {
+      // 1. Try to find the member in the members collection first.
+      final memberDoc = await FirebaseFirestore.instance
+          .collection('members')
+          .doc(p.memberId)
+          .get();
+
+      Member? member;
+
+      if (memberDoc.exists && memberDoc.data() != null) {
+        member = Member.fromFirestore(memberDoc.data()!, memberDoc.id);
+      } else {
+        // 2. Member record is gone — check if payment history still exists
+        //    for this memberId in the payments collection.
+        final paymentsQuery = await FirebaseFirestore.instance
+            .collection('payments')
+            .where('memberId', isEqualTo: p.memberId)
+            .limit(1)
+            .get();
+
+        if (paymentsQuery.docs.isNotEmpty) {
+          // Build a minimal fallback Member from the payment's own data,
+          // just enough for the payment-history screen to query by memberId.
+          member = Member.fromFirestore({
+            'name': p.member,
+            'gymId': p.gymId,
+          }, p.memberId);
+        }
+      }
+
+      if (context.mounted) Navigator.pop(context); // close loading dialog
+
+      if (member == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No member or payment record found'),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.memberPaymentHistory,
+          arguments: member,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching member: $e')),
+        );
+      }
+    }
   }
 
   static Future<void> _handlePay(BuildContext context, Payment p) async {
@@ -942,14 +947,24 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
     final p = widget.payment;
     return Container(
       margin: EdgeInsets.only(bottom: ch(9.7)),
-      padding: EdgeInsets.all(cw(11.2)),
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFE5E7EB)),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () =>
+              _DesktopPaymentTableState._navigateToMemberPaymentHistory(
+                context,
+                p,
+              ),
+          child: Padding(
+            padding: EdgeInsets.all(cw(11.2)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1106,8 +1121,11 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+),
+);
+}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -5,7 +5,6 @@ import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:flutter/material.dart';
-import 'package:universal_html/html.dart' as html;
 import 'package:app/utils/whatsapp_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -59,6 +58,9 @@ class MobileNotificationScreen extends StatelessWidget {
       ),
       body: Consumer<MainDashboardProvider>(
         builder: (context, model, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            model.markNotificationsAsSeen();
+          });
           return Column(
             children: [
               /// Header
@@ -126,8 +128,11 @@ class MobileNotificationScreen extends StatelessWidget {
                                 '',
                               );
                               if (phone.isNotEmpty) {
+                                final memberName = item["name"] ?? item["subtitle"] ?? "";
+                                final gymId = item["gymId"] != null ? " (Gym ID: ${item["gymId"]})" : "";
+                                final expiry = item["expiryDate"] != null ? " on ${item["expiryDate"]}" : "";
                                 final message = Uri.encodeComponent(
-                                  "your fees monthly has beeen expired kindly pay the fees",
+                                  "Dear $memberName$gymId, your gym membership fee expired$expiry. Kindly pay your fees at your earliest convenience.",
                                 );
                                 launchWhatsApp(phone, message);
                               }

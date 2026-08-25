@@ -18,7 +18,6 @@ import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:universal_html/html.dart' as html;
 import 'package:app/utils/whatsapp_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -381,8 +380,11 @@ OverlayEntry buildNotificationOverlay(
                                       '',
                                     );
                                     if (phone.isNotEmpty) {
+                                      final memberName = item["name"] ?? item["subtitle"] ?? "";
+                                      final gymId = item["gymId"] != null ? " (Gym ID: ${item["gymId"]})" : "";
+                                      final expiry = item["expiryDate"] != null ? " on ${item["expiryDate"]}" : "";
                                       final message = Uri.encodeComponent(
-                                        "your fees monthly has beeen expired kindly pay the fees",
+                                        "Dear $memberName$gymId, your gym membership fee expired$expiry. Kindly pay your fees at your earliest convenience.",
                                       );
                                       launchWhatsApp(phone, message);
                                     }
@@ -1359,15 +1361,14 @@ Widget notificationButton({
       GestureDetector(
         key: notificationKey,
         onTap: () {
+          model.markNotificationsAsSeen();
           if (isPhone(context) || isTablet(context)) {
-            {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MobileNotificationScreen(),
-                ),
-              );
-            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MobileNotificationScreen(),
+              ),
+            );
           } else {
             if (notificationOverlay == null) {
               notificationOverlay = buildNotificationOverlay(context, model);
@@ -1377,14 +1378,6 @@ Widget notificationButton({
               notificationOverlay = null;
             }
           }
-
-          // if (notificationOverlay == null) {
-          //   notificationOverlay = buildNotificationOverlay(context, model);
-          //   Overlay.of(context).insert(notificationOverlay!);
-          // } else {
-          //   notificationOverlay!.remove();
-          //   notificationOverlay = null;
-          // }
         },
         child: Container(
           width: buttonSize,
@@ -1402,7 +1395,7 @@ Widget notificationButton({
         ),
       ),
 
-      if (model.notifications.isNotEmpty)
+      if (model.unreadNotificationsCount > 0)
         Positioned(
           top: -5,
           right: -2,
@@ -1417,9 +1410,9 @@ Widget notificationButton({
             ),
             child: Center(
               child: AppText(
-                txt: model.notifications.length > 99
+                txt: model.unreadNotificationsCount > 99
                     ? "99+"
-                    : model.notifications.length.toString(),
+                    : model.unreadNotificationsCount.toString(),
                 fontSize: badgeFont,
                 fontWeight: FontWeight.bold,
                 color: AppColor.cFFFFFF,

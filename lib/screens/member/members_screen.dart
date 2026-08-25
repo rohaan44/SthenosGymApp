@@ -910,21 +910,6 @@ class _MobileList extends StatelessWidget {
                 ),
                 // Tap hint
                 SizedBox(height: ch(6)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Icon(
-                      Icons.touch_app_outlined,
-                      size: 11,
-                      color: Color(0xFFD1D5DB),
-                    ),
-                    SizedBox(width: cw(3)),
-                    const Text(
-                      'Tap to view payment history',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFD1D5DB)),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
