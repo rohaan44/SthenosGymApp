@@ -155,17 +155,19 @@ class MemberPaymentHistoryScreen extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      
       automaticallyImplyLeading: false,
       backgroundColor: AppColor.c252525,
       elevation: 0,
+
+      forceMaterialTransparency: true,
       surfaceTintColor: Colors.transparent,
-      leading: SizedBox(width: cw(15)),
-      // IconButton(
-      //   icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-      //   color: const Color(0xFF111827),
-      //   onPressed: () => Navigator.pop(context),
-      // ),
+      leading: isPhone(context)
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              color: AppColor.cFFFFFF,
+              onPressed: () => Navigator.pop(context),
+            )
+          : SizedBox(width: cw(15)),
       titleSpacing: 0,
       title: Row(
         children: [

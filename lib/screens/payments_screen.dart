@@ -1,4 +1,6 @@
+import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/providers/payment_provider.dart';
+import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/service/firestore_service.dart';
 import 'package:app/ui/helpers/color_helper.dart';
 import 'package:app/ui/utils/app_gradient.dart';
@@ -6,7 +8,6 @@ import 'package:app/ui/utils/app_primary_button.dart';
 import 'package:app/ui/utils/app_text.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../shared_widgets.dart';
@@ -150,7 +151,30 @@ class _PaymentsHeader extends StatelessWidget {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [titleBlock, _exportButton(context)],
+      children: [
+        Row(
+          children: [
+            titleBlock,
+
+            SizedBox(width: 20),
+
+            if (isPhone(context))
+              const SizedBox.shrink()
+            else
+              Consumer<MainDashboardProvider>(
+                builder: (context, dashboardModel, _) {
+                  return notificationButton(
+                    isWeb: true,
+                    context: context,
+                    model: dashboardModel,
+                  );
+                },
+              ),
+          ],
+        ),
+
+        _exportButton(context),
+      ],
     );
   }
 }
@@ -302,7 +326,7 @@ class _PaymentsBody extends StatelessWidget {
                           children: [
                             AppText(
                               txt: 'Payment History (${filtered.length})',
-                              fontSize: AppFontSize.f13,
+                              fontSize: AppFontSize.f16,
                               fontWeight: FontWeight.w600,
                             ),
                             if (filtered.isEmpty &&
@@ -367,7 +391,7 @@ class _PaymentsBody extends StatelessWidget {
                                       SizedBox(height: ch(8)),
                                       AppText(
                                         txt: 'No payments found',
-                                        fontSize: AppFontSize.f13,
+                                        fontSize: AppFontSize.f15,
                                         color: const Color(0xFF9CA3AF),
                                       ),
                                     ],
@@ -533,78 +557,9 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
     ValueNotifier<String> statusNotifier,
   ) {
     return DataRow(
-      onSelectChanged: (selected) async {
+      onSelectChanged: (selected) {
         if (selected != true) return;
-        if (p.memberId.isEmpty) return;
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          ),
-        );
-
-        try {
-          // 1. Try to find the member in the members collection first.
-          final memberDoc = await FirebaseFirestore.instance
-              .collection('members')
-              .doc(p.memberId)
-              .get();
-
-          Member? member;
-
-          if (memberDoc.exists && memberDoc.data() != null) {
-            member = Member.fromFirestore(memberDoc.data()!, memberDoc.id);
-          } else {
-            // 2. Member record is gone — check if payment history still exists
-            //    for this memberId in the payments collection.
-            final paymentsQuery = await FirebaseFirestore.instance
-                .collection('payments')
-                .where('memberId', isEqualTo: p.memberId)
-                .limit(1)
-                .get();
-
-            if (paymentsQuery.docs.isNotEmpty) {
-              // Build a minimal fallback Member from the payment's own data,
-              // just enough for the payment-history screen to query by memberId.
-              member = Member.fromFirestore({
-                'name': p.member,
-                'gymId': p.gymId,
-                // add any other fields your Member.fromFirestore requires
-                // as sensible defaults/empty strings here
-              }, p.memberId);
-            }
-          }
-
-          if (context.mounted) Navigator.pop(context); // close loading dialog
-
-          if (member == null) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('No member or payment record found'),
-                ),
-              );
-            }
-            return;
-          }
-
-          if (context.mounted) {
-            Navigator.pushNamed(
-              context,
-              AppRoutes.memberPaymentHistory,
-              arguments: member,
-            );
-          }
-        } catch (e) {
-          if (context.mounted) Navigator.pop(context);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error fetching member: $e')),
-            );
-          }
-        }
+        _navigateToMemberPaymentHistory(context, p);
       },
       key: ValueKey(p.docId),
       cells: [
@@ -674,6 +629,80 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
         ),
       ],
     );
+  }
+
+  static Future<void> _navigateToMemberPaymentHistory(
+    BuildContext context,
+    Payment p,
+  ) async {
+    if (p.memberId.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      ),
+    );
+
+    try {
+      // 1. Try to find the member in the members collection first.
+      final memberDoc = await FirebaseFirestore.instance
+          .collection('members')
+          .doc(p.memberId)
+          .get();
+
+      Member? member;
+
+      if (memberDoc.exists && memberDoc.data() != null) {
+        member = Member.fromFirestore(memberDoc.data()!, memberDoc.id);
+      } else {
+        // 2. Member record is gone — check if payment history still exists
+        //    for this memberId in the payments collection.
+        final paymentsQuery = await FirebaseFirestore.instance
+            .collection('payments')
+            .where('memberId', isEqualTo: p.memberId)
+            .limit(1)
+            .get();
+
+        if (paymentsQuery.docs.isNotEmpty) {
+          // Build a minimal fallback Member from the payment's own data,
+          // just enough for the payment-history screen to query by memberId.
+          member = Member.fromFirestore({
+            'name': p.member,
+            'gymId': p.gymId,
+          }, p.memberId);
+        }
+      }
+
+      if (context.mounted) Navigator.pop(context); // close loading dialog
+
+      if (member == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No member or payment record found'),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.memberPaymentHistory,
+          arguments: member,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching member: $e')),
+        );
+      }
+    }
   }
 
   static Future<void> _handlePay(BuildContext context, Payment p) async {
@@ -847,7 +876,7 @@ class _MobilePaymentList extends StatelessWidget {
             'No payments found',
             style: TextStyle(
               color: const Color(0xFF9CA3AF),
-              fontSize: AppFontSize.f12,
+              fontSize: AppFontSize.f15,
             ),
           ),
         ),
@@ -918,88 +947,98 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
     final p = widget.payment;
     return Container(
       margin: EdgeInsets.only(bottom: ch(9.7)),
-      padding: EdgeInsets.all(cw(11.2)),
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFE5E7EB)),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () =>
+              _DesktopPaymentTableState._navigateToMemberPaymentHistory(
+                context,
+                p,
+              ),
+          child: Padding(
+            padding: EdgeInsets.all(cw(11.2)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  Text(
-                    'Gym ID: ${p.gymId}',
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColor.cFFFFFF,
-                    ),
+                  AppText(
+                    txt: 'Gym ID: ${p.gymId}',
+                    // style: TextStyle(
+                    fontSize: AppFontSize.f11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.cFFFFFF,
                   ),
-                  SizedBox(width: cw(8.0)),
-                  Text(
-                    p.invoiceId,
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      fontFamily: 'monospace',
-                      color: const Color(0xFF9CA3AF),
-                    ),
+                  // ),
+                  SizedBox(width: cw(5.0)),
+                  AppText(
+                    txt: p.invoiceId,
+                    // style: TextStyle(
+                    fontSize: AppFontSize.f11,
+                    // fontFamily: 'monospace',
+                    color: const Color(0xFF9CA3AF),
+                    // ),
                   ),
                 ],
               ),
               StatusBadge(status: p.status),
             ],
           ),
-          SizedBox(height: ch(4.1)),
+          SizedBox(height: ch(5)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                p.member,
-                style: TextStyle(
-                  fontSize: AppFontSize.f14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColor.cFFFFFF,
-                ),
+              AppText(
+                txt: p.member,
+                // style: TextStyle(
+                fontSize: AppFontSize.f15,
+                fontWeight: FontWeight.w600,
+                color: AppColor.cFFFFFF,
+                // ),
               ),
-              Text(
-                'Rs. ${p.amount.toInt()}',
-                style: TextStyle(
-                  fontSize: AppFontSize.f14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColor.cFFFFFF,
-                ),
+              AppText(
+                txt: 'Rs. ${p.amount.toInt()}',
+                // style: TextStyle(
+                fontSize: AppFontSize.f14,
+                fontWeight: FontWeight.w700,
+                color: AppColor.cFFFFFF,
               ),
+              // ),
             ],
           ),
-          SizedBox(height: ch(6.5)),
+          SizedBox(height: ch(6)),
           Row(
             children: [
               _PlanChip(plan: p.plan),
               SizedBox(width: cw(7.5)),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.credit_card_outlined,
-                    size: 12,
+                    size: cw(20),
                     color: Color(0xFF9CA3AF),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    p.method,
-                    style: TextStyle(
-                      fontSize: AppFontSize.f11,
-                      color: const Color(0xFF6B7280),
-                    ),
+                  SizedBox(width: cw(4)),
+                  AppText(
+                    txt: p.method,
+                    // style: TextStyle(
+                    fontSize: AppFontSize.f12,
+                    color: const Color(0xFF6B7280),
+                    // ),
                   ),
                 ],
               ),
             ],
           ),
-          SizedBox(height: ch(4.1)),
+          SizedBox(height: ch(8)),
           Row(
             children: [
               const Icon(
@@ -1007,13 +1046,13 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                 size: 12,
                 color: AppColor.cFFFFFF,
               ),
-              const SizedBox(width: 4),
-              Text(
-                'Paid: ${p.date}',
-                style: TextStyle(
-                  fontSize: AppFontSize.f10,
-                  color: AppColor.cFFFFFF,
-                ),
+              SizedBox(width: cw(4)),
+              AppText(
+                txt: 'Paid: ${p.date}',
+                // style: TextStyle(
+                fontSize: AppFontSize.f10,
+                color: AppColor.cFFFFFF,
+                // ),
               ),
             ],
           ),
@@ -1021,8 +1060,12 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
           Row(
             children: [
               SizedBox(
-                width: cw(200),
+                width: cw(170),
                 child: DropdownButtonFormField<String>(
+                  style: TextStyle(
+                    fontSize: AppFontSize.f15,
+                    color: AppColor.cFFFFFF,
+                  ),
                   initialValue: _selectedStatus,
                   dropdownColor: AppColor.red,
                   decoration: customInputDecoration(label: 'Status').copyWith(
@@ -1034,15 +1077,15 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                   items: [
                     DropdownMenuItem(
                       value: 'Paid',
-                      child: AppText(txt: 'Paid'),
+                      child: AppText(txt: 'Paid', fontSize: AppFontSize.f14),
                     ),
                     DropdownMenuItem(
                       value: 'Pending',
-                      child: AppText(txt: 'Pending'),
+                      child: AppText(txt: 'Pending', fontSize: AppFontSize.f14),
                     ),
                     DropdownMenuItem(
                       value: 'Overdue',
-                      child: AppText(txt: 'Overdue'),
+                      child: AppText(txt: 'Overdue', fontSize: AppFontSize.f14),
                     ),
                   ],
                   onChanged: (v) {
@@ -1059,14 +1102,14 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
                   width: cw(30),
                   onPressed: _save,
                   text: "Save",
-                  fontSize: AppFontSize.f12,
+                  fontSize: AppFontSize.f11,
                   color: AppColor.green,
                   textColor: AppColor.cFFFFFF,
                 ),
               ),
               if (p.status.toLowerCase() == 'pending' ||
                   p.status.toLowerCase() == 'overdue') ...[
-                SizedBox(width: cw(8)),
+                SizedBox(width: cw(10)),
                 IconButton(
                   icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
                   tooltip: 'Pay Fees',
@@ -1078,8 +1121,11 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+),
+);
+}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

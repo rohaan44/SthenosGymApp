@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element_parameter
+
 import 'dart:io';
 import 'package:app/models/models.dart';
 import 'package:app/providers/members/edit_member_provider.dart';

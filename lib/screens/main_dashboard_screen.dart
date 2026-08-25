@@ -1,9 +1,12 @@
 import 'package:app/auth/auth_providers/auth_provider.dart';
+import 'package:app/main.dart';
 import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/member/members_screen.dart';
+import 'package:app/screens/mobile_notification_screen/mobile_notification_screen.dart';
 import 'package:app/screens/payments_screen.dart';
 import 'package:app/service/inactivity_service.dart';
+import 'package:app/ui/app_primary_button.dart';
 import 'package:app/ui/custom_gradient.dart';
 import 'package:app/ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/color_helper.dart';
@@ -14,6 +17,8 @@ import 'package:app/ui/utils/asset_utils.dart';
 import 'package:app/ui/utils/primary_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:app/utils/whatsapp_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Common tap handler used by all nav widgets (sidebar, rail, drawer)
@@ -186,6 +191,17 @@ class MainDashboardScreen extends StatelessWidget {
                     fit: BoxFit.contain,
                   ),
                   AppText(txt: "Sthenos Gym"),
+                  SizedBox(width: cw(8)),
+
+                  Consumer<MainDashboardProvider>(
+                    builder: (context, dashboardModel, _) {
+                      return notificationButton(
+                        context: context,
+                        model: dashboardModel,
+                        isWeb: false,
+                      );
+                    },
+                  ),
                   SizedBox(width: cw(20)),
                 ],
               ),
@@ -204,72 +220,327 @@ class MainDashboardScreen extends StatelessWidget {
       ),
     );
   }
-  // Widget build(BuildContext context) {
-  //   return ChangeNotifierProvider(
-  //     create: (_) => MainDashboardProvider(),
-  //     child: Consumer<MainDashboardProvider>(
-  //       builder: (context, navProvider, child) {
-  //         final width = screenWidth(context);
+}
 
-  //         // ── Desktop (≥1024px): full sidebar ──────────────────────────────────────
-  //         if (width >= kDesktopBreak) {
-  //           return Scaffold(
-  //             backgroundColor: const Color(0xFFF9FAFB),
-  //             body: Row(
-  //               children: [
-  //                 _SidebarNav(
-  //                   navItems: _navItems,
-  //                   selectedIndex: navProvider.selectedIndex,
-  //                   onTap: navProvider.setSelectedIndex,
-  //                 ),
-  //                 Expanded(child: _screens[navProvider.selectedIndex]),
-  //               ],
-  //             ),
-  //           );
-  //         }
+final GlobalKey notificationKey = GlobalKey();
+OverlayEntry? notificationOverlay;
 
-  //         // ── Tablet (600–1023px): NavigationRail ──────────────────────────────────
-  //         if (width >= kPhoneBreak) {
-  //           return Scaffold(
-  //             backgroundColor: const Color(0xFFF9FAFB),
-  //             body: Row(
-  //               children: [
-  //                 _RailNav(
-  //                   navItems: _navItems,
-  //                   selectedIndex: navProvider.selectedIndex,
-  //                   onTap: navProvider.setSelectedIndex,
-  //                 ),
-  //                 Expanded(child: _screens[navProvider.selectedIndex]),
-  //               ],
-  //             ),
-  //           );
-  //         }
+OverlayEntry buildNotificationOverlay(
+  BuildContext context,
+  MainDashboardProvider model,
+) {
+  RenderBox box =
+      notificationKey.currentContext!.findRenderObject() as RenderBox;
 
-  //         // ── Phone (<600px): BottomNavigationBar ──────────────────────────────────
-  //         return Scaffold(
-  //           backgroundColor: const Color(0xFFF9FAFB),
-  //           body: _screens[navProvider.selectedIndex],
-  //           bottomNavigationBar: NavigationBar(
-  //             backgroundColor: Colors.white,
-  //             selectedIndex: navProvider.selectedIndex,
-  //             labelBehavior:
-  //                 NavigationDestinationLabelBehavior.onlyShowSelected,
-  //             onDestinationSelected: navProvider.setSelectedIndex,
-  //             destinations: _navItems
-  //                 .map(
-  //                   (item) => NavigationDestination(
-  //                     icon: Icon(item.icon),
-  //                     selectedIcon: Icon(item.activeIcon),
-  //                     label: item.label,
-  //                   ),
-  //                 )
-  //                 .toList(),
-  //           ),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
+  Offset position = box.localToGlobal(Offset.zero);
+  // int visibleCount = 10;
+
+  // final List<Map<String, dynamic>> notifications = [
+  //   {
+  //     "color": Colors.amber,
+  //     "icon": Icons.schedule,
+  //     "title": "Membership expires in 3 days",
+  //     "subtitle": "Ahmed Ali",
+  //     "time": "Today",
+  //   },
+  //   {
+  //     "color": Colors.red,
+  //     "icon": Icons.warning,
+  //     "title": "Membership expired today",
+  //     "subtitle": "Ali Khan",
+  //     "time": "Today",
+  //   },
+  //   {
+  //     "color": Colors.orange,
+  //     "icon": Icons.payment,
+  //     "title": "1 Month Fee Pending",
+  //     "subtitle": "Salman",
+  //     "time": "Yesterday",
+  //   },
+  //   {
+  //     "color": Colors.grey,
+  //     "icon": Icons.person_off,
+  //     "title": "Admission Expired",
+  //     "subtitle": "Huzaifa",
+  //     "time": "15 Jul",
+  //   },
+
+  //   /// Testing (20 items)
+  //   ...List.generate(
+  //     8,
+  //     (index) => {
+  //       "color": Colors.amber,
+  //       "icon": Icons.schedule,
+  //       "title": "Membership expires in 3 days",
+  //       "subtitle": "Member ${index + 5}",
+  //       "time": "Today",
+  //     },
+  //   ),
+  // ];
+
+  return OverlayEntry(
+    builder: (_) {
+      return Stack(
+        children: [
+          /// Close on outside tap
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                notificationOverlay?.remove();
+                notificationOverlay = null;
+              },
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+
+          Positioned(
+            top: position.dy + 48,
+            left: position.dx - 80,
+            // right: 150,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: cw(135),
+                constraints: const BoxConstraints(maxHeight: 420),
+                decoration: BoxDecoration(
+                  color: AppColor.c252525,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColor.primary),
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 15, color: Colors.black26),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    /// Header
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: AppGradients.redGradient,
+                            ),
+                            child: Icon(
+                              Icons.notifications_outlined,
+                              color: AppColor.cFFFFFF,
+                            ),
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          Expanded(
+                            child: AppText(
+                              txt: "Notifications",
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          // TextButton(
+                          //   onPressed: () {},
+                          //   child: AppText(
+                          //     txt: "View All",
+                          //     fontSize: AppFontSize.f12,
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
+
+                    Divider(height: 1),
+                    Expanded(
+                      child: Skeletonizer(
+                        enabled: false,
+
+                        child: ListView.builder(
+                          itemCount:
+                              model.visibleCount > model.notifications.length
+                              ? model.notifications.length
+                              : model.visibleCount,
+                          shrinkWrap: true,
+                          primary: false,
+                          padding: EdgeInsets.zero,
+
+                          itemBuilder: (context, index) {
+                            final item = model.notifications[index];
+
+                            return Column(
+                              children: [
+                                NotificationTile(
+                                  onNotificationTap: () {},
+                                  sendReminder: () {
+                                    final rawPhone =
+                                        item["phone"]?.toString() ?? "";
+                                    final phone = rawPhone.replaceAll(
+                                      RegExp(r'\D'),
+                                      '',
+                                    );
+                                    if (phone.isNotEmpty) {
+                                      final memberName = item["name"] ?? item["subtitle"] ?? "";
+                                      final gymId = item["gymId"] != null ? " (Gym ID: ${item["gymId"]})" : "";
+                                      final expiry = item["expiryDate"] != null ? " on ${item["expiryDate"]}" : "";
+                                      final message = Uri.encodeComponent(
+                                        "Dear $memberName$gymId, your gym membership fee expired$expiry. Kindly pay your fees at your earliest convenience.",
+                                      );
+                                      launchWhatsApp(phone, message);
+                                    }
+                                  },
+                                  color: item["color"],
+                                  icon: item["icon"],
+                                  title: item["title"],
+                                  subtitle: item["subtitle"],
+                                  time: item["time"],
+                                ),
+                                // NotificationTile(
+                                //   color: Colors.amber,
+                                //   icon: Icons.schedule,
+                                //   title: "Membership expires in 3 days",
+                                //   subtitle: "Ahmed Ali",
+                                //   time: "Today",
+                                // ),
+
+                                // NotificationTile(
+                                //   color: Colors.red,
+                                //   icon: Icons.warning,
+                                //   title: "Membership expired today",
+                                //   subtitle: "Ali Khan",
+                                //   time: "Today",
+                                // ),
+
+                                // NotificationTile(
+                                //   color: Colors.orange,
+                                //   icon: Icons.payment,
+                                //   title: "1 Month Fee Pending",
+                                //   subtitle: "Salman",
+                                //   time: "Yesterday",
+                                // ),
+
+                                // NotificationTile(
+                                //   color: Colors.grey,
+                                //   icon: Icons.person_off,
+                                //   title: "Admission Expired",
+                                //   subtitle: "Huzaifa",
+                                //   time: "15 Jul",
+                                // ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    if (model.notifications.length > model.visibleCount)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: ch(10)),
+                        child: InkWell(
+                          onTap: () {
+                            model.setCount();
+                            notificationOverlay?.markNeedsBuild();
+                            // setState(() {
+                            //   visibleCount += 10;
+                            // });
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(vertical: ch(12)),
+                            child: Text(
+                              "Load More",
+                              style: TextStyle(
+                                color: AppColor.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class NotificationTile extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String time;
+  final VoidCallback onNotificationTap;
+  final VoidCallback sendReminder;
+
+  const NotificationTile({
+    super.key,
+    required this.color,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.time,
+    required this.sendReminder,
+    required this.onNotificationTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onNotificationTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: color.withOpacity(.15),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppText(
+                    txt: title,
+                    fontSize: AppFontSize.f15 - 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColor.cFFFFFF,
+                  ),
+                  const SizedBox(height: 4),
+                  AppText(
+                    txt: "$subtitle • $time",
+                    color: Colors.grey.shade400,
+                    fontSize: AppFontSize.f14,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            AppButton(
+              width: 95,
+              height: 28,
+              borderRadius: 6,
+              fontSize: 10,
+              buttonColor: AppColor.primary,
+              textColor: AppColor.cFFFFFF,
+              text: "Send Reminder",
+              onPressed: sendReminder,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -361,15 +632,13 @@ class _SidebarNav extends StatelessWidget {
                             : const Color(0xFF6B7280),
                       ),
                       SizedBox(width: cw(3.8)),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: AppFontSize.f12,
-                          fontWeight: FontWeight.w500,
-                          color: isActive
-                              ? AppColor.cFFFFFF
-                              : const Color(0xFF374151),
-                        ),
+                      AppText(
+                        txt: item.label,
+                        fontSize: AppFontSize.f12,
+                        fontWeight: FontWeight.w500,
+                        color: isActive
+                            ? AppColor.cFFFFFF
+                            : const Color(0xFF374151),
                       ),
                     ],
                   ),
@@ -519,13 +788,10 @@ class _MobileDrawer extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 12),
-                    Text(
-                      "Sthenos Gym",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    AppText(
+                      txt: "Sthenos Gym",
+                      fontSize: AppFontSize.f18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ],
                 ),
@@ -553,16 +819,15 @@ class _MobileDrawer extends StatelessWidget {
                               ? AppColor.cFFFFFF
                               : AppColor.cFFFFFF.withValues(alpha: 0.5),
                         ),
-                        title: Text(
-                          item.label,
-                          style: TextStyle(
-                            color: isSelected
-                                ? AppColor.cFFFFFF
-                                : AppColor.cFFFFFF.withValues(alpha: 0.5),
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
+                        title: AppText(
+                          txt: item.label,
+                          fontSize: AppFontSize.f16,
+                          color: isSelected
+                              ? AppColor.cFFFFFF
+                              : AppColor.cFFFFFF.withValues(alpha: 0.5),
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                         selected: isSelected,
                         onTap: () {
@@ -965,7 +1230,7 @@ Future<void> showLogoutDialog(BuildContext context) async {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(10),
                           onTap: () async {
-                            await model.logout(context);
+                            await model.logoutContextFree(appNavigatorKey);
                           },
                           child: Container(
                             height: 48,
@@ -1013,5 +1278,148 @@ Future<void> showLogoutDialog(BuildContext context) async {
         ),
       ),
     ),
+  );
+}
+
+// Widget notificationButton({
+//   required BuildContext context,
+
+//   required MainDashboardProvider model,
+// }) {
+//   return Stack(
+//     clipBehavior: Clip.none,
+//     children: [
+//       GestureDetector(
+//         key: notificationKey,
+//         onTap: () {
+//           if (notificationOverlay == null) {
+//             notificationOverlay = buildNotificationOverlay(context, model);
+//             Overlay.of(context).insert(notificationOverlay!);
+//           } else {
+//             notificationOverlay!.remove();
+//             notificationOverlay = null;
+//           }
+//         },
+//         child: Container(
+//           decoration: BoxDecoration(
+//             shape: BoxShape.circle,
+//             color: AppColor.c252525,
+//             border: Border.all(color: AppColor.c151515, width: 1.2),
+//           ),
+//           child: Icon(
+//             Icons.notifications_outlined,
+//             size: cw(16),
+//             color: AppColor.cFFFFFF,
+//           ),
+//         ),
+//       ),
+
+//       /// Notification Count
+//       if (model.notifications.isNotEmpty)
+//         Positioned(
+//           top: -8,
+//           right: 0,
+//           child: Container(
+//             padding: EdgeInsets.all(cw(4)),
+//             constraints: BoxConstraints(minWidth: cw(13), minHeight: ch(13)),
+//             decoration: BoxDecoration(
+//               gradient: AppGradients.redGradient,
+//               shape: BoxShape.circle,
+//               border: Border.all(color: AppColor.cFFFFFF, width: 1),
+//             ),
+//             child: Center(
+//               child: Text(
+//                 model.notifications.length > 99
+//                     ? "99+"
+//                     : model.notifications.length.toString(),
+//                 style: TextStyle(
+//                   fontSize: 9,
+//                   fontWeight: FontWeight.bold,
+//                   color: AppColor.cFFFFFF,
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//     ],
+//   );
+// }
+
+Widget notificationButton({
+  required BuildContext context,
+  required MainDashboardProvider model,
+  bool isWeb = false,
+}) {
+  final double buttonSize = isWeb ? 42 : ch(42);
+  final double iconSize = isWeb ? 18 : ch(18);
+  final double badgeSize = isWeb ? 18 : ch(20);
+  final double badgeFont = isWeb ? AppFontSize.f10 : 6;
+
+  return Stack(
+    clipBehavior: Clip.none,
+    children: [
+      GestureDetector(
+        key: notificationKey,
+        onTap: () {
+          model.markNotificationsAsSeen();
+          if (isPhone(context) || isTablet(context)) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MobileNotificationScreen(),
+              ),
+            );
+          } else {
+            if (notificationOverlay == null) {
+              notificationOverlay = buildNotificationOverlay(context, model);
+              Overlay.of(context).insert(notificationOverlay!);
+            } else {
+              notificationOverlay!.remove();
+              notificationOverlay = null;
+            }
+          }
+        },
+        child: Container(
+          width: buttonSize,
+          height: buttonSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColor.c252525,
+            border: Border.all(color: AppColor.primary, width: 1.2),
+          ),
+          child: Icon(
+            Icons.notifications_outlined,
+            size: iconSize,
+            color: AppColor.cFFFFFF,
+          ),
+        ),
+      ),
+
+      if (model.unreadNotificationsCount > 0)
+        Positioned(
+          top: -5,
+          right: -2,
+          child: Container(
+            width: badgeSize,
+            height: badgeSize,
+            padding: EdgeInsets.zero,
+            decoration: BoxDecoration(
+              gradient: AppGradients.redGradient,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColor.cFFFFFF, width: 1),
+            ),
+            child: Center(
+              child: AppText(
+                txt: model.unreadNotificationsCount > 99
+                    ? "99+"
+                    : model.unreadNotificationsCount.toString(),
+                fontSize: badgeFont,
+                fontWeight: FontWeight.bold,
+                color: AppColor.cFFFFFF,
+              ),
+            ),
+          ),
+        ),
+    ],
   );
 }

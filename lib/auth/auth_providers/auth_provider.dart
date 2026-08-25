@@ -1,6 +1,8 @@
 import 'package:app/auth/auth_screens/admin_signin/admin_sign_in.dart';
 import 'package:app/service/connectivity_service.dart';
+import 'package:app/service/fcm_services/notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -176,16 +178,16 @@ class AuthProvider extends ChangeNotifier {
   // registered as a named route in this app (login uses
   // MaterialPageRoute too, see AdminSignIn's Login button).
   // This avoids the "Unknown route" error.
-  Future<void> logout(BuildContext context) async {
-    await _auth.signOut();
-    _user = null;
-    notifyListeners();
+  // Future<void> logout(BuildContext context) async {
+  //   await _auth.signOut();
+  //   _user = null;
+  //   notifyListeners();
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const AdminSignIn()),
-      (route) => false,
-    );
-  }
+  //   Navigator.of(context).pushAndRemoveUntil(
+  //     MaterialPageRoute(builder: (context) => const AdminSignIn()),
+  //     (route) => false,
+  //   );
+  // }
 
   // =========================
   // LOGOUT (context-free — for InactivityService timer callbacks)
@@ -193,7 +195,14 @@ class AuthProvider extends ChangeNotifier {
   // Uses GlobalKey<NavigatorState> so it can be called from async timer
   // callbacks outside any widget tree, avoiding use_build_context_synchronously.
   Future<void> logoutContextFree(GlobalKey<NavigatorState> navKey) async {
+    try {
+      await removeFcmToken();
+    } catch (e) {
+      debugPrint("Failed to remove FCM token: $e");
+    }
+
     await _auth.signOut();
+
     _user = null;
     notifyListeners();
 
@@ -201,6 +210,18 @@ class AuthProvider extends ChangeNotifier {
       MaterialPageRoute(builder: (_) => const AdminSignIn()),
       (route) => false,
     );
+  }
+
+  Future<void> removeFcmToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+
+      if (token != null) {
+        await NotificationService.instance.removeToken(token);
+      }
+    } catch (e) {
+      debugPrint("Error removing FCM token: $e");
+    }
   }
 
   // =========================

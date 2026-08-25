@@ -184,9 +184,10 @@ class AddMemberProvider extends ChangeNotifier {
       notifyListeners();
 
       // ── Duplicate Phone Check ──────────────────────────
+      final formattedPhone = formatPhoneNumber(phoneCtrl.text);
       final duplicate = await _firestore
           .collection('members')
-          .where('phone', isEqualTo: phoneCtrl.text.trim())
+          .where('phone', isEqualTo: formattedPhone)
           .limit(1)
           .get();
 
@@ -195,7 +196,7 @@ class AddMemberProvider extends ChangeNotifier {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Member with phone ${phoneCtrl.text.trim()} already exists',
+                'Member with phone $formattedPhone already exists',
               ),
               backgroundColor: Colors.red,
             ),
@@ -365,7 +366,7 @@ class AddMemberProvider extends ChangeNotifier {
         'gymId': newId.toString(),
         'name': nameCtrl.text,
         'email': emailCtrl.text,
-        'phone': phoneCtrl.text.trim(),
+        'phone': formatPhoneNumber(phoneCtrl.text),
         'membership': membership == "Manually"
             ? "Monthly - Rs. ${manuallyAmountCtrl.text}/month"
             : membership,
@@ -438,5 +439,17 @@ class AddMemberProvider extends ChangeNotifier {
     manuallyAmountCtrl.dispose();
     cameraController?.dispose();
     super.dispose();
+  }
+
+  String formatPhoneNumber(String phone) {
+    String digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('0092')) {
+      digits = digits.substring(4);
+    } else if (digits.startsWith('92') && digits.length == 12) {
+      digits = digits.substring(2);
+    } else if (digits.startsWith('0') && digits.length == 11) {
+      digits = digits.substring(1);
+    }
+    return '+92$digits';
   }
 }

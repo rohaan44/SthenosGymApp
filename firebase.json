@@ -1,1 +1,51 @@
-{"hosting":{"public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"],"rewrites":[{"source":"**","destination":"/index.html"}]},"flutter":{"platforms":{"android":{"default":{"projectId":"sthenos-gym-ce563","appId":"1:1031135608534:android:efc84de6b561c509c51377","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options_dev.dart":{"projectId":"sthenos-gym-ce563","configurations":{"android":"1:1031135608534:android:efc84de6b561c509c51377","ios":"1:1031135608534:ios:bb26287c6bd7272ec51377","web":"1:1031135608534:web:811d3c3b7c59cff3c51377"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "sthenos-gym-ce563",
+          "appId": "1:1031135608534:android:efc84de6b561c509c51377",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options_dev.dart": {
+          "projectId": "sthenos-gym-ce563",
+          "configurations": {
+            "android": "1:1031135608534:android:efc84de6b561c509c51377",
+            "ios": "1:1031135608534:ios:bb26287c6bd7272ec51377",
+            "web": "1:1031135608534:web:811d3c3b7c59cff3c51377"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

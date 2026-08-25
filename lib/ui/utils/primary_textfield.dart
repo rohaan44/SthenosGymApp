@@ -46,7 +46,7 @@ Widget primaryTextField({
       autovalidateMode: AutovalidateMode.onUserInteraction,
       cursorColor: AppColor.cFFFFFF,
       style: TextStyle(
-        fontSize: AppFontSize.f14,
+        fontSize: AppFontSize.f15,
         fontWeight: FontWeight.w500,
         color: AppColor.cFFFFFF,
       ),
@@ -55,9 +55,9 @@ Widget primaryTextField({
         labelText: hintText,
         labelStyle:
             labelStyl ??
-            TextStyle(fontSize: AppFontSize.f14, color: AppColor.themeGrey),
+            TextStyle(fontSize: AppFontSize.f15, color: AppColor.themeGrey),
         hintStyle: TextStyle(
-          fontSize: AppFontSize.f14,
+          fontSize: AppFontSize.f15,
           color: Colors.grey.shade500,
         ),
         filled: true,

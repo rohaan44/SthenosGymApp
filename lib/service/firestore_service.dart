@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/models.dart';
+import 'fcm_services/notification_service.dart';
 
 /// Central Firestore service — all streams and writes for Members & Payments.
 /// Screens use StreamBuilder directly with these streams; no polling required.
@@ -51,11 +52,18 @@ class FirestoreService {
         .collection('payments')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map(
-          (snap) => snap.docs
+        .map((snap) {
+          final list = snap.docs
               .map((doc) => Payment.fromFirestore(doc.data(), doc.id))
-              .toList(),
-        );
+              .toList();
+
+          // Check and notify for status transitions (guarded by notifiedStatus field)
+          for (final payment in list) {
+            NotificationService.instance.checkAndNotifyPaymentStatus(payment);
+          }
+
+          return list;
+        });
   }
 
   /// Live stream of payments scoped to a single member's Firestore doc ID,

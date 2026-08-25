@@ -1,5 +1,7 @@
 import 'package:app/models/models.dart';
+import 'package:app/providers/main_dashboard_provider.dart';
 import 'package:app/providers/members/members_provider.dart';
+import 'package:app/screens/main_dashboard_screen.dart';
 import 'package:app/service/firestore_service.dart';
 import 'package:app/service/printer_service.dart';
 import 'package:app/shared_widgets.dart';
@@ -68,22 +70,41 @@ class MembersScreen extends StatelessWidget {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          AppText(
-                            txt: "Members",
-                            fontSize: AppFontSize.f19,
-                            fontWeight: FontWeight.w600,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppText(
+                                txt: "Members",
+                                fontSize: AppFontSize.f19,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              SizedBox(height: ch(8)),
+                              AppText(
+                                txt: "Manage Members",
+                                fontSize: AppFontSize.f15,
+                                fontWeight: FontWeight.w500,
+                                // color: const Color(0xFF6B7280),
+                                color: const Color(0xFF6B7280),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: ch(8)),
-                          AppText(
-                            txt: "Manage Members",
-                            fontSize: AppFontSize.f15,
-                            fontWeight: FontWeight.w500,
-                            // color: const Color(0xFF6B7280),
-                            color: const Color(0xFF6B7280),
-                          ),
+
+                          SizedBox(width: 20),
+
+                          if (isPhone(context))
+                            const SizedBox.shrink()
+                          else
+                            Consumer<MainDashboardProvider>(
+                              builder: (context, dashboardModel, _) {
+                                return notificationButton(
+                                  isWeb: true,
+                                  context: context,
+                                  model: dashboardModel,
+                                );
+                              },
+                            ),
                         ],
                       ),
 
@@ -128,6 +149,11 @@ class MembersScreen extends StatelessWidget {
                                 initialValue: state.filterStatus,
                                 isExpanded: true,
                                 dropdownColor: AppColor.red,
+                                style: TextStyle(
+                                  fontSize: AppFontSize.f16,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.black,
+                                ),
                                 decoration: customInputDecoration(
                                   label: 'Status',
                                 ),
@@ -282,7 +308,7 @@ class MembersScreen extends StatelessWidget {
                             children: [
                               AppText(
                                 txt: 'All Members (${filtered.length})',
-                                fontSize: AppFontSize.f15,
+                                fontSize: AppFontSize.f16,
                                 fontWeight: FontWeight.w600,
                               ),
                               SizedBox(height: ch(16)),
@@ -395,7 +421,7 @@ class MembersScreen extends StatelessWidget {
                                                                   'Joined ${m.joinDate}',
                                                               fontSize:
                                                                   AppFontSize
-                                                                      .f13,
+                                                                      .f14,
                                                               color:
                                                                   const Color(
                                                                     0xFF9CA3AF,
@@ -453,7 +479,7 @@ class MembersScreen extends StatelessWidget {
                                                                   txt: m.phone,
                                                                   fontSize:
                                                                       AppFontSize
-                                                                          .f13,
+                                                                          .f14,
                                                                   color: const Color(
                                                                     0xFF6B7280,
                                                                   ),
@@ -612,7 +638,7 @@ class MembersScreen extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(height: ch(16.2)),
+            SizedBox(height: ch(16)),
           ],
         ),
       ),
@@ -651,23 +677,6 @@ class MembersScreen extends StatelessWidget {
 
             text: "Delete",
           ),
-          // FilledButton(
-          //   style: FilledButton.styleFrom(
-          //     backgroundColor: const Color(0xFFDC2626),
-          //   ),
-          //   onPressed: () async {
-          //     Navigator.pop(ctx);
-          //     final error = await FirestoreService.instance.deleteMember(
-          //       member.docId,
-          //     );
-          //     if (error != null && context.mounted) {
-          //       ScaffoldMessenger.of(
-          //         context,
-          //       ).showSnackBar(SnackBar(content: Text(error)));
-          //     }
-          //   },
-          //   child: const Text('Delete'),
-          // ),
         ],
       ),
     );
@@ -704,8 +713,8 @@ class _MobileList extends StatelessWidget {
           // Tap anywhere on the card → open payment history
           // onTap: () => _openPaymentHistory(context, m),
           child: Container(
-            margin: EdgeInsets.only(bottom: ch(9.7)),
-            padding: EdgeInsets.all(cw(11.2)),
+            margin: EdgeInsets.only(bottom: ch(10)),
+            padding: EdgeInsets.all(cw(12)),
             decoration: BoxDecoration(
               color: AppColor.c151515,
               borderRadius: BorderRadius.circular(10),
@@ -714,8 +723,8 @@ class _MobileList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CircleAvatar(
                       radius: cw(16.9).clamp(16.0, 22.0),
@@ -736,23 +745,23 @@ class _MobileList extends StatelessWidget {
                             )
                           : null,
                     ),
-                    SizedBox(width: cw(7.5)),
+                    SizedBox(width: cw(4)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           AppText(
                             txt: m.name,
-                            fontSize: AppFontSize.f16,
+                            fontSize: AppFontSize.f17,
                             fontWeight: FontWeight.w600,
                             color: AppColor.cFFFFFF,
                           ),
-
+                          SizedBox(height: ch(5)),
                           AppText(
                             txt: m.membership,
 
-                            fontSize: AppFontSize.f12,
+                            fontSize: AppFontSize.f14,
                             color: AppColor.themeGrey,
                           ),
                         ],
@@ -865,7 +874,7 @@ class _MobileList extends StatelessWidget {
                       child: Text(
                         m.email,
                         style: TextStyle(
-                          fontSize: AppFontSize.f11,
+                          fontSize: AppFontSize.f12,
                           color: const Color(0xFF6B7280),
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -901,21 +910,6 @@ class _MobileList extends StatelessWidget {
                 ),
                 // Tap hint
                 SizedBox(height: ch(6)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Icon(
-                      Icons.touch_app_outlined,
-                      size: 11,
-                      color: Color(0xFFD1D5DB),
-                    ),
-                    SizedBox(width: cw(3)),
-                    const Text(
-                      'Tap to view payment history',
-                      style: TextStyle(fontSize: 10, color: Color(0xFFD1D5DB)),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
