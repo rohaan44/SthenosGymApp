@@ -1,44 +1,44 @@
 import 'package:flutter/foundation.dart';
 import 'package:universal_html/html.dart' as html;
 
-html.WindowBase? _whatsappWindow;
+/// Formats a phone number for WhatsApp with international country code (defaults to Pakistan: +92).
+String formatPhoneForWhatsApp(String phone) {
+  String digits = phone.replaceAll(RegExp(r'\D'), '');
+  if (digits.startsWith('0092')) {
+    digits = '92${digits.substring(4)}';
+  } else if (digits.startsWith('92')) {
+    // Already in 92XXXXXXXXXX format
+    return digits;
+  } else if (digits.startsWith('0') && digits.length == 11) {
+    // Local Pakistani format e.g. 03001234567 -> 923001234567
+    digits = '92${digits.substring(1)}';
+  } else if (digits.length == 10) {
+    // 3001234567 -> 923001234567
+    digits = '92$digits';
+  }
+  return digits;
+}
 
 /// Launches WhatsApp with the specified phone number and message.
 ///
-/// On mobile browsers, it launches using the standard `wa.me` redirect link
-/// to open the native WhatsApp mobile application.
-/// On desktop browsers, it directly targets WhatsApp Web (`web.whatsapp.com`)
-/// and maintains a window reference to reuse the same browser tab across
-/// multiple reminders.
+/// Uses the universal `wa.me` Click-to-Chat standard, which works reliably across
+/// all desktop and mobile browsers. Opening in a clean new tab (`_blank`) ensures
+/// existing WhatsApp Web sessions are not disrupted or frozen into a blank screen.
 void launchWhatsApp(String phone, String message) {
-  final userAgent = kIsWeb ? html.window.navigator.userAgent.toLowerCase() : '';
-  final isMobile =
-      !kIsWeb ||
-      userAgent.contains('mobi') ||
-      userAgent.contains('android') ||
-      userAgent.contains('iphone');
+  final cleanPhone = formatPhoneForWhatsApp(phone);
+  if (cleanPhone.isEmpty) return;
 
-  if (isMobile) {
-    final url = "https://wa.me/$phone?text=$message";
+  String encodedMessage;
+  try {
+    encodedMessage = Uri.encodeComponent(Uri.decodeComponent(message));
+  } catch (_) {
+    encodedMessage = Uri.encodeComponent(message);
+  }
+
+  final url = "https://wa.me/$cleanPhone?text=$encodedMessage";
+
+  if (kIsWeb) {
     html.window.open(url, '_blank');
-  } else {
-    final url = "https://web.whatsapp.com/send?phone=$phone&text=$message";
-
-    // Check if the previous tab reference is still open and active
-    if (_whatsappWindow != null && _whatsappWindow!.closed == false) {
-      dynamic win = _whatsappWindow;
-      try {
-        // Set the location cross-origin (setting win.location to a string is allowed in JS)
-        win.location = url;
-      } catch (e) {
-        // Fallback to window.open if browser prevents direct location write
-        _whatsappWindow = html.window.open(url, 'whatsapp_web');
-      }
-      try {
-        win.focus();
-      } catch (_) {}
-    } else {
-      _whatsappWindow = html.window.open(url, 'whatsapp_web');
-    }
   }
 }
+

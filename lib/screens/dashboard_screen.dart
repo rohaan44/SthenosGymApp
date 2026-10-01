@@ -23,11 +23,25 @@ import '../service/firestore_service.dart';
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  static bool _isThisMonth(String dateStr, DateTime reference) {
+  static bool _isMonth(String dateStr, int year, int month) {
     if (dateStr.isEmpty) return false;
     try {
       final d = DateTime.parse(dateStr);
-      return d.year == reference.year && d.month == reference.month;
+      return d.year == year && d.month == month;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static bool _isThisMonth(String dateStr, DateTime reference) {
+    return _isMonth(dateStr, reference.year, reference.month);
+  }
+
+  static bool _isThisYear(String dateStr, DateTime reference) {
+    if (dateStr.isEmpty) return false;
+    try {
+      final d = DateTime.parse(dateStr);
+      return d.year == reference.year;
     } catch (_) {
       return false;
     }
@@ -72,8 +86,14 @@ class DashboardScreen extends StatelessWidget {
                 .where((p) => p.status == 'Paid')
                 .fold(0.0, (s, p) => s + p.amount);
 
-            // Compute monthly revenue from Paid payments in the current month and year
             final now = DateTime.now();
+
+            // Compute yearly revenue from Paid payments in the current year
+            final yearlyRevenue = payments
+                .where((p) => p.status == 'Paid' && _isThisYear(p.date, now))
+                .fold(0.0, (s, p) => s + p.amount);
+
+            // Compute monthly revenue from Paid payments in the current month and year
             final monthlyRevenue = payments
                 .where((p) => p.status == 'Paid' && _isThisMonth(p.date, now))
                 .fold(0.0, (s, p) => s + p.amount);
@@ -128,16 +148,20 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     SizedBox(height: ch(20.3)),
 
-                    // ── Stat cards (1 Row mein 3 Containers fixed for Web/Desktop) ──
+                    // ── Stat cards (5 Cards: Active Members, Month Revenue, Prev Month Revenue, Year Revenue, Total Revenue) ──
                     LayoutBuilder(
                       builder: (context, constraints) {
                         double cardWidth;
 
-                        // Desktop / Web View (> 900px) -> 3 Cards in 1 Row
-                        if (constraints.maxWidth > 900) {
+                        // Desktop / Ultra-Wide View (> 1350px) -> 5 Cards in 1 Row
+                        if (constraints.maxWidth > 1350) {
+                          cardWidth = (constraints.maxWidth - 64) / 5;
+                        }
+                        // Desktop / Laptop View (950px to 1350px) -> 3 Cards in Row 1, 2 in Row 2
+                        else if (constraints.maxWidth > 950) {
                           cardWidth = (constraints.maxWidth - 32) / 3;
                         }
-                        // Tablet View (600px se 900px) -> 2 Cards in 1 Row
+                        // Tablet View (600px to 950px) -> 2 Cards in 1 Row
                         else if (constraints.maxWidth > 600) {
                           cardWidth = (constraints.maxWidth - 16) / 2;
                         }
@@ -174,6 +198,27 @@ class DashboardScreen extends StatelessWidget {
                                 icon: Icons.calendar_month,
                                 iconColor: const Color(0xFF10B981),
                                 iconBg: const Color(0xFFECFDF5),
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: cardWidth,
+                              child: _PreviousMonthRevenueCard(
+                                payments: payments,
+                                now: now,
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: cardWidth,
+                              child: _StatCard(
+                                title: '${now.year} Revenue',
+                                value: 'Rs. ${yearlyRevenue.toInt()}',
+                                subtitle: 'This year',
+                                isRupeeIcon: true,
+                                icon: Icons.calendar_today,
+                                iconColor: const Color(0xFF6366F1),
+                                iconBg: const Color(0xFFEEF2FF),
                               ),
                             ),
 
@@ -306,6 +351,154 @@ class _StatCard extends StatelessWidget {
               txt: subtitle,
               fontSize: AppFontSize.f13,
               color: AppColor.cFFFFFF,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// **_PreviousMonthRevenueCard**
+///
+/// An interactive card allowing the user to view previous month revenue,
+/// with a dropdown field to inspect any past month.
+class _PreviousMonthRevenueCard extends StatefulWidget {
+  final List<Payment> payments;
+  final DateTime now;
+  const _PreviousMonthRevenueCard({
+    required this.payments,
+    required this.now,
+  });
+
+  @override
+  State<_PreviousMonthRevenueCard> createState() =>
+      _PreviousMonthRevenueCardState();
+}
+
+class _PreviousMonthRevenueCardState extends State<_PreviousMonthRevenueCard> {
+  late DateTime _selectedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMonth = DateTime(widget.now.year, widget.now.month - 1, 1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 12 past months
+    final months = List.generate(12, (i) {
+      return DateTime(widget.now.year, widget.now.month - (i + 1), 1);
+    });
+
+    final currentSelected = months.firstWhere(
+      (m) =>
+          m.year == _selectedMonth.year && m.month == _selectedMonth.month,
+      orElse: () => months.first,
+    );
+
+    final selectedMonthRevenue = widget.payments
+        .where((p) =>
+            p.status == 'Paid' &&
+            DashboardScreen._isMonth(
+                p.date, currentSelected.year, currentSelected.month))
+        .fold(0.0, (s, p) => s + p.amount);
+
+    final isImmediatePrevMonth = currentSelected.year == widget.now.year &&
+        currentSelected.month == widget.now.month - 1;
+
+    final selectedMonthName = DateFormat.MMMM().format(currentSelected);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: EdgeInsets.all(cw(11.2).clamp(12.0, 16.0)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<DateTime>(
+                      value: currentSelected,
+                      dropdownColor: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(8),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: AppColor.cFFFFFF,
+                        size: 18,
+                      ),
+                      isDense: true,
+                      selectedItemBuilder: (context) {
+                        return months.map((m) {
+                          final name = DateFormat.MMMM().format(m);
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: AppText(
+                              txt: '$name Revenue',
+                              fontSize: AppFontSize.f15,
+                              color: AppColor.cFFFFFF,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList();
+                      },
+                      items: months.map((m) {
+                        final name = DateFormat.MMMM().format(m);
+                        final isLast = m.year == widget.now.year &&
+                            m.month == widget.now.month - 1;
+                        final label = isLast
+                            ? '$name ${m.year} (Last Month)'
+                            : '$name ${m.year}';
+                        return DropdownMenuItem<DateTime>(
+                          value: m,
+                          child: AppText(
+                            txt: label,
+                            fontSize: AppFontSize.f13,
+                            color: AppColor.cFFFFFF,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _selectedMonth = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: EdgeInsets.all(cw(5.6).clamp(6.0, 8.0)),
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.redGradient,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: AppText(txt: "Rs"),
+                ),
+              ],
+            ),
+            SizedBox(height: ch(9)),
+            AppText(
+              txt: 'Rs. ${selectedMonthRevenue.toInt()}',
+              fontSize: AppFontSize.f16,
+              fontWeight: FontWeight.w600,
+              color: AppColor.cFFFFFF,
+            ),
+            SizedBox(height: ch(2.4)),
+            AppText(
+              txt: isImmediatePrevMonth
+                  ? 'Previous month'
+                  : '$selectedMonthName ${currentSelected.year}',
+              fontSize: AppFontSize.f13,
+              color: const Color(0xFF9CA3AF),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

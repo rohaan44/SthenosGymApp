@@ -375,19 +375,21 @@ OverlayEntry buildNotificationOverlay(
                                   sendReminder: () {
                                     final rawPhone =
                                         item["phone"]?.toString() ?? "";
-                                    final phone = rawPhone.replaceAll(
-                                      RegExp(r'\D'),
-                                      '',
-                                    );
-                                    if (phone.isNotEmpty) {
-                                      final memberName = item["name"] ?? item["subtitle"] ?? "";
-                                      final gymId = item["gymId"] != null ? " (Gym ID: ${item["gymId"]})" : "";
-                                      final expiry = item["expiryDate"] != null ? " on ${item["expiryDate"]}" : "";
-                                      final message = Uri.encodeComponent(
-                                        "Dear $memberName$gymId, your gym membership fee expired$expiry. Kindly pay your fees at your earliest convenience.",
+                                    if (rawPhone.trim().isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Phone number not available for this member"),
+                                          backgroundColor: Colors.red,
+                                        ),
                                       );
-                                      launchWhatsApp(phone, message);
+                                      return;
                                     }
+                                    final memberName = item["name"] ?? item["subtitle"] ?? "";
+                                    final gymId = item["gymId"] != null ? " (Gym ID: ${item["gymId"]})" : "";
+                                    final expiry = item["expiryDate"] != null ? " on ${item["expiryDate"]}" : "";
+                                    final message =
+                                        "Dear $memberName$gymId, your gym membership fee expired$expiry. Kindly pay your fees at your earliest convenience.";
+                                    launchWhatsApp(rawPhone, message);
                                   },
                                   color: item["color"],
                                   icon: item["icon"],
