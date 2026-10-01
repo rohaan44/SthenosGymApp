@@ -129,13 +129,97 @@ class NotificationService {
   }
 
   /// Evaluates payment status and prevents duplicate notifications using `notifiedStatus`.
+  // Future<void> checkAndNotifyPaymentStatus(Payment payment) async {
+  //   if (payment.docId.isEmpty) return;
+
+  //   final computedStatus = calculatePaymentStatus(payment.date, payment.plan);
+
+  //   if (computedStatus == 'Pending' || computedStatus == 'Overdue') {
+  //     // Prevent duplicate notification if already notified for this status in this cycle
+  //     if (payment.notifiedStatus == computedStatus) return;
+
+  //     final title = computedStatus == 'Pending'
+  //         ? '⚠️ Payment Pending: ${payment.member}'
+  //         : '🔴 Payment Overdue: ${payment.member}';
+
+  //     final body = computedStatus == 'Pending'
+  //         ? "${payment.member}'s payment of Rs. ${payment.amount} is due soon. Plan: ${payment.plan}"
+  //         : "${payment.member}'s payment of Rs. ${payment.amount} is overdue. Plan: ${payment.plan}";
+
+  //     // 1. Immediately update notifiedStatus in Firestore to prevent duplicate triggers
+  //     try {
+  //       await _firestore.collection('payments').doc(payment.docId).update({
+  //         'notifiedStatus': computedStatus,
+  //       });
+  //       debugPrint(
+  //         '🔔 Payment doc ${payment.docId} updated notifiedStatus = "$computedStatus"',
+  //       );
+
+  //       // 2. Dispatch System / Web Notification
+  //       _showNotification(title, body);
+  //     } catch (e) {
+  //       debugPrint('❌ Error updating notifiedStatus for ${payment.docId}: $e');
+  //     }
+  //   } else if (computedStatus == 'Paid') {
+  //     // If payment is Paid and previously had a notifiedStatus, reset it for the next cycle
+  //     if (payment.notifiedStatus != null) {
+  //       try {
+  //         await _firestore.collection('payments').doc(payment.docId).update({
+  //           'notifiedStatus': FieldValue.delete(),
+  //         });
+  //         debugPrint(
+  //           '🔄 Payment doc ${payment.docId} reset notifiedStatus for new cycle.',
+  //         );
+  //       } catch (e) {
+  //         debugPrint('❌ Error resetting notifiedStatus for ${payment.docId}: $e');
+  //       }
+  //     }
+  //   }
+  // }
   Future<void> checkAndNotifyPaymentStatus(Payment payment) async {
     if (payment.docId.isEmpty) return;
+
+    // ============================================================
+    // 1. CHECK MEMBER EXISTS
+    // ============================================================
+
+    final memberId = payment.memberId.toString().trim();
+
+    if (memberId.isEmpty) {
+      debugPrint(
+        '🚫 Notification skipped: Payment ${payment.docId} has no memberId.',
+      );
+      return;
+    }
+
+    try {
+      final memberDoc = await _firestore
+          .collection('members')
+          .doc(memberId)
+          .get();
+
+      // Member deleted / does not exist
+      if (!memberDoc.exists) {
+        debugPrint('🚫 Notification skipped: Member $memberId does not exist.');
+        return;
+      }
+
+      debugPrint(
+        '✅ Member exists: $memberId. Checking payment notification...',
+      );
+    } catch (e) {
+      debugPrint('❌ Error checking member $memberId: $e');
+      return;
+    }
+
+    // ============================================================
+    // 2. CALCULATE PAYMENT STATUS
+    // ============================================================
 
     final computedStatus = calculatePaymentStatus(payment.date, payment.plan);
 
     if (computedStatus == 'Pending' || computedStatus == 'Overdue') {
-      // Prevent duplicate notification if already notified for this status in this cycle
+      // Prevent duplicate notification for same status
       if (payment.notifiedStatus == computedStatus) return;
 
       final title = computedStatus == 'Pending'
@@ -146,32 +230,42 @@ class NotificationService {
           ? "${payment.member}'s payment of Rs. ${payment.amount} is due soon. Plan: ${payment.plan}"
           : "${payment.member}'s payment of Rs. ${payment.amount} is overdue. Plan: ${payment.plan}";
 
-      // 1. Immediately update notifiedStatus in Firestore to prevent duplicate triggers
+      // ============================================================
+      // 3. UPDATE NOTIFIED STATUS
+      // ============================================================
+
       try {
         await _firestore.collection('payments').doc(payment.docId).update({
           'notifiedStatus': computedStatus,
         });
+
         debugPrint(
           '🔔 Payment doc ${payment.docId} updated notifiedStatus = "$computedStatus"',
         );
 
-        // 2. Dispatch System / Web Notification
+        // ============================================================
+        // 4. SHOW NOTIFICATION
+        // ============================================================
+
         _showNotification(title, body);
       } catch (e) {
         debugPrint('❌ Error updating notifiedStatus for ${payment.docId}: $e');
       }
     } else if (computedStatus == 'Paid') {
-      // If payment is Paid and previously had a notifiedStatus, reset it for the next cycle
+      // Reset notifiedStatus for next payment cycle
       if (payment.notifiedStatus != null) {
         try {
           await _firestore.collection('payments').doc(payment.docId).update({
             'notifiedStatus': FieldValue.delete(),
           });
+
           debugPrint(
             '🔄 Payment doc ${payment.docId} reset notifiedStatus for new cycle.',
           );
         } catch (e) {
-          debugPrint('❌ Error resetting notifiedStatus for ${payment.docId}: $e');
+          debugPrint(
+            '❌ Error resetting notifiedStatus for ${payment.docId}: $e',
+          );
         }
       }
     }

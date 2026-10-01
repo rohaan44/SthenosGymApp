@@ -44,7 +44,6 @@ class PaymentsScreen extends StatelessWidget {
             _PaymentsHeader(phone: phone),
 
             SizedBox(height: ch(20)),
-
             StreamBuilder<List<Payment>>(
               stream: FirestoreService.instance.paymentsStream(),
               builder: (context, snapshot) {
@@ -81,10 +80,91 @@ class PaymentsScreen extends StatelessWidget {
                 }
 
                 final allPayments = snapshot.data ?? [];
-                return _PaymentsBody(phone: phone, allPayments: allPayments);
+
+                return StreamBuilder<dynamic>(
+                  stream: FirestoreService.instance.membersStream(),
+                  builder: (context, memberSnapshot) {
+                    if (memberSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 64),
+                          child: CircularProgressIndicator(
+                            color: AppColor.cFFFFFF,
+                          ),
+                        ),
+                      );
+                    }
+                    final members = memberSnapshot.data ?? <Member>[];
+
+                    // TextButton(
+                    //   onPressed: () {
+                    //     // Added missing quotes to the print statement and added a safe check for the index
+                    //     print(
+                    //       '===== ${members.length > 1 ? members[1] : "No member"}',
+                    //     );
+                    //   },
+                    //   // Converted the list to a String (e.g., joining or taking the first item)
+                    //   child: AppText(
+                    //     txt: members.isNotEmpty ? members.first.toString() : '',
+                    //   ),
+                    // );
+                    if (memberSnapshot.hasError) {
+                      return _PaymentsBody(
+                        phone: phone,
+                        allPayments: allPayments,
+                      );
+                    }
+
+                    return _PaymentsBody(
+                      phone: phone,
+                      allPayments: allPayments,
+                      members: members,
+                    );
+                  },
+                );
               },
             ),
 
+            // StreamBuilder<List<Payment>>(
+            //   stream: FirestoreService.instance.paymentsStream(),
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.waiting) {
+            //       return const Center(
+            //         child: Padding(
+            //           padding: EdgeInsets.symmetric(vertical: 64),
+            //           child: CircularProgressIndicator(color: AppColor.cFFFFFF),
+            //         ),
+            //       );
+            //     }
+
+            //     if (snapshot.hasError) {
+            //       return Center(
+            //         child: Padding(
+            //           padding: const EdgeInsets.all(32),
+            //           child: Column(
+            //             mainAxisSize: MainAxisSize.min,
+            //             children: [
+            //               const Icon(
+            //                 Icons.error_outline,
+            //                 color: Color(0xFFDC2626),
+            //                 size: 40,
+            //               ),
+            //               const SizedBox(height: 8),
+            //               Text(
+            //                 'Failed to load payments: ${snapshot.error}',
+            //                 style: const TextStyle(color: Color(0xFFDC2626)),
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       );
+            //     }
+
+            //     final allPayments = snapshot.data ?? [];
+            //     return _PaymentsBody(phone: phone, allPayments: allPayments);
+            //   },
+            // ),
             SizedBox(height: ch(16.2)),
           ],
         ),
@@ -187,9 +267,15 @@ class _PaymentsHeader extends StatelessWidget {
 // widget tree unnecessarily.
 // ─────────────────────────────────────────────────────────────────────────────
 class _PaymentsBody extends StatelessWidget {
-  const _PaymentsBody({required this.phone, required this.allPayments});
+  const _PaymentsBody({
+    required this.phone,
+    required this.allPayments,
+
+    this.members = const [],
+  });
   final bool phone;
   final List<Payment> allPayments;
+  final List<dynamic> members;
 
   static bool _isThisMonth(String dateStr, DateTime reference) {
     if (dateStr.isEmpty) return false;
@@ -375,7 +461,11 @@ class _PaymentsBody extends StatelessWidget {
                         ),
                         SizedBox(height: ch(12.2)),
                         (phone || screenWidth(context) < 950)
-                            ? _MobilePaymentList(payments: filtered)
+                            ? _MobilePaymentList(
+                                payments: filtered,
+
+                                members: members,
+                              )
                             : filtered.isEmpty
                             ? Padding(
                                 padding: EdgeInsets.symmetric(vertical: ch(30)),
@@ -400,7 +490,10 @@ class _PaymentsBody extends StatelessWidget {
                               )
                             : SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
-                                child: _DesktopPaymentTable(payments: filtered),
+                                child: _DesktopPaymentTable(
+                                  payments: filtered,
+                                  members: members,
+                                ),
                               ),
                       ],
                     ),
@@ -472,8 +565,9 @@ Future<void> _onExportTap(BuildContext context) async {
 // a new snapshot arrived — not just wasteful, an actual data-loss bug.
 // ─────────────────────────────────────────────────────────────────────────────
 class _DesktopPaymentTable extends StatefulWidget {
-  const _DesktopPaymentTable({required this.payments});
+  const _DesktopPaymentTable({required this.payments, required this.members});
   final List<Payment> payments;
+  final List<dynamic> members;
 
   @override
   State<_DesktopPaymentTable> createState() => _DesktopPaymentTableState();
@@ -546,7 +640,10 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
         ),
       ],
       rows: widget.payments
-          .map((p) => _buildPaymentRow(context, p, _notifierFor(p)))
+          .map(
+            (p) =>
+                _buildPaymentRow(context, p, widget.members, _notifierFor(p)),
+          )
           .toList(),
     );
   }
@@ -554,8 +651,23 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
   static DataRow _buildPaymentRow(
     BuildContext context,
     Payment p,
+    List<dynamic> members,
+
     ValueNotifier<String> statusNotifier,
   ) {
+    final paymentMemberId = p.memberId.toString().trim();
+
+    final isMemberExists = members.any((member) {
+      final memberId = member.docId.toString().trim();
+
+      debugPrint("DESKTOP PAYMENT MEMBER ID => $paymentMemberId");
+      debugPrint("DESKTOP MEMBER DOC ID => $memberId");
+      debugPrint("DESKTOP COMPARE => $memberId == $paymentMemberId");
+
+      return memberId == paymentMemberId;
+    });
+
+    debugPrint("DESKTOP RESULT => $paymentMemberId : $isMemberExists");
     return DataRow(
       onSelectChanged: (selected) {
         if (selected != true) return;
@@ -608,24 +720,49 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
           ),
         ),
         DataCell(
-          _StatusDropdownCell(payment: p, statusNotifier: statusNotifier),
+          isMemberExists
+              ? _StatusDropdownCell(payment: p, statusNotifier: statusNotifier)
+              : StatusBadge(status: "Deleted"),
+
+          // _StatusDropdownCell(payment: p, statusNotifier: statusNotifier),
         ),
         DataCell(
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _SaveButtonCell(payment: p, statusNotifier: statusNotifier),
-              if (p.status.toLowerCase() == 'pending' ||
-                  p.status.toLowerCase() == 'overdue') ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
-                  tooltip: 'Pay Fees',
-                  onPressed: () => _handlePay(context, p),
-                ),
-              ],
-            ],
-          ),
+          isMemberExists
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _SaveButtonCell(payment: p, statusNotifier: statusNotifier),
+                    if (p.status.toLowerCase() == 'pending' ||
+                        p.status.toLowerCase() == 'overdue') ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.payments,
+                          color: Color(0xFF7C3AED),
+                        ),
+                        tooltip: 'Pay Fees',
+                        onPressed: () => _handlePay(context, p),
+                      ),
+                    ],
+                  ],
+                )
+              : StatusBadge(status: "Deleted"),
+
+          // Row(
+          //   mainAxisSize: MainAxisSize.min,
+          //   children: [
+          //     _SaveButtonCell(payment: p, statusNotifier: statusNotifier),
+          //     if (p.status.toLowerCase() == 'pending' ||
+          //         p.status.toLowerCase() == 'overdue') ...[
+          //       const SizedBox(width: 8),
+          //       IconButton(
+          //         icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
+          //         tooltip: 'Pay Fees',
+          //         onPressed: () => _handlePay(context, p),
+          //       ),
+          //     ],
+          //   ],
+          // ),
         ),
       ],
     );
@@ -640,9 +777,8 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const Center(
-        child: CircularProgressIndicator(color: Colors.white),
-      ),
+      builder: (ctx) =>
+          const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
 
     try {
@@ -680,9 +816,7 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
       if (member == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No member or payment record found'),
-            ),
+            const SnackBar(content: Text('No member or payment record found')),
           );
         }
         return;
@@ -698,9 +832,9 @@ class _DesktopPaymentTableState extends State<_DesktopPaymentTable> {
     } catch (e) {
       if (context.mounted) Navigator.pop(context);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching member: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error fetching member: $e')));
       }
     }
   }
@@ -861,10 +995,11 @@ class _SaveButtonCellState extends State<_SaveButtonCell> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _MobilePaymentList extends StatelessWidget {
-  const _MobilePaymentList({required this.payments});
+  const _MobilePaymentList({required this.payments, required this.members});
+
   final List<Payment> payments;
+  final List<dynamic> members;
 
   @override
   Widget build(BuildContext context) {
@@ -882,20 +1017,85 @@ class _MobilePaymentList extends StatelessWidget {
         ),
       );
     }
+
     return Column(
-      children: payments
-          // Key by docId so state (selected status, saving flag) is
-          // correctly re-associated with the right card if the list order
-          // changes (sort/filter), instead of by position.
-          .map((p) => _MobilePaymentCard(key: ValueKey(p.docId), payment: p))
-          .toList(),
+      children: payments.map((p) {
+        // final memberIds = members
+        //     .map((member) => member.docId.toString().trim())
+        //     .toSet();
+
+        // final isMemberExists = memberIds.contains(p.memberId.toString().trim());
+
+        debugPrint("PAYMENT MEMBER ID => ${p.memberId}");
+        debugPrint("MEMBERS => $members");
+
+        final paymentMemberId = p.memberId.toString().trim();
+
+        final isMemberExists = members.any((member) {
+          final memberId = member.docId.toString().trim();
+
+          debugPrint("MEMBER DOC ID => $memberId");
+          debugPrint("COMPARE => $memberId == $paymentMemberId");
+
+          return memberId == paymentMemberId;
+        });
+
+        debugPrint("RESULT => $paymentMemberId : $isMemberExists");
+
+        return _MobilePaymentCard(
+          key: ValueKey(p.docId),
+          payment: p,
+          isMemberExists: isMemberExists,
+        );
+      }).toList(),
     );
   }
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// class _MobilePaymentList extends StatelessWidget {
+//   const _MobilePaymentList({required this.payments, required this.members});
+//   final List<Payment> payments;
+//   final List<dynamic> members;
+
+//   @override
+//   Widget build(BuildContext context) {
+
+//     if (payments.isEmpty) {
+//       return Center(
+//         child: Padding(
+//           padding: EdgeInsets.all(cw(15.0)),
+//           child: Text(
+//             'No payments found',
+//             style: TextStyle(
+//               color: const Color(0xFF9CA3AF),
+//               fontSize: AppFontSize.f15,
+//             ),
+//           ),
+//         ),
+//       );
+//     }
+//     return Column(
+//       children: payments
+//           // Key by docId so state (selected status, saving flag) is
+//           // correctly re-associated with the right card if the list order
+//           // changes (sort/filter), instead of by position.
+//           .map((p) => _MobilePaymentCard(key: ValueKey(p.docId), payment: p,
+//           isMemberExists: ,
+//           ))
+//           .toList(),
+//     );
+//   }
+// }
 
 class _MobilePaymentCard extends StatefulWidget {
-  const _MobilePaymentCard({super.key, required this.payment});
+  const _MobilePaymentCard({
+    super.key,
+    required this.payment,
+
+    required this.isMemberExists,
+  });
   final Payment payment;
+  final bool isMemberExists;
 
   @override
   State<_MobilePaymentCard> createState() => _MobilePaymentCardState();
@@ -945,6 +1145,9 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
   @override
   Widget build(BuildContext context) {
     final p = widget.payment;
+
+    final isMemberExists = widget.isMemberExists;
+
     return Container(
       margin: EdgeInsets.only(bottom: ch(9.7)),
       decoration: BoxDecoration(
@@ -965,167 +1168,191 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  AppText(
-                    txt: 'Gym ID: ${p.gymId}',
-                    // style: TextStyle(
-                    fontSize: AppFontSize.f11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColor.cFFFFFF,
-                  ),
-                  // ),
-                  SizedBox(width: cw(5.0)),
-                  AppText(
-                    txt: p.invoiceId,
-                    // style: TextStyle(
-                    fontSize: AppFontSize.f11,
-                    // fontFamily: 'monospace',
-                    color: const Color(0xFF9CA3AF),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        AppText(
+                          txt: 'Gym ID: ${p.gymId}',
+                          // style: TextStyle(
+                          fontSize: AppFontSize.f11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColor.cFFFFFF,
+                        ),
+                        // ),
+                        SizedBox(width: cw(5.0)),
+                        AppText(
+                          txt: p.invoiceId,
+                          // style: TextStyle(
+                          fontSize: AppFontSize.f11,
+                          // fontFamily: 'monospace',
+                          color: const Color(0xFF9CA3AF),
+                          // ),
+                        ),
+                      ],
+                    ),
+
+                    if (isMemberExists)
+                      StatusBadge(status: p.status)
+                    else
+                      StatusBadge(status: "Deleted"),
+
+                    // Container(height: 100, width: 200, color: AppColor.blue),
+                  ],
+                ),
+                SizedBox(height: ch(5)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    AppText(
+                      txt: p.member,
+                      // style: TextStyle(
+                      fontSize: AppFontSize.f15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColor.cFFFFFF,
+                      // ),
+                    ),
+                    AppText(
+                      txt: 'Rs. ${p.amount.toInt()}',
+                      // style: TextStyle(
+                      fontSize: AppFontSize.f14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColor.cFFFFFF,
+                    ),
                     // ),
-                  ),
-                ],
-              ),
-              StatusBadge(status: p.status),
-            ],
-          ),
-          SizedBox(height: ch(5)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppText(
-                txt: p.member,
-                // style: TextStyle(
-                fontSize: AppFontSize.f15,
-                fontWeight: FontWeight.w600,
-                color: AppColor.cFFFFFF,
-                // ),
-              ),
-              AppText(
-                txt: 'Rs. ${p.amount.toInt()}',
-                // style: TextStyle(
-                fontSize: AppFontSize.f14,
-                fontWeight: FontWeight.w700,
-                color: AppColor.cFFFFFF,
-              ),
-              // ),
-            ],
-          ),
-          SizedBox(height: ch(6)),
-          Row(
-            children: [
-              _PlanChip(plan: p.plan),
-              SizedBox(width: cw(7.5)),
-              Row(
-                children: [
-                  Icon(
-                    Icons.credit_card_outlined,
-                    size: cw(20),
-                    color: Color(0xFF9CA3AF),
-                  ),
-                  SizedBox(width: cw(4)),
-                  AppText(
-                    txt: p.method,
-                    // style: TextStyle(
-                    fontSize: AppFontSize.f12,
-                    color: const Color(0xFF6B7280),
-                    // ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: ch(8)),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 12,
-                color: AppColor.cFFFFFF,
-              ),
-              SizedBox(width: cw(4)),
-              AppText(
-                txt: 'Paid: ${p.date}',
-                // style: TextStyle(
-                fontSize: AppFontSize.f10,
-                color: AppColor.cFFFFFF,
-                // ),
-              ),
-            ],
-          ),
-          SizedBox(height: ch(10)),
-          Row(
-            children: [
-              SizedBox(
-                width: cw(170),
-                child: DropdownButtonFormField<String>(
-                  style: TextStyle(
-                    fontSize: AppFontSize.f15,
-                    color: AppColor.cFFFFFF,
-                  ),
-                  initialValue: _selectedStatus,
-                  dropdownColor: AppColor.red,
-                  decoration: customInputDecoration(label: 'Status').copyWith(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: 'Paid',
-                      child: AppText(txt: 'Paid', fontSize: AppFontSize.f14),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Pending',
-                      child: AppText(txt: 'Pending', fontSize: AppFontSize.f14),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Overdue',
-                      child: AppText(txt: 'Overdue', fontSize: AppFontSize.f14),
+                  ],
+                ),
+                SizedBox(height: ch(6)),
+                Row(
+                  children: [
+                    _PlanChip(plan: p.plan),
+                    SizedBox(width: cw(7.5)),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.credit_card_outlined,
+                          size: cw(20),
+                          color: Color(0xFF9CA3AF),
+                        ),
+                        SizedBox(width: cw(4)),
+                        AppText(
+                          txt: p.method,
+                          // style: TextStyle(
+                          fontSize: AppFontSize.f12,
+                          color: const Color(0xFF6B7280),
+                          // ),
+                        ),
+                      ],
                     ),
                   ],
-                  onChanged: (v) {
-                    if (v != null) setState(() => _selectedStatus = v);
-                  },
                 ),
-              ),
-              Spacer(),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 100, minWidth: 50),
-                child: AppButton(
-                  progressSize: 5,
-                  isLoading: _saving,
-                  width: cw(30),
-                  onPressed: _save,
-                  text: "Save",
-                  fontSize: AppFontSize.f11,
-                  color: AppColor.green,
-                  textColor: AppColor.cFFFFFF,
+                SizedBox(height: ch(8)),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 12,
+                      color: AppColor.cFFFFFF,
+                    ),
+                    SizedBox(width: cw(4)),
+                    AppText(
+                      txt: 'Paid: ${p.date}',
+                      // style: TextStyle(
+                      fontSize: AppFontSize.f10,
+                      color: AppColor.cFFFFFF,
+                      // ),
+                    ),
+                  ],
                 ),
-              ),
-              if (p.status.toLowerCase() == 'pending' ||
-                  p.status.toLowerCase() == 'overdue') ...[
-                SizedBox(width: cw(10)),
-                IconButton(
-                  icon: const Icon(Icons.payments, color: Color(0xFF7C3AED)),
-                  tooltip: 'Pay Fees',
-                  onPressed: () =>
-                      _DesktopPaymentTableState._handlePay(context, p),
-                ),
+                SizedBox(height: ch(10)),
+
+                if (isMemberExists)
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: cw(170),
+                        child: DropdownButtonFormField<String>(
+                          style: TextStyle(
+                            fontSize: AppFontSize.f15,
+                            color: AppColor.cFFFFFF,
+                          ),
+                          initialValue: _selectedStatus,
+                          dropdownColor: AppColor.red,
+                          decoration: customInputDecoration(label: 'Status')
+                              .copyWith(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'Paid',
+                              child: AppText(
+                                txt: 'Paid',
+                                fontSize: AppFontSize.f14,
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Pending',
+                              child: AppText(
+                                txt: 'Pending',
+                                fontSize: AppFontSize.f14,
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Overdue',
+                              child: AppText(
+                                txt: 'Overdue',
+                                fontSize: AppFontSize.f14,
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setState(() => _selectedStatus = v);
+                          },
+                        ),
+                      ),
+                      Spacer(),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: 100,
+                          minWidth: 50,
+                        ),
+                        child: AppButton(
+                          progressSize: 5,
+                          isLoading: _saving,
+                          width: cw(30),
+                          onPressed: _save,
+                          text: "Save",
+                          fontSize: AppFontSize.f11,
+                          color: AppColor.green,
+                          textColor: AppColor.cFFFFFF,
+                        ),
+                      ),
+                      if (p.status.toLowerCase() == 'pending' ||
+                          p.status.toLowerCase() == 'overdue') ...[
+                        SizedBox(width: cw(10)),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.payments,
+                            color: Color(0xFF7C3AED),
+                          ),
+                          tooltip: 'Pay Fees',
+                          onPressed: () =>
+                              _DesktopPaymentTableState._handlePay(context, p),
+                        ),
+                      ],
+                    ],
+                  ),
               ],
-            ],
+            ),
           ),
-        ],
+        ),
       ),
-    ),
-  ),
-),
-);
-}
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
