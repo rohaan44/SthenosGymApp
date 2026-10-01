@@ -14,6 +14,7 @@ import '../shared_widgets.dart';
 import '../ui/helpers/app_layout_helper.dart';
 import 'package:app/ui/helpers/font_size_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../ui/routes/app_routes.dart';
 import 'member/members_screen.dart';
 
@@ -301,9 +302,16 @@ class _PaymentsBody extends StatelessWidget {
         .where((p) => p.status == 'Overdue')
         .fold<double>(0, (s, p) => s + p.amount);
     final now = DateTime.now();
+    final prevMonth = DateTime(now.year, now.month - 1, 1);
     final paidThisMonth = allPayments
         .where((p) => p.status == 'Paid' && _isThisMonth(p.date, now))
         .length;
+    final paidPrevMonth = allPayments
+        .where((p) => p.status == 'Paid' && _isThisMonth(p.date, prevMonth))
+        .length;
+    final prevMonthRevenue = allPayments
+        .where((p) => p.status == 'Paid' && _isThisMonth(p.date, prevMonth))
+        .fold<double>(0, (s, p) => s + p.amount);
 
     return Column(
       children: [
@@ -361,7 +369,8 @@ class _PaymentsBody extends StatelessWidget {
                   child: _SummaryCard(
                     title: 'Paid This Month',
                     value: '$paidThisMonth',
-                    sub: 'of ${allPayments.length} total',
+                    sub:
+                        'Prev month: $paidPrevMonth (Rs. ${prevMonthRevenue.toInt()})',
                     icon: Icons.check_circle_outline,
                     iconColor: const Color(0xFF2563EB),
                     iconBg: const Color(0xFFEFF6FF),
@@ -386,6 +395,8 @@ class _PaymentsBody extends StatelessWidget {
                               _searchField(paymentsState),
                               SizedBox(height: ch(9.7)),
                               _statusDropdown(paymentsState, isExpanded: true),
+                              SizedBox(height: ch(9.7)),
+                              _monthDropdown(paymentsState, isExpanded: true),
                             ],
                           )
                         : Row(
@@ -393,8 +404,13 @@ class _PaymentsBody extends StatelessWidget {
                               Expanded(child: _searchField(paymentsState)),
                               SizedBox(width: cw(7.5)),
                               SizedBox(
-                                width: 160,
+                                width: 150,
                                 child: _statusDropdown(paymentsState),
+                              ),
+                              SizedBox(width: cw(7.5)),
+                              SizedBox(
+                                width: 170,
+                                child: _monthDropdown(paymentsState),
                               ),
                             ],
                           ),
@@ -417,12 +433,14 @@ class _PaymentsBody extends StatelessWidget {
                             ),
                             if (filtered.isEmpty &&
                                 (paymentsState.search.isNotEmpty ||
-                                    paymentsState.filterStatus != 'all'))
+                                    paymentsState.filterStatus != 'all' ||
+                                    paymentsState.filterMonth != 'all'))
                               InkWell(
                                 onTap: () {
                                   paymentsState.searchTextFieldCntrl.clear();
                                   paymentsState.setSearch('');
                                   paymentsState.setFilterStatus('all');
+                                  paymentsState.setFilterMonth('all');
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
@@ -542,6 +560,38 @@ class _PaymentsBody extends StatelessWidget {
     ],
     onChanged: (v) => state.setFilterStatus(v!),
   );
+
+  static Widget _monthDropdown(
+    PaymentsProvider state, {
+    bool isExpanded = false,
+  }) {
+    final now = DateTime.now();
+    final prevMonth = DateTime(now.year, now.month - 1, 1);
+    final thisMonthName = DateFormat.MMMM().format(now);
+    final prevMonthName = DateFormat.MMMM().format(prevMonth);
+
+    return DropdownButtonFormField<String>(
+      initialValue: state.filterMonth,
+      isExpanded: isExpanded,
+      dropdownColor: AppColor.red,
+      decoration: customInputDecoration(label: 'Month'),
+      items: [
+        DropdownMenuItem(
+          value: 'all',
+          child: AppText(txt: 'All Months'),
+        ),
+        DropdownMenuItem(
+          value: 'this_month',
+          child: AppText(txt: 'This Month ($thisMonthName)'),
+        ),
+        DropdownMenuItem(
+          value: 'prev_month',
+          child: AppText(txt: 'Prev Month ($prevMonthName)'),
+        ),
+      ],
+      onChanged: (v) => state.setFilterMonth(v!),
+    );
+  }
 }
 
 Future<void> _onExportTap(BuildContext context) async {
@@ -903,14 +953,20 @@ class _StatusDropdownCell extends StatefulWidget {
 }
 
 class _StatusDropdownCellState extends State<_StatusDropdownCell> {
+  static String _normalizeStatus(String status) {
+    final s = status.trim().toLowerCase();
+    if (s == 'paid') return 'Paid';
+    if (s == 'pending') return 'Pending';
+    if (s == 'overdue') return 'Overdue';
+    return 'Pending';
+  }
+
   @override
   void didUpdateWidget(_StatusDropdownCell old) {
     super.didUpdateWidget(old);
-    // If Firestore delivers a new status and the user hasn't made an unsaved
-    // local edit, keep the dropdown in sync with the stored value.
-    if (old.payment.status != widget.payment.status &&
-        widget.statusNotifier.value == old.payment.status) {
-      widget.statusNotifier.value = widget.payment.status;
+    // If Firestore delivers a new status, keep the dropdown in sync
+    if (old.payment.status != widget.payment.status) {
+      widget.statusNotifier.value = _normalizeStatus(widget.payment.status);
     }
   }
 
@@ -918,28 +974,33 @@ class _StatusDropdownCellState extends State<_StatusDropdownCell> {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(
       valueListenable: widget.statusNotifier,
-      builder: (_, current, __) => DropdownButton<String>(
-        value: current,
-        dropdownColor: AppColor.red,
-        underline: const SizedBox(),
-        items: [
-          DropdownMenuItem(
-            value: 'Paid',
-            child: AppText(txt: 'Paid'),
-          ),
-          DropdownMenuItem(
-            value: 'Pending',
-            child: AppText(txt: 'Pending'),
-          ),
-          DropdownMenuItem(
-            value: 'Overdue',
-            child: AppText(txt: 'Overdue'),
-          ),
-        ],
-        onChanged: (v) {
-          if (v != null) widget.statusNotifier.value = v;
-        },
-      ),
+      builder: (_, current, __) {
+        final val = ['Paid', 'Pending', 'Overdue'].contains(current)
+            ? current
+            : _normalizeStatus(current);
+        return DropdownButton<String>(
+          value: val,
+          dropdownColor: AppColor.red,
+          underline: const SizedBox(),
+          items: [
+            DropdownMenuItem(
+              value: 'Paid',
+              child: AppText(txt: 'Paid'),
+            ),
+            DropdownMenuItem(
+              value: 'Pending',
+              child: AppText(txt: 'Pending'),
+            ),
+            DropdownMenuItem(
+              value: 'Overdue',
+              child: AppText(txt: 'Overdue'),
+            ),
+          ],
+          onChanged: (v) {
+            if (v != null) widget.statusNotifier.value = v;
+          },
+        );
+      },
     );
   }
 }
@@ -1105,18 +1166,25 @@ class _MobilePaymentCardState extends State<_MobilePaymentCard> {
   late String _selectedStatus;
   bool _saving = false;
 
+  static String _normalizeStatus(String status) {
+    final s = status.trim().toLowerCase();
+    if (s == 'paid') return 'Paid';
+    if (s == 'pending') return 'Pending';
+    if (s == 'overdue') return 'Overdue';
+    return 'Pending';
+  }
+
   @override
   void initState() {
     super.initState();
-    _selectedStatus = widget.payment.status;
+    _selectedStatus = _normalizeStatus(widget.payment.status);
   }
 
   @override
   void didUpdateWidget(_MobilePaymentCard old) {
     super.didUpdateWidget(old);
-    if (old.payment.status != widget.payment.status &&
-        _selectedStatus == old.payment.status) {
-      _selectedStatus = widget.payment.status;
+    if (old.payment.status != widget.payment.status) {
+      _selectedStatus = _normalizeStatus(widget.payment.status);
     }
   }
 

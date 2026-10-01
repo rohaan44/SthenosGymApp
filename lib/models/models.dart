@@ -213,8 +213,23 @@ class Payment {
     final dateStr = data['date']?.toString() ?? '';
     final planStr = data['plan']?.toString() ?? '';
 
-    // Dynamic runtime payment status calculation (Option A - pure in-memory read)
-    final computedStatus = calculatePaymentStatus(dateStr, planStr);
+    final rawStatus = data['status']?.toString().trim();
+    String statusVal;
+    if (rawStatus != null && rawStatus.isNotEmpty) {
+      final s = rawStatus.toLowerCase();
+      if (s == 'paid') {
+        statusVal = 'Paid';
+      } else if (s == 'pending') {
+        statusVal = 'Pending';
+      } else if (s == 'overdue') {
+        statusVal = 'Overdue';
+      } else {
+        statusVal = rawStatus[0].toUpperCase() +
+            rawStatus.substring(1).toLowerCase();
+      }
+    } else {
+      statusVal = calculatePaymentStatus(dateStr, planStr);
+    }
 
     // Safely parse Firestore Timestamp → DateTime
     DateTime? ts;
@@ -235,7 +250,7 @@ class Payment {
       amount: (data['amount'] ?? 0).toDouble(),
       plan: planStr,
       method: data['method'] ?? '',
-      status: computedStatus,
+      status: statusVal,
       date: dateStr,
       dueDate: dateStr,
       invoiceId: data['invoiceId'] ?? docId,

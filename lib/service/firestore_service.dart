@@ -46,24 +46,41 @@ class FirestoreService {
         );
   }
 
-  /// Live stream of ALL payments, newest timestamp first.
+  /// Live stream of ALL payments, newest first.
+  ///
+  /// NOTE: We query without `.orderBy('timestamp')` so documents missing the
+  /// timestamp field (e.g. legacy/imported payments) are not silently dropped by Firestore.
+  /// Sorting is performed client-side by timestamp with fallback to date string.
   Stream<List<Payment>> paymentsStream() {
-    return _db
-        .collection('payments')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs
-              .map((doc) => Payment.fromFirestore(doc.data(), doc.id))
-              .toList();
+    return _db.collection('payments').snapshots().map((snap) {
+      final list = snap.docs
+          .map((doc) => Payment.fromFirestore(doc.data(), doc.id))
+          .toList();
 
-          // Check and notify for status transitions (guarded by notifiedStatus field)
-          for (final payment in list) {
-            NotificationService.instance.checkAndNotifyPaymentStatus(payment);
-          }
+      // Sort descending (newest first) client-side
+      list.sort((a, b) {
+        if (a.timestamp != null && b.timestamp != null) {
+          return b.timestamp!.compareTo(a.timestamp!);
+        }
+        if (a.timestamp != null) return -1;
+        if (b.timestamp != null) return 1;
 
-          return list;
-        });
+        if (a.date.isNotEmpty && b.date.isNotEmpty) {
+          return b.date.compareTo(a.date);
+        }
+        if (a.date.isNotEmpty) return -1;
+        if (b.date.isNotEmpty) return 1;
+
+        return 0;
+      });
+
+      // Check and notify for status transitions (guarded by notifiedStatus field)
+      for (final payment in list) {
+        NotificationService.instance.checkAndNotifyPaymentStatus(payment);
+      }
+
+      return list;
+    });
   }
 
   /// Live stream of payments scoped to a single member's Firestore doc ID,

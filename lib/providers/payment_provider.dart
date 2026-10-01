@@ -9,9 +9,11 @@ import 'package:app/service/export_service.dart';
 class PaymentsProvider extends ChangeNotifier {
   String _search = '';
   String _filterStatus = 'all';
+  String _filterMonth = 'all';
   bool _isExporting = false;
   String get search => _search;
   String get filterStatus => _filterStatus;
+  String get filterMonth => _filterMonth;
 
   TextEditingController searchTextFieldCntrl = TextEditingController();
 
@@ -33,10 +35,28 @@ class PaymentsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFilterMonth(String value) {
+    _filterMonth = value;
+    notifyListeners();
+  }
+
+  static bool _isMonth(String dateStr, int year, int month) {
+    if (dateStr.isEmpty) return false;
+    try {
+      final d = DateTime.parse(dateStr);
+      return d.year == year && d.month == month;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Applies the current search + status filter to a list of payments,
   /// keeping only the latest invoice for each member.
   List<Payment> filtered(List<Payment> payments) {
-    // 1. First apply search and status filters
+    final now = DateTime.now();
+    final prevMonth = DateTime(now.year, now.month - 1, 1);
+
+    // 1. First apply search, status, and month filters
     final filteredList = payments.where((p) {
       final matchSearch =
           p.member.toLowerCase().contains(_search.toLowerCase()) ||
@@ -44,7 +64,15 @@ class PaymentsProvider extends ChangeNotifier {
       final matchStatus =
           _filterStatus == 'all' ||
           p.status.toLowerCase() == _filterStatus.toLowerCase();
-      return matchSearch && matchStatus;
+
+      bool matchMonth = true;
+      if (_filterMonth == 'this_month') {
+        matchMonth = _isMonth(p.date, now.year, now.month);
+      } else if (_filterMonth == 'prev_month') {
+        matchMonth = _isMonth(p.date, prevMonth.year, prevMonth.month);
+      }
+
+      return matchSearch && matchStatus && matchMonth;
     }).toList();
 
     // 2. Since payments is sorted descending by timestamp, the first payment
